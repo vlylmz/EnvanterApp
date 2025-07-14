@@ -1,0 +1,25 @@
+﻿@{
+    ViewBag.Title = "Giriş Yap";
+}
+
+<h2 class="text-2xl font-bold mb-4">Kullanıcı Girişi</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div style="color:red">@ViewBag.Error</div>
+}
+
+<form asp-action="Login" method="post">
+    <div class="mb-3">
+        <label>Kullanıcı Adı</label>
+        <input type="text" name="username" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label>Şifre</label>
+        <input type="password" name="password" class="form-control" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Giriş Yap</button>
+</form>
+
