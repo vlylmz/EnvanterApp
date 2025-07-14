@@ -1,6 +1,10 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
+using Microsoft.AspNet.Identity;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+
 
 namespace WebApplication1.Controllers
 {

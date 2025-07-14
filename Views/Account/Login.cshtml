@@ -1,30 +1,35 @@
 ﻿@{
     ViewBag.Title = "Giriş Yap";
-}
-@{
     Layout = "~/Views/Shared/_LoginLayout.cshtml";
 }
 
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="text-center mb-4">Kullanıcı Girişi</h3>
 
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger">@ViewBag.Error</div>
+                }
 
-<h2 class="text-2xl font-bold mb-4">Kullanıcı Girişi</h2>
+                <form asp-action="Login" method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Kullanıcı Adı</label>
+                        <input type="text" name="username" class="form-control" required />
+                    </div>
 
-@if (ViewBag.Error != null)
-{
-    <div style="color:red">@ViewBag.Error</div>
-}
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Şifre</label>
+                        <input type="password" name="password" class="form-control" required />
+                    </div>
 
-<form asp-action="Login" method="post">
-    <div class="mb-3">
-        <label>Kullanıcı Adı</label>
-        <input type="text" name="username" class="form-control" required />
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Giriş Yap</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="mb-3">
-        <label>Şifre</label>
-        <input type="password" name="password" class="form-control" required />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Giriş Yap</button>
-</form>
-
+</div>
