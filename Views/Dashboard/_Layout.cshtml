@@ -9,10 +9,10 @@
 </head>
 <body>
     <div class="d-flex">
-        @Html.Partial("~/Views/Shared/Partials/Sidebar.cshtml")
+        <partial name="Partials/Sidebar" />
 
         <div class="flex-grow-1">
-            @Html.Partial("~/Views/Shared/Partials/Navbar.cshtml")
+            <partial name="Partials/Navbar" />
 
             <main class="p-4">
                 @RenderBody()
