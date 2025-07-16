@@ -8,7 +8,11 @@
         public int CompanyId { get; set; }
         public string PasswordHash { get; set; }
         public string Email { get; set; }
-        public bool IsActive { get; set; }       
+        public bool IsActive { get; set; }
+
+        public string Assigned { get; set; }
+
+        public string AssignedSoftware { get; set; } // İlgili yazılımın adı
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
     }

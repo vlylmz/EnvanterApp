@@ -1,0 +1,105 @@
+﻿@model List<Software>  
+@{  
+    ViewBag.Title = "Yazılımlar";  
+    var companies = ViewBag.Companies as List<SelectListItem>;  
+    var employees = ViewBag.Employees as List<SelectListItem>;  
+    var q = Context.Request.Query;  
+}  
+
+
+<div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+    <h2 class="mb-0">Yazılım Listesi</h2>
+    <a href="/Software/Create" class="btn btn-success">Yeni Yazılım Ekle</a>
+</div>
+
+<form method="get" class="row g-2 align-items-end mb-4">  
+    <div class="col-md-3">  
+        <input type="text" name="search" value="@(q["search"].ToString())" placeholder="Ad/Marka" class="form-control" />  
+    </div>  
+    <div class="col-md-2">  
+        <select name="companyId" class="form-select">  
+            <option value="">Firma Seç</option>  
+            @if (companies != null)  
+            {  
+                foreach (var c in companies)  
+                {  
+                    <option value="@c.Value" selected="@(q["companyId"] == c.Value ? "selected" : null)">@c.Text</option>  
+                }  
+            }  
+        </select>  
+    </div>  
+    <div class="col-md-2">  
+        <select name="assignedEmployeeId" class="form-select">  
+            <option value="">Zimmetli Kişi</option>  
+            @if (employees != null)  
+            {  
+                foreach (var e in employees)  
+                {  
+                    <option value="@e.Value" selected="@(q["assignedEmployeeId"] == e.Value ? "selected" : null)">@e.Text</option>  
+                }  
+            }  
+        </select>  
+    </div>  
+    <div class="col-md-2">  
+        <select name="status" class="form-select">  
+            <option value="">Durum</option>  
+            <option value="Aktif" selected="@(q["status"] == "Aktif" ? "selected" : null)">Aktif</option>  
+            <option value="Yaklaşan" selected="@(q["status"] == "Yaklaşan" ? "selected" : null)">Yaklaşan</option>  
+            <option value="Süresi Dolmuş" selected="@(q["status"] == "Süresi Dolmuş" ? "selected" : null)">Süresi Dolmuş</option>  
+        </select>  
+    </div>  
+    <div class="col-md-1 d-grid">  
+        <button type="submit" class="btn btn-secondary">Filtrele</button>  
+    </div>  
+    <div class="col-md-2 d-grid">  
+        <a href="@Url.Action("Index", "Software")" class="btn btn-outline-secondary">Temizle</a>  
+    </div>  
+</form>  
+
+<table class="table table-bordered align-middle">  
+    <thead>  
+        <tr>  
+            <th>Ad</th>  
+            <th>Marka</th>  
+            <th>Firma</th>  
+            <th>Zimmetli</th>  
+            <th>Satın Alma</th>  
+            <th>Bitiş</th>  
+            <th>Durum</th>  
+            <th>Kalan</th>  
+            <th>İşlem</th>  
+        </tr>  
+    </thead>  
+    <tbody>  
+        @foreach (var s in Model)  
+        {  
+            var kalanGun = (s.ExpiryDate - DateTime.Today).TotalDays;  
+            var renk = s.Status == "Aktif" ? "success" : s.Status == "Yaklaşan" ? "warning" : "danger";  
+            var kalanRenk = s.Status == "Aktif" ? "text-success" : s.Status == "Yaklaşan" ? "text-warning" : "text-danger";  
+            <tr>  
+                <td>@s.Name</td>  
+                <td>@s.Brand</td>  
+                <td>@s.CompanyName</td>  
+                <td>@s.AssignedEmployeeName</td>  
+                <td>@s.PurchaseDate.ToShortDateString()</td>  
+                <td>@s.ExpiryDate.ToShortDateString()</td>  
+                <td><span class="badge bg-@renk">@s.Status</span></td>  
+                <td>  
+                    @if (kalanGun < 0)  
+                    {  
+                        <span class="text-danger">Süresi Doldu</span>  
+                    }  
+                    else  
+                    {  
+                        <span class="@kalanRenk">@kalanGun gün</span>  
+                    }  
+                </td>  
+                <td>  
+                    <a asp-action="Details" asp-route-id="@s.Id" class="btn btn-info btn-sm">Detay</a>  
+                    <a asp-action="Edit" asp-route-id="@s.Id" class="btn btn-warning btn-sm">Düzenle</a>  
+                    <a asp-action="Delete" asp-route-id="@s.Id" class="btn btn-danger btn-sm">Sil</a>  
+                </td>  
+            </tr>  
+        }  
+    </tbody>  
+</table>
