@@ -6,6 +6,13 @@
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public int CompanyId { get; set; }
+        public string PasswordHash { get; set; }
+        public string Email { get; set; }
+        public bool IsActive { get; set; }
+
+        public string Assigned { get; set; }
+
+        public string AssignedSoftware { get; set; } // İlgili yazılımın adı
         public string? PasswordHash { get; set; }
         public string? Email { get; set; }
         public bool IsActive { get; set; }
