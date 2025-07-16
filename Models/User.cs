@@ -4,19 +4,21 @@ namespace WebApplication1.Models
 {
     public class User
     {
-        public int id { get; set; }
+        public int Id { get; set; }
 
-        public string? userName { get; set; }
+        public string? UserName { get; set; }
 
-        public string? realName { get; set; }
+        public string? FirstName { get; set; }
 
-        public string? surname { get; set; }
+        public string? LastName { get; set; }
+        
+        public string? Email { get; set; }
         
         [DataType(DataType.Date)]
-        public DateTime registerDate { get; set; }
+        public DateTime CreatedTime { get; set; }
 
-        public byte[]? totpSecret {  get; set; }
+        public byte[]? TotpSecret {  get; set; }
 
-
+        public string? PasswordHash { get; set; }
     }
 }

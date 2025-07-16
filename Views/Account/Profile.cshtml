@@ -1,0 +1,34 @@
+﻿@model WebApplication1.Models.User
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8"></div> <!-- Empty space for left 2/3 -->
+        <div class="col-md-4">
+            <h2>Profil</h2>
+            <form asp-action="Edit" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Ad</label>
+                    <input asp-for="FirstName" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Soyad</label>
+                    <input asp-for="LastName" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input asp-for="Email" class="form-control" />
+                </div>
+
+                <!-- Read-only Creation Time -->
+                <div class="mb-3">
+                    <label class="form-label">Oluşturulma Tarihi</label>
+                    <input class="form-control" value="@Model.CreatedTime.ToString("yyyy-MM-dd HH:mm")" readonly />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+            </form>
+        </div>
+    </div>
+</div>

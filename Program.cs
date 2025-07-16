@@ -24,7 +24,7 @@ app.UseStaticFiles();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Login}/{action=Index}");/*.WithStaticAssets();*/
+    pattern: "{controller=Login}/{action=Index}/{id?}");/*.WithStaticAssets();*/
 
 
 app.Run();
