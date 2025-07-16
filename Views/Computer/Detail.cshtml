@@ -1,0 +1,88 @@
+﻿@model WebApplication1.ViewModels.ComputerDetailsViewModel
+
+<div class="card mt-4">
+    <div class="card-header bg-primary text-white">
+        <h3>@Model.Name - Bilgisayar Detayları</h3>
+    </div>
+    <div class="card-body">
+        <p><strong>Açıklama:</strong> @Model.Description</p>
+        <p><strong>Asset Tag:</strong> @Model.AssetTag</p>
+        <p><strong>Durum:</strong> @Model.Status</p>
+        <p><strong>Aktif mi?:</strong> @(Model.IsActive ? "Evet" : "Hayır")</p>
+        <p><strong>Oluşturulma Tarihi:</strong> @Model.CreatedDate.ToString("dd MMM yyyy")</p>
+        <hr />
+        <p><strong>Zimmetli Kullanıcı:</strong> @Model.AssignedUserFullName</p>
+        <p><strong>Kullanıcı E-Posta:</strong> @Model.AssignedUserEmail</p>
+    </div>
+</div>
+
+<a href="/Computer/All" class="btn btn-secondary mt-4">← Tüm Bilgisayarlara Dön</a>
+
+<!-- Accordion Başlangıcı -->
+<div class="accordion mt-4" id="computerDetailsAccordion">
+
+    <!-- Yüklü Yazılımlar -->
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="headingSoftware">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSoftware" aria-expanded="false" aria-controls="collapseSoftware">
+                <i class="fas fa-cogs me-2"></i> Yüklü Yazılımlar (@Model.InstalledSoftwares.Count)
+            </button>
+        </h2>
+        <div id="collapseSoftware" class="accordion-collapse collapse" aria-labelledby="headingSoftware" data-bs-parent="#computerDetailsAccordion">
+            <div class="accordion-body">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Adı</th>
+                            <th>Marka</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sw in Model.InstalledSoftwares)
+                        {
+                            <tr>
+                                <td>@sw.Name</td>
+                                <td>@sw.Brand</td>
+                                <td>@sw.Status</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aksesuarlar -->
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="headingAccessories">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAccessories" aria-expanded="false" aria-controls="collapseAccessories">
+                <i class="fas fa-keyboard me-2"></i> Aksesuarlar (@Model.Accessories.Count)
+            </button>
+        </h2>
+        <div id="collapseAccessories" class="accordion-collapse collapse" aria-labelledby="headingAccessories" data-bs-parent="#computerDetailsAccordion">
+            <div class="accordion-body">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Adı</th>
+                            <th>Barkod</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var acc in Model.Accessories)
+                        {
+                            <tr>
+                                <td>@acc.Name</td>
+                                <td>@acc.SystemBarcode</td>
+                                <td>@acc.Status</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
