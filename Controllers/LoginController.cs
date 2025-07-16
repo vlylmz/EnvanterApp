@@ -77,7 +77,7 @@ public class LoginController : Controller
     }
 
 
-    private User? getUserInfoFromDB()
+    private static User? getUserInfoFromDB()
     {
         if(!System.IO.File.Exists("Data/userData.json"))
         {
@@ -222,7 +222,7 @@ public class LoginController : Controller
         return JsonSerializer.Deserialize<User>(userJson);
     }
 
-    private void saveUserToDB(User user)
+    private static void saveUserToDB(User user)
     {
         System.IO.File.AppendAllText("Data/userData.json", JsonSerializer.Serialize<User>(user));
     }
