@@ -24,7 +24,7 @@ namespace WebApplication1.Controllers
             {
                 employees = employees.Where(e =>
                     (e.FirstName + " " + e.LastName).ToLower().Contains(searchString.ToLower()) ||
-                    e.Email.ToLower().Contains(searchString.ToLower())
+                    (e.Email != null && e.Email.ToLower().Contains(searchString.ToLower()) )
                 );
             }
 

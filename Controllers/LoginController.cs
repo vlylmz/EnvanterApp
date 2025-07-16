@@ -6,55 +6,55 @@ using Microsoft.AspNetCore.Mvc;
 using OtpNet;
 using QRCoder;
 using WebApplication1.Models;
+using static QRCoder.PayloadGenerator;
 
 public class LoginController : Controller
 {
     public IActionResult Index()
     {
         // redirect to dashboard if already logged in
-        if (HttpContext.Session.GetString("user") != null)
+        if (getUserFromSession() != null)
             return RedirectToAction("Index", "Dashboard");
 
         // return Login screen
-        return View();
+        return View("Index");
     }
 
 
     [HttpPost]
     public IActionResult Index(string username, string password)
     {
-        if (HttpContext.Session.GetString("user") != null)
+        if (getUserFromSession() != null)
             return RedirectToAction("Index", "Dashboard");
 
         // Check Login info
-        var user = getUserInfoFromDB();
+        User? user = getUserInfoFromDB();
         
-
         if (user != null)
         {
-            //Console.WriteLine(user.userName + " " + user.totpSecret);
-            HttpContext.Session.SetString("2FA_auth_wait_user", username);
-            if(user.totpSecret != null)
-                HttpContext.Session.Set("2FA_auth_secret", user.totpSecret);
+            if(user.TotpSecret != null)
+            {
+                HttpContext.Session.SetString("2FA_userToAuth", JsonSerializer.Serialize<User>(user));
+                return View("get2FA");
+            }
             else
             {
-                ViewBag.Error = "empty TOTP secret for user: " + user.userName;
                 HttpContext.Session.Clear();
-                return View("Index");
+                saveUsertoSession(user);
+                return RedirectToAction("Index", "Dashboard");
             }
-
-            return View("get2FA");
         }
 
         else if(username == "admin" && password == "1234")
         {
-            //admin first login
-            HttpContext.Session.SetString("2FA_auth_add_wait_user", "admin");
-
+            // admin first login
+            
             var secretKey = KeyGeneration.GenerateRandomKey(16);
-            var base32Secret = Base32Encoding.ToString(secretKey);
 
-            HttpContext.Session.Set("2FA_auth_add_new_secret", secretKey);
+            User adminAccount = new User() { Id = 0, UserName = "admin", FirstName = "Hakkı", LastName = "Ayman", Email = "asdasd@example.org", CreatedTime = DateTime.Now, TotpSecret = secretKey};
+            HttpContext.Session.SetString("2FA_userToAdd", JsonSerializer.Serialize<User>(adminAccount));
+
+            var base32Secret = Base32Encoding.ToString(secretKey);
 
             string issuer = "Envanter";
             string otpauthUrl = $"otpauth://totp/{issuer}?secret={base32Secret}&digits=6";
@@ -67,13 +67,13 @@ public class LoginController : Controller
 
             var qrUrl = $"data:image/png;base64,{base64Image}";
             ViewBag.qrUrl = qrUrl;
-            HttpContext.Session.SetString("qrUrl", qrUrl);
+            HttpContext.Session.SetString("2FA_qrUrl", qrUrl);
 
             return View("set2FA");
         }
 
         ViewBag.Error = "Kullanıcı adı veya şifre hatalı.";
-        return View();
+        return View("Index");
     }
 
 
@@ -81,14 +81,11 @@ public class LoginController : Controller
     {
         if(!System.IO.File.Exists("Data/userData.json"))
         {
-            Console.WriteLine("recreating db");
             System.IO.File.WriteAllText("Data/userData.json", "");
             return null;
         }
 
-        //Console.WriteLine("found db");
         var json = System.IO.File.ReadAllText("Data/userData.json");
-        //Console.WriteLine("db content: " + json);
         if(!string.IsNullOrEmpty(json))
         {
             
@@ -96,10 +93,10 @@ public class LoginController : Controller
             {
                 return JsonSerializer.Deserialize<User>(json);
             }
-            catch(JsonException ex) { Console.WriteLine("json ex"); return null; }
+            catch(JsonException ex) { Console.WriteLine("json ex" + ex.Message); return null; }
             catch(Exception ex) { Console.WriteLine("Unexpected: " + ex.Message); return null; }
         }
-        Console.WriteLine("json nf");
+
         return null;
     }
 
@@ -107,32 +104,49 @@ public class LoginController : Controller
     [HttpPost]
     public IActionResult register2FA(string code_2fa)
     {
-        string? user = HttpContext.Session.GetString("2FA_auth_add_wait_user");
-        if (user == null || string.IsNullOrEmpty(user))
+        var userToAddJson = HttpContext.Session.GetString("2FA_userToAdd");
+        if(userToAddJson == null || string.IsNullOrEmpty(userToAddJson))
         {
-            ViewBag.Error = "No user at session";
-            return View("Index");
+            ViewBag.Error = "empty user";
+            return View("set2FA");
         }
 
-        var totpSecretHttp = HttpContext.Session.Get("2FA_auth_add_new_secret");
+        User? userToAdd;
+
+        try
+        {
+            userToAdd = JsonSerializer.Deserialize<User>(userToAddJson);
+            if(userToAdd == null)
+            {
+                ViewBag.Error = "unknown";
+                return View("set2FA");
+            }
+        }
+        catch (Exception ex) 
+        {
+            Console.WriteLine(ex.Message);
+            ViewBag.Error = "Error at deserialize";
+            ViewBag.qrUrl = HttpContext.Session.GetString("2FA_qrUrl");
+            return View("set2FA");    
+        }
+
+        var totpSecretHttp = userToAdd.TotpSecret;
         var totpSecretObj = new Totp(totpSecretHttp);
         var totpSecretComputed = totpSecretObj.ComputeTotp();
 
         if (code_2fa != totpSecretComputed)
         {
             ViewBag.Error = "Wrong 2FA key";
-            ViewBag.qrUrl = HttpContext.Session.GetString("qrUrl");
+            ViewBag.qrUrl = HttpContext.Session.GetString("2FA_qrUrl");
             return View("set2FA");
         }
 
         // save user into DB
-        User newUser = new User() { id = 0, realName = "Hakkı", surname = "Ayman", userName = "admin", registerDate = DateTime.UtcNow, totpSecret = totpSecretHttp };
-        string userJson = JsonSerializer.Serialize<User>(newUser);
-        //Console.WriteLine(userJson);
-        System.IO.File.WriteAllText("Data/userData.json", userJson);
-
+        saveUserToDB(userToAdd);
+        
+        // login
         HttpContext.Session.Clear();
-        HttpContext.Session.SetString("user", user);
+        saveUsertoSession(userToAdd);
         return RedirectToAction("Index", "Dashboard");
     }
 
@@ -140,27 +154,21 @@ public class LoginController : Controller
     [HttpPost]
     public IActionResult login2FA(string code_2fa)
     {
-        string? user = HttpContext.Session.GetString("2FA_auth_wait_user");
-        if (user == null || string.IsNullOrEmpty(user))
+        var userToAuthJson = HttpContext.Session.GetString("2FA_userToAuth");
+        if(userToAuthJson == null || string.IsNullOrEmpty(userToAuthJson))
         {
-            user = HttpContext.Session.GetString("2FA_auth_add_wait_user");
-            if (user == null || string.IsNullOrEmpty(user))
-            {
-                ViewBag.Error = "No user at session";
-                return View("Index");
-            }
+            ViewBag.Error = "empty user at login";
+            return View("get2FA");
+        }
+        
+        User? userToAuth = JsonSerializer.Deserialize<User>(userToAuthJson);
+        if (userToAuth == null)
+        {
+            ViewBag.Error = "unknown";
+            return View("get2FA");
         }
 
-        var totpSecretHttp = HttpContext.Session.Get("2FA_auth_secret");
-        if(totpSecretHttp == null)
-            totpSecretHttp = HttpContext.Session.Get("2FA_auth_add_new_secret");
-        if(totpSecretHttp == null)
-        {
-            ViewBag.Error = "empty TOTP secret for user at login";
-            return View("Index");
-        }
-
-        var totpSecretObj = new Totp(totpSecretHttp);
+        var totpSecretObj = new Totp(userToAuth.TotpSecret);
         var totpSecretComputed = totpSecretObj.ComputeTotp();
 
         if (code_2fa != totpSecretComputed)
@@ -170,37 +178,52 @@ public class LoginController : Controller
         }
 
         HttpContext.Session.Clear();
-        HttpContext.Session.SetString("user", user);
+        saveUsertoSession(userToAuth);
         return RedirectToAction("Index", "Dashboard");
     }
 
 
     public IActionResult pass2FA()
     {
-        string? user = HttpContext.Session.GetString("2FA_auth_add_wait_user");
-        if (user != null && !string.IsNullOrEmpty(user))
+        var userJson = HttpContext.Session.GetString("2FA_userToAdd");
+        if(userJson != null)
         {
-            HttpContext.Session.Clear();
-
-            if (user != "admin")
+            User? user = JsonSerializer.Deserialize<User>(userJson);
+            if (user != null && user.UserName == "admin")
             {
-                ViewBag.Error = "non-admin users can't pass 2FA";
-                return View("Index");
+                HttpContext.Session.Clear();
+                saveUsertoSession(user);
+                return RedirectToAction("Index", "Dashboard");
             }
-
-            HttpContext.Session.SetString("user", user);
-            return RedirectToAction("Index", "Dashboard");
         }
 
-        ViewBag.Error = "empty user at pass2FA";
+        ViewBag.Error = "error";
         return View("set2FA");
     }
 
-    
+
     public IActionResult logOut()
     {
         HttpContext.Session.Clear();
         return View("Index");
     }
 
+    private void saveUsertoSession(User user)
+    {
+        var json = JsonSerializer.Serialize<User>(user);
+        HttpContext.Session.SetString("userJson", json);
+    }
+
+    private User? getUserFromSession()
+    {
+        var userJson = HttpContext.Session.GetString("userJson");
+        if (userJson == null || string.IsNullOrEmpty(userJson))
+            return null;
+        return JsonSerializer.Deserialize<User>(userJson);
+    }
+
+    private void saveUserToDB(User user)
+    {
+        System.IO.File.AppendAllText("Data/userData.json", JsonSerializer.Serialize<User>(user));
+    }
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
 
@@ -17,7 +18,7 @@ namespace WebApplication1.Controllers
 
         public IActionResult Index()
         {
-            if (HttpContext.Session.GetString("user") == null)
+            if (getUserFromSession() == null)
                 return RedirectToAction("Index", "Login");
 
             return View();
@@ -28,6 +29,15 @@ namespace WebApplication1.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+
+        private User? getUserFromSession()
+        {
+            var userJson = HttpContext.Session.GetString("userJson");
+            if (userJson == null || string.IsNullOrEmpty(userJson))
+                return null;
+            return JsonSerializer.Deserialize<User>(userJson);
         }
     }
 }
