@@ -17,3 +17,14 @@ a.btn-link:hover {
     text-decoration: underline;
     color: #0d6efd !important;
 }
+.sidebar {
+
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100% !important;
+    z-index: 1000;
+    overflow-y: auto;
+}
+    
+
