@@ -1,0 +1,21 @@
+﻿@model WebApplication1.Models.Company
+
+<h2>Firma Düzenle</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="mb-3">
+        <label class="form-label">Ad</label>
+        <input asp-for="Name" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Açıklama</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+    <div class="form-check mb-3">
+        <input asp-for="IsActive" class="form-check-input" />
+        <label class="form-check-label">Aktif mi?</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Kaydet</button>
+    <a href="/Company/All" class="btn btn-secondary">İptal</a>
+</form>

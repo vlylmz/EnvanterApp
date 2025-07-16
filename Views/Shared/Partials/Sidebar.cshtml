@@ -1,5 +1,7 @@
-﻿<div class="bg-dark text-white p-3 vh-100" style="width: 250px; height: 100vh; overflow-y: auto;">
-    <h4 class="text-center">ENVANTER</h4>
+﻿<div class="bg-dark text-white p-3 sidebar" style="width: 250px; min-height: 100vh; height: 100vh; overflow-y: auto;">
+    <a href="/Home/Index" class="text-center d-block text-decoration-none text-white" style="font-size: 1.5rem; font-weight: bold; letter-spacing: 1px;">
+        ENVANTER
+    </a>    
     <ul class="nav flex-column mt-4">
 
         <!-- Dashboard -->
@@ -17,20 +19,30 @@
             <div class="collapse ms-3" id="firmalarSubMenu">
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="/Firmalar/Index">Tüm Firmalar</a>
+                        <a class="nav-link text-white" href="/Company/All">
+                            <i class="fas fa-list me-2"></i> Tüm Firmalar
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="/Firmalar/Create?firma=Spiltech">Spiltech</a>
+                        <a class="nav-link text-white" href="/Company/Detail/1">
+                            <i class="fas fa-circle-notch me-2"></i> Spiltech
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="/Firmalar/Create?firma=MBB">MBB</a>
+                        <a class="nav-link text-white" href="/Company/Detail/2">
+                            <i class="fas fa-circle-notch me-2"></i> MBB
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="/Firmalar/Create?firma=ManisaEnerji">Manisa Enerji</a>
+                        <a class="nav-link text-white" href="/Company/Detail/3">
+                            <i class="fas fa-circle-notch me-2"></i> Manisa Enerji
+                        </a>
                     </li>
                 </ul>
             </div>
         </li>
+
+
 
         <!-- Çalışanlar -->
         <li class="nav-item">
