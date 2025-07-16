@@ -51,11 +51,19 @@
         {
             <tr>
                 <td>@item.Name</td>
+<<<<<<< HEAD
                 <td>@item.Description</td>
                 <td>@(item.IsActive ? "Evet" : "Hayır")</td>
                 <td>@item.PurchaseDate.ToString("dd.MM.yyyy")</td>
                 <td>
                     <a href="/Computer/Detail/@item.Id" class="btn btn-sm btn-info me-1">Detay</a>
+=======
+                <td>@item.CompanyId</td>
+                <td>@item.Status</td>
+                <td>@item.CreatedDate.ToString("dd.MM.yyyy")</td>
+                <td>
+                    <a href="/Computer/Detail/@item.Id" class="btn btn-sm btn-primary me-1">Detay</a>
+>>>>>>> e32743f30c5290420fe408ef72af005dc8e0646b
                     <a href="/Computer/Edit/@item.Id" class="btn btn-sm btn-warning me-1">Düzenle</a>
                     <a href="/Computer/Delete/@item.Id" class="btn btn-sm btn-danger" onclick="return confirm('Silmek istediğinize emin misiniz?')">Sil</a>
                 </td>
