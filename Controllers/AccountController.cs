@@ -10,26 +10,19 @@ namespace WebApplication1.Controllers
     {
         public IActionResult Index()
         {
-            return View("Profile");
+            return View("Profile", EnvanterLib.getUserFromSession(this));
         }
 
         public IActionResult Profile()
         {
-            return View("Profile", getUserFromSession());
+            return View("Profile", EnvanterLib.getUserFromSession(this));
         }
 
         public IActionResult Edit(string FirstName, string LastName, string Email)
         {
             Console.WriteLine(FirstName + "\n" + LastName + "\n" + Email);
-            return View("Profile");
+            return View("Profile", EnvanterLib.getUserFromSession(this));
         }
-
-        private User? getUserFromSession()
-        {
-            var userJson = HttpContext.Session.GetString("userJson");
-            if (userJson == null || string.IsNullOrEmpty(userJson))
-                return null;
-            return JsonSerializer.Deserialize<User>(userJson);
-        }
+        
     }
 }

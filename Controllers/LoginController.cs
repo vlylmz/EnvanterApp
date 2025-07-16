@@ -7,13 +7,14 @@ using OtpNet;
 using QRCoder;
 using WebApplication1.Models;
 using static QRCoder.PayloadGenerator;
+using WebApplication1;
 
 public class LoginController : Controller
 {
     public IActionResult Index()
     {
         // redirect to dashboard if already logged in
-        if (getUserFromSession() != null)
+        if (EnvanterLib.getUserFromSession(this) != null)
             return RedirectToAction("Index", "Dashboard");
 
         // return Login screen
@@ -24,7 +25,7 @@ public class LoginController : Controller
     [HttpPost]
     public IActionResult Index(string username, string password)
     {
-        if (getUserFromSession() != null)
+        if (EnvanterLib.getUserFromSession(this) != null)
             return RedirectToAction("Index", "Dashboard");
 
         // Check Login info
@@ -214,13 +215,6 @@ public class LoginController : Controller
         HttpContext.Session.SetString("userJson", json);
     }
 
-    private User? getUserFromSession()
-    {
-        var userJson = HttpContext.Session.GetString("userJson");
-        if (userJson == null || string.IsNullOrEmpty(userJson))
-            return null;
-        return JsonSerializer.Deserialize<User>(userJson);
-    }
 
     private static void saveUserToDB(User user)
     {

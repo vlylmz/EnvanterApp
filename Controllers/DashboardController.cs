@@ -18,7 +18,7 @@ namespace WebApplication1.Controllers
 
         public IActionResult Index()
         {
-            if (getUserFromSession() == null)
+            if (EnvanterLib.getUserFromSession(this) == null)
                 return RedirectToAction("Index", "Login");
 
             return View();
@@ -32,12 +32,5 @@ namespace WebApplication1.Controllers
         }
 
 
-        private User? getUserFromSession()
-        {
-            var userJson = HttpContext.Session.GetString("userJson");
-            if (userJson == null || string.IsNullOrEmpty(userJson))
-                return null;
-            return JsonSerializer.Deserialize<User>(userJson);
-        }
     }
 }
