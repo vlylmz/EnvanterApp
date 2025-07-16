@@ -3,7 +3,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
-builder.Services.AddDistributedMemoryCache();
 
 var app = builder.Build();
 
@@ -25,7 +24,7 @@ app.UseStaticFiles();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Login}/{action=Index}"); /*.WithStaticAssets();*/
+    pattern: "{controller=Login}/{action=Index}");/*.WithStaticAssets();*/
 
 
 app.Run();

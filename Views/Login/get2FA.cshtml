@@ -2,26 +2,18 @@
     <div class="col-md-4">
         <div class="card shadow-sm">
             <div class="card-body">
-                <style>img {display: block; margin: auto; width: 75%; height: auto;}</style>
-                <img src="@ViewBag.qrUrl" alt="QR Code for 2FA Setup"/>
-
                 @if (ViewBag.Error != null)
                 {
                     <div class="alert alert-danger">@ViewBag.Error</div>
                 }
 
-                <form asp-action="register2FA" method="post">
+                <form asp-action="login2FA" method="post">
                     <div class="mb-3">
                         <label for="code_2fa" class="form-label">code</label>
                         <input type="text" name="code_2fa" class="form-control" required />
                     </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">Tamam</button>
-                    </div>
-                </form>
-                <form asp-action="pass2FA" method="post">
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Geç</button>
                     </div>
                 </form>
             </div>
