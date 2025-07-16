@@ -1,0 +1,31 @@
+﻿@model WebApplication1.Models.Employee
+
+<h2>Çalışan Düzenle</h2>
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="mb-3">
+        <label class="form-label">Ad</label>
+        <input asp-for="FirstName" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Soyad</label>
+        <input asp-for="LastName" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Durum</label>
+        <select asp-for="IsActive" class="form-select">
+            <option value="true">Aktif</option>
+            <option value="false">Pasif</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Firma Id</label>
+        <input asp-for="CompanyId" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Kaydet</button>
+    <a href="/Employee/List" class="btn btn-secondary">İptal</a>
+</form>
