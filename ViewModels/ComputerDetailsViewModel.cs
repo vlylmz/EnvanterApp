@@ -13,6 +13,7 @@ namespace WebApplication1.ViewModels
         public string Status { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }
+        public DateTime? PurchaseDate { get; set; } // PurchaseDate özelliği eklendi
 
         // İlişkili bilgiler
         public string AssignedUserFullName { get; set; }  // Örn: "Ali Yılmaz"

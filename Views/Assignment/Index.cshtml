@@ -1,0 +1,29 @@
+﻿@model List<WebApplication1.ViewModels.ComputerDetailsViewModel>
+
+<h2>Zimmetli Cihazlar</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Ad</th>
+            <th>Demirbaş</th>
+            <th>Çalışan</th>
+            <th>Durum</th>
+            <th>İşlem</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.AssetTag</td>
+                <td>@item.AssignedUserFullName</td>
+                <td>@item.Status</td>
+                <td>
+                    <a href="@Url.Action("Unassign", "Assignment", new { id = item.Id })" class="btn btn-sm btn-danger">İade Et</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

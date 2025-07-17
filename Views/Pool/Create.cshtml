@@ -1,0 +1,115 @@
+﻿@model WebApplication1.Models.InventoryCreateViewModel
+@{
+    var companies = ViewBag.Companies as List<WebApplication1.Models.Company>;
+}
+
+<div class="card shadow-sm mt-4" style="max-width:600px;margin:auto;">
+    <div class="card-header bg-success text-white">
+        <i class="fas fa-plus"></i> Yeni Ürün Ekle
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" asp-controller="Pool" method="post" id="inventoryForm">
+            <div class="mb-3">
+                <label class="form-label">Tür</label>
+                <select asp-for="Type" class="form-select" id="typeSelect" required>
+                    <option value="">Seçiniz...</option>
+                    <option value="Computer">Bilgisayar</option>
+                    <option value="Software">Yazılım</option>
+                    <option value="Supply">Sarf Malzeme</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Ad</label>
+                <input type="text" asp-for="Name" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Firma</label>
+                <select asp-for="CompanyId" class="form-select" required>
+                    <option value="">Seçiniz...</option>
+                    @foreach (var c in companies)
+                    {
+                        <option value="@c.Id">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Varlık Etiketi</label>
+                <input type="text" asp-for="AssetTag" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Seri No</label>
+                <input type="text" asp-for="SerialNumber" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Açıklama</label>
+                <input type="text" asp-for="Description" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Satın Alma Tarihi</label>
+                <input type="date" asp-for="PurchaseDate" class="form-control" />
+            </div>
+
+            <!-- Bilgisayar alanları -->
+            <div class="computerFields d-none">
+                <div class="mb-3">
+                    <label class="form-label">CPU</label>
+                    <input type="text" asp-for="Cpu" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">RAM (GB)</label>
+                    <input type="number" asp-for="RamGb" class="form-control" min="1" />
+                </div>
+            </div>
+
+            <!-- Yazılım alanları -->
+            <div class="softwareFields d-none">
+                <div class="mb-3">
+                    <label class="form-label">Marka</label>
+                    <input type="text" asp-for="Brand" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Bitiş Tarihi</label>
+                    <input type="date" asp-for="ExpiryDate" class="form-control" />
+                </div>
+            </div>
+
+            <!-- Sarf Malzeme alanları -->
+            <div class="supplyFields d-none">
+                <div class="mb-3">
+                    <label class="form-label">Sistem Barkodu</label>
+                    <input type="text" asp-for="SystemBarcode" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Kategori</label>
+                    <input type="text" asp-for="Category" class="form-control" />
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="fas fa-plus"></i> Ekle
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">Vazgeç</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const typeSelect = document.getElementById('typeSelect');
+        const form = document.getElementById('inventoryForm');
+        const computerFields = document.querySelector('.computerFields');
+        const softwareFields = document.querySelector('.softwareFields');
+        const supplyFields = document.querySelector('.supplyFields');
+
+        typeSelect.addEventListener('change', function() {
+            computerFields.classList.add('d-none');
+            softwareFields.classList.add('d-none');
+            supplyFields.classList.add('d-none');
+            if(this.value === 'Computer') computerFields.classList.remove('d-none');
+            if(this.value === 'Software') softwareFields.classList.remove('d-none');
+            if(this.value === 'Supply') supplyFields.classList.remove('d-none');
+        });
+    </script>
+}
