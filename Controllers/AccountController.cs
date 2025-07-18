@@ -1,8 +1,5 @@
-﻿
-
-using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using static WebApplication1.EnvanterLib;
 
 namespace WebApplication1.Controllers
 {
@@ -10,18 +7,27 @@ namespace WebApplication1.Controllers
     {
         public IActionResult Index()
         {
-            return View("Profile", EnvanterLib.getUserFromSession(this));
+            return View("Profile", GetUserFromSession(this));
         }
+
 
         public IActionResult Profile()
         {
-            return View("Profile", EnvanterLib.getUserFromSession(this));
+            return View("Profile", GetUserFromSession(this));
         }
 
+
+        [HttpPost]
         public IActionResult Edit(string FirstName, string LastName, string Email)
         {
             Console.WriteLine(FirstName + "\n" + LastName + "\n" + Email);
-            return View("Profile", EnvanterLib.getUserFromSession(this));
+            return View("Profile", GetUserFromSession(this));
+        }
+
+        public IActionResult LogOut()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Index", "Login", new { key = "asdasd"});
         }
         
     }

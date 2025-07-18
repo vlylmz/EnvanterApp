@@ -1,8 +1,14 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession();
+
 
 var app = builder.Build();
 
@@ -14,17 +20,18 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseAuthorization();
 app.UseSession();
-app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
 
-//app.MapStaticAssets();
+app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Login}/{action=Index}/{id?}");/*.WithStaticAssets();*/
+    pattern: "{controller=Login}/{action=Index}").WithStaticAssets();
 
 
 app.Run();

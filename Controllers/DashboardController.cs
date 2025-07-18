@@ -1,8 +1,7 @@
 using System.Diagnostics;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
-
+using static WebApplication1.EnvanterLib;
 
 
 namespace WebApplication1.Controllers
@@ -18,7 +17,7 @@ namespace WebApplication1.Controllers
 
         public IActionResult Index()
         {
-            if (EnvanterLib.getUserFromSession(this) == null)
+            if (GetUserFromSession(this) == null)
                 return RedirectToAction("Index", "Login");
 
             return View();
