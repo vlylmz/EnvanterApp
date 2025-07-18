@@ -1,0 +1,54 @@
+﻿@model WebApplication1.ViewModels.CompanyDetailsViewModel
+@{
+    ViewData["Title"] = "Firma Detayları";
+}
+
+<div class="container mt-4">
+    <h2>@Model.Company.Name</h2>
+    <p><strong>Açıklama:</strong> @Model.Company.Description</p>
+    <p><strong>Durum:</strong> @(Model.Company.IsActive ? "Aktif" : "Pasif")</p>
+    <p><strong>Oluşturulma:</strong> @Model.Company.CreatedDate.ToString("dd.MM.yyyy")</p>
+
+    <hr />
+
+    <h4>👥 Çalışanlar (@Model.Employees.Count)</h4>
+    @if (!Model.Employees.Any())
+    {
+        <p><em>Çalışan bulunamadı.</em></p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var emp in Model.Employees)
+            {
+                <li>@emp.FirstName @emp.LastName (@emp.Email)</li>
+            }
+        </ul>
+    }
+
+    <h4>💻 Bilgisayarlar (@Model.Computers.Count)</h4>
+    <ul>
+        @foreach (var pc in Model.Computers)
+        {
+            <li>@pc.Name - @pc.SerialNumber - Durum: @pc.Status</li>
+        }
+    </ul>
+
+    <h4>📀 Yazılımlar (@Model.Software.Count)</h4>
+    <ul>
+        @foreach (var sw in Model.Software)
+        {
+            <li>@sw.Name - Marka: @sw.Brand</li>
+        }
+    </ul>
+
+    <h4>🖱 Sarf Malzemeleri (@Model.Supplies.Count)</h4>
+    <ul>
+        @foreach (var item in Model.Supplies)
+        {
+            <li>@item.Name - Barkod: @item.SystemBarcode</li>
+        }
+    </ul>
+
+    <a asp-action="Index" class="btn btn-secondary mt-3">← Geri</a>
+</div>

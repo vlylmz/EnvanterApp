@@ -51,9 +51,11 @@
         {
             <tr>
                 <td>@item.Name</td>
-                <td>@item.Description</td>
-                <td>@(item.IsActive ? "Evet" : "Hayır")</td>
-                <td>@item.PurchaseDate.ToString("dd.MM.yyyy")</td>
+                <td>@item.AssetTag</td>
+                <td>@item.SerialNumber</td>
+                <td>@item.Status</td>
+                <td>@item.CreatedDate.ToShortDateString()</td>
+
                 <td>
                     <a href="/Computer/Detail/@item.Id" class="btn btn-sm btn-info me-1">Detay</a>
                     <a href="/Computer/Edit/@item.Id" class="btn btn-sm btn-warning me-1">Düzenle</a>

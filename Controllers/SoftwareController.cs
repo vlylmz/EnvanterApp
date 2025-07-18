@@ -1,32 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Threading.Tasks;
+using WebApplication1.Data;
+using WebApplication1.Models;
 
 public class SoftwareController : Controller
 {
-    private static List<Software> softwares = new List<Software>()
-    {
-        new Software { Id=1, Name="Photoshop", Brand="Adobe", CompanyId=1, CompanyName="Spilaş", AssignedEmployeeId=1, AssignedEmployeeName="Ali Yılmaz", PurchaseDate=DateTime.Today.AddYears(-1), ExpiryDate=DateTime.Today.AddMonths(5), Status="Aktif" },
-        new Software { Id=2, Name="Office 365", Brand="Microsoft", CompanyId=2, CompanyName="Manisa Enerji", AssignedEmployeeId=null, AssignedEmployeeName=null, PurchaseDate=DateTime.Today.AddMonths(-8), ExpiryDate=DateTime.Today.AddDays(25), Status="Yaklaşan" }
-    };
+    private readonly AppDbContext _context;
 
-    private static List<(int Id, string Name)> companies = new()
+    public SoftwareController(AppDbContext context)
     {
-        (1, "Spilaş"),
-        (2, "Manisa Enerji")
-    };
+        _context = context;
+    }
 
-    private static List<(int Id, string Name, int CompanyId)> employees = new()
+    public async Task<IActionResult> Index(string search, int? companyId, int? assignedEmployeeId, string status)
     {
-        (1, "Ali Yılmaz", 1),
-        (2, "Ayşe Demir", 2)
-    };
-
-    public IActionResult Index(string search, int? companyId, int? assignedEmployeeId, string status)
-    {
-        var list = softwares.AsQueryable();
+        var list = _context.Software.AsQueryable();
 
         if (!string.IsNullOrEmpty(search))
             list = list.Where(s => s.Name.Contains(search) || s.Brand.Contains(search));
@@ -37,100 +28,104 @@ public class SoftwareController : Controller
         if (!string.IsNullOrEmpty(status))
             list = list.Where(s => s.Status == status);
 
-        foreach (var sw in list)
+        var softwareList = await list.ToListAsync();
+
+        // Lisans durumunu güncelle
+        foreach (var sw in softwareList)
         {
             sw.Status = GetStatus(sw.ExpiryDate);
         }
 
-        ViewBag.Companies = companies.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
-        ViewBag.Employees = employees.Select(e => new SelectListItem { Value = e.Id.ToString(), Text = e.Name }).ToList();
+        // Dropdownlar için şirket ve çalışan listesi
+        ViewBag.Companies = await _context.Companies
+            .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToListAsync();
+        ViewBag.Employees = await _context.Employees
+            .Select(e => new SelectListItem { Value = e.Id.ToString(), Text = e.FirstName + " " + e.LastName }).ToListAsync();
 
-        return View(list.ToList());
+        return View(softwareList);
     }
 
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
-        ViewBag.Companies = companies.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
-        ViewBag.Employees = employees.Select(e => new SelectListItem { Value = e.Id.ToString(), Text = e.Name }).ToList();
+        ViewBag.Companies = await _context.Companies
+            .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToListAsync();
+        ViewBag.Employees = await _context.Employees
+            .Select(e => new SelectListItem { Value = e.Id.ToString(), Text = e.FirstName + " " + e.LastName }).ToListAsync();
         return View();
     }
 
     [HttpPost]
-    public IActionResult Create(Software model)
+    public async Task<IActionResult> Create(Software model)
     {
         if (ModelState.IsValid)
         {
-            model.Id = softwares.Count > 0 ? softwares.Max(x => x.Id) + 1 : 1;
-            var company = companies.FirstOrDefault(c => c.Id == model.CompanyId);
-            model.CompanyName = company.Name;
-
-            if (model.AssignedEmployeeId.HasValue)
-            {
-                var emp = employees.FirstOrDefault(e => e.Id == model.AssignedEmployeeId.Value);
-                model.AssignedEmployeeName = emp.Name;
-            }
-            else
-            {
-                model.AssignedEmployeeName = null;
-            }
             model.Status = GetStatus(model.ExpiryDate);
-            softwares.Add(model);
+            _context.Software.Add(model);
+            await _context.SaveChangesAsync();
             return RedirectToAction("Index");
         }
-        ViewBag.Companies = companies.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
-        ViewBag.Employees = employees.Select(e => new SelectListItem { Value = e.Id.ToString(), Text = e.Name }).ToList();
+
+        ViewBag.Companies = await _context.Companies
+            .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToListAsync();
+        ViewBag.Employees = await _context.Employees
+            .Select(e => new SelectListItem { Value = e.Id.ToString(), Text = e.FirstName + " " + e.LastName }).ToListAsync();
         return View(model);
     }
 
-    public IActionResult Details(int id)
+    public async Task<IActionResult> Details(int id)
     {
-        var sw = softwares.FirstOrDefault(s => s.Id == id);
+        var sw = await _context.Software.FindAsync(id);
         if (sw == null) return NotFound();
         return View(sw);
     }
 
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        var sw = softwares.FirstOrDefault(s => s.Id == id);
-        if (sw != null) softwares.Remove(sw);
+        var sw = await _context.Software.FindAsync(id);
+        if (sw != null)
+        {
+            _context.Software.Remove(sw);
+            await _context.SaveChangesAsync();
+        }
         return RedirectToAction("Index");
     }
 
-    public IActionResult Edit(int id)
+    public async Task<IActionResult> Edit(int id)
     {
-        var sw = softwares.FirstOrDefault(s => s.Id == id);
+        var sw = await _context.Software.FindAsync(id);
         if (sw == null) return NotFound();
-        ViewBag.Companies = companies.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
-        ViewBag.Employees = employees.Select(e => new SelectListItem { Value = e.Id.ToString(), Text = e.Name }).ToList();
+
+        ViewBag.Companies = await _context.Companies
+            .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToListAsync();
+        ViewBag.Employees = await _context.Employees
+            .Select(e => new SelectListItem { Value = e.Id.ToString(), Text = e.FirstName + " " + e.LastName }).ToListAsync();
         return View(sw);
     }
 
     [HttpPost]
-    public IActionResult Edit(Software model)
+    public async Task<IActionResult> Edit(Software model)
     {
-        var sw = softwares.FirstOrDefault(s => s.Id == model.Id);
+        if (!ModelState.IsValid)
+        {
+            ViewBag.Companies = await _context.Companies
+                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToListAsync();
+            ViewBag.Employees = await _context.Employees
+                .Select(e => new SelectListItem { Value = e.Id.ToString(), Text = e.FirstName + " " + e.LastName }).ToListAsync();
+            return View(model);
+        }
+
+        var sw = await _context.Software.FindAsync(model.Id);
         if (sw == null) return NotFound();
 
         sw.Name = model.Name;
         sw.Brand = model.Brand;
         sw.CompanyId = model.CompanyId;
-
-        var company = companies.FirstOrDefault(c => c.Id == model.CompanyId);
-        sw.CompanyName = company.Name;
-
         sw.AssignedEmployeeId = model.AssignedEmployeeId;
-        if (model.AssignedEmployeeId.HasValue)
-        {
-            var emp = employees.FirstOrDefault(e => e.Id == model.AssignedEmployeeId.Value);
-            sw.AssignedEmployeeName = emp.Name;
-        }
-        else
-        {
-            sw.AssignedEmployeeName = null;
-        }
         sw.PurchaseDate = model.PurchaseDate;
         sw.ExpiryDate = model.ExpiryDate;
         sw.Status = GetStatus(model.ExpiryDate);
+
+        await _context.SaveChangesAsync();
 
         return RedirectToAction("Index");
     }

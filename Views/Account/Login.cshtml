@@ -1,35 +1,27 @@
 ﻿@{
-    ViewBag.Title = "Giriş Yap";
-    Layout = "~/Views/Shared/_LoginLayout.cshtml";
+    ViewData["Title"] = "Giriş Yap";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h3 class="text-center mb-4">Kullanıcı Girişi</h3>
+<h2>Giriş Yap</h2>
 
-                @if (ViewBag.Error != null)
-                {
-                    <div class="alert alert-danger">@ViewBag.Error</div>
-                }
-
-                <form asp-action="Login" method="post">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Kullanıcı Adı</label>
-                        <input type="text" name="username" class="form-control" required />
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Şifre</label>
-                        <input type="password" name="password" class="form-control" required />
-                    </div>
-
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Giriş Yap</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+<form asp-action="Login" method="post">
+    <div>
+        <label>Email</label>
+        <input type="email" name="email" required />
     </div>
-</div>
+    <div>
+        <label>Şifre</label>
+        <input type="password" name="password" required />
+    </div>
+    <button type="submit">Giriş</button>
+</form>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <ul>
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <li style="color:red">@error.ErrorMessage</li>
+        }
+    </ul>
+}

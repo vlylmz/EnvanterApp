@@ -1,101 +1,74 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using WebApplication1.Data;
 using WebApplication1.Models;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace WebApplication1.Controllers
+public class EmployeeController : Controller
 {
-    public class EmployeeController : Controller
+    private readonly AppDbContext _context;
+
+    public EmployeeController(AppDbContext context)
     {
-        // Geçici in-memory örnek data
-        private static List<Employee> _employees = new List<Employee>
+        _context = context;
+    }
+
+    public async Task<IActionResult> Index()
+    {
+        var list = await _context.Employees.ToListAsync(); // This requires the Microsoft.EntityFrameworkCore namespace
+        return View(list);
+    }
+
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(Employee model)
+    {
+        if (ModelState.IsValid)
         {
-            new Employee { Id = 1, FirstName = "Ali", LastName = "Yılmaz", Email = "ali@firma.com", IsActive = true, CompanyId = 1 },
-            new Employee { Id = 2, FirstName = "Ayşe", LastName = "Demir", Email = "ayse@firma.com", IsActive = true, CompanyId = 2 },
-            new Employee { Id = 3, FirstName = "Murat", LastName = "Kaya", Email = "murat@firma.com", IsActive = false, CompanyId = 1 }
-        };
-
-        public IActionResult List(string searchString, string statusFilter)
-        {
-            var employees = _employees.AsQueryable();
-
-            // Arama filtresi (isim veya soyisimde geçenler)
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                employees = employees.Where(e =>
-                    (e.FirstName + " " + e.LastName).ToLower().Contains(searchString.ToLower()) ||
-                    e.Email.ToLower().Contains(searchString.ToLower())
-                );
-            }
-
-            // Durum filtresi
-            if (!string.IsNullOrEmpty(statusFilter))
-            {
-                if (statusFilter == "aktif")
-                    employees = employees.Where(e => e.IsActive);
-                else if (statusFilter == "pasif")
-                    employees = employees.Where(e => !e.IsActive);
-            }
-
-            // Filtrelenen değerleri tekrar view'a taşı
-            ViewBag.SearchString = searchString;
-            ViewBag.StatusFilter = statusFilter;
-
-            return View(employees.ToList());
+            _context.Employees.Add(model);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
         }
+        return View(model);
+    }
 
-        [HttpGet]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var emp = await _context.Employees.FindAsync(id);
+        if (emp == null) return NotFound();
+        return View(emp);
+    }
 
-        public IActionResult Create()
+    [HttpPost]
+    public async Task<IActionResult> Edit(Employee model)
+    {
+        if (ModelState.IsValid)
         {
-            return View();
+            _context.Employees.Update(model);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
         }
+        return View(model);
+    }
 
-        [HttpPost]
-        public IActionResult Create(Employee employee)
+    public async Task<IActionResult> Delete(int id)
+    {
+        var emp = await _context.Employees.FindAsync(id);
+        if (emp != null)
         {
-            employee.Id = _employees.Max(e => e.Id) + 1;
-            _employees.Add(employee);
-            return RedirectToAction("List");
+            _context.Employees.Remove(emp);
+            await _context.SaveChangesAsync();
         }
-        // Detay
-        public IActionResult Detail(int id)
-        {
-            var employee = _employees.FirstOrDefault(e => e.Id == id);
-            if (employee == null) return NotFound();
-            return View(employee);
-        }
+        return RedirectToAction("Index");
+    }
 
-        // Düzenle
-        [HttpGet]
-        public IActionResult Edit(int id)
-        {
-            var employee = _employees.FirstOrDefault(e => e.Id == id);
-            if (employee == null) return NotFound();
-            return View(employee);
-        }
-        [HttpPost]
-        public IActionResult Edit(Employee updated)
-        {
-            var emp = _employees.FirstOrDefault(e => e.Id == updated.Id);
-            if (emp == null) return NotFound();
-            emp.FirstName = updated.FirstName;
-            emp.LastName = updated.LastName;
-            emp.Email = updated.Email;
-            emp.IsActive = updated.IsActive;
-            emp.CompanyId = updated.CompanyId;
-            return RedirectToAction("List");
-        }
-
-        // Sil
-        public IActionResult Delete(int id)
-        {
-            var employee = _employees.FirstOrDefault(e => e.Id == id);
-            if (employee != null)
-                _employees.Remove(employee);
-            return RedirectToAction("List");
-        }
-        
-
+    public async Task<IActionResult> Details(int id)
+    {
+        var emp = await _context.Employees.FindAsync(id);
+        if (emp == null) return NotFound();
+        return View(emp);
     }
 }

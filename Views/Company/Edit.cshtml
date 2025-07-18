@@ -1,21 +1,52 @@
 ﻿@model WebApplication1.Models.Company
+@{
+    ViewData["Title"] = "Firma Düzenle";
+}
 
 <h2>Firma Düzenle</h2>
 
-<form asp-action="Edit" method="post">
+<form id="editForm" asp-action="Edit" method="post">
     <input type="hidden" asp-for="Id" />
-    <div class="mb-3">
-        <label class="form-label">Ad</label>
+
+    <div class="form-group">
+        <label>Ad</label>
         <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
     </div>
-    <div class="mb-3">
-        <label class="form-label">Açıklama</label>
-        <textarea asp-for="Description" class="form-control"></textarea>
+
+    <div class="form-group">
+        <label>Açıklama</label>
+        <input asp-for="Description" class="form-control" />
     </div>
-    <div class="form-check mb-3">
-        <input asp-for="IsActive" class="form-check-input" />
-        <label class="form-check-label">Aktif mi?</label>
+
+    <div class="form-group">
+        <label>Aktif mi?</label>
+        <input asp-for="IsActive" type="checkbox" />
     </div>
-    <button type="submit" class="btn btn-primary">Kaydet</button>
-    <a href="/Company/All" class="btn btn-secondary">İptal</a>
+
+    <button type="button" class="btn btn-primary" onclick="confirmUpdate()">Güncelle</button>
+    <a asp-action="Index" class="btn btn-secondary">İptal</a>
 </form>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function confirmUpdate() {
+            Swal.fire({
+                title: 'Güncelleme Onayı',
+                text: "Bu firma bilgilerini güncellemek istiyor musunuz?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Evet, güncelle',
+                cancelButtonText: 'İptal',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#aaa'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById("editForm").submit();
+                }
+            });
+        }
+    </script>
+}

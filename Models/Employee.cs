@@ -1,19 +1,27 @@
-﻿namespace WebApplication1.Models
+﻿using System.ComponentModel.DataAnnotations;
+namespace WebApplication1.Models
 {
     public class Employee
     {
         public int Id { get; set; }
+
+        [Required]
         public string FirstName { get; set; }
+
+        [Required]
         public string LastName { get; set; }
+
         public int CompanyId { get; set; }
-        public string PasswordHash { get; set; }
+
+        public string Phone { get; set; }
+
+        [EmailAddress]
         public string Email { get; set; }
+
         public bool IsActive { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;  
 
-        public string Assigned { get; set; }
-
-        public string AssignedSoftware { get; set; } // İlgili yazılımın adı
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
-
+        [Required]
+        public string Password { get; set; } = "Manisa.45";
     }
 }

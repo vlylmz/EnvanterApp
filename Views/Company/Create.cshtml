@@ -1,20 +1,24 @@
 ﻿@model WebApplication1.Models.Company
+@{
+    ViewData["Title"] = "Firma Ekle";
+}
 
-<h2>Yeni Firma Ekle</h2>
+<h2>Yeni Firma</h2>
 
 <form asp-action="Create" method="post">
-    <div class="mb-3">
-        <label class="form-label">Ad</label>
+    <div class="form-group">
+        <label>Ad</label>
         <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
     </div>
-    <div class="mb-3">
-        <label class="form-label">Açıklama</label>
-        <textarea asp-for="Description" class="form-control"></textarea>
+    <div class="form-group">
+        <label>Açıklama</label>
+        <input asp-for="Description" class="form-control" />
     </div>
-    <div class="form-check mb-3">
-        <input asp-for="IsActive" class="form-check-input" />
-        <label class="form-check-label">Aktif mi?</label>
+    <div class="form-group">
+        <label>Aktif mi?</label>
+        <input asp-for="IsActive" type="checkbox" />
     </div>
-    <button type="submit" class="btn btn-primary">Kaydet</button>
-    <a href="/Company/All" class="btn btn-secondary">İptal</a>
+    <button type="submit" class="btn btn-success">Kaydet</button>
+    <a asp-action="Index" class="btn btn-secondary">İptal</a>
 </form>
