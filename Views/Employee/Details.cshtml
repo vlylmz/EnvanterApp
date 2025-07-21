@@ -1,4 +1,7 @@
 ﻿@model WebApplication1.Models.Employee
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
 
 @{
     ViewData["Title"] = "Çalışan Detayları";
@@ -6,6 +9,12 @@
 
 <div class="container-fluid mt-4">
     <!-- Header Section -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Çalışanlar</a></li>
+            <li class="breadcrumb-item active">@Model.FirstName @Model.LastName</li>
+        </ol>
+    </nav>
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow-sm border-0">
