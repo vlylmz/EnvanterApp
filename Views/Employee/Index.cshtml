@@ -1,0 +1,580 @@
+﻿@model IEnumerable<WebApplication1.Models.Employee>
+@{
+    ViewData["Title"] = "Çalışanlar";
+    var successMessage = TempData["Success"] as string;
+    var errorMessage = TempData["Error"] as string;
+    var searchName = Context.Request.Query["searchName"].ToString();
+    var companyId = Context.Request.Query["companyId"].ToString();
+    var status = Context.Request.Query["status"].ToString();
+    var totalEmployees = Model.Count();
+    var activeEmployees = Model.Count(e => e.IsActive);
+    var inactiveEmployees = totalEmployees - activeEmployees;
+
+    // ViewBag.Companies'i güvenli şekilde al
+    var companies = ViewBag.Companies as IEnumerable<object> ?? new List<object>();
+    var companiesCount = companies.Count();
+}
+
+<!-- Success/Error Messages -->
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'success',
+                title: 'Başarılı!',
+                text: '@successMessage',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    </script>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Hata!',
+                text: '@errorMessage',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    </script>
+}
+
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-users text-primary"></i> Çalışan Yönetimi
+                    </h2>
+                    <p class="text-muted mb-0">Şirket çalışanlarını yönetin ve takip edin</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <a asp-action="Create" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus"></i> Yeni Çalışan Ekle
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel"></i> Excel'e Aktar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Toplam Çalışan</h5>
+                            <h3 class="mb-0">@totalEmployees</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Aktif Çalışan</h5>
+                            <h3 class="mb-0">@activeEmployees</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-check fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Pasif Çalışan</h5>
+                            <h3 class="mb-0">@inactiveEmployees</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-times fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Firmalar</h5>
+                            <h3 class="mb-0">@companiesCount</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-building fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h6 class="mb-0">
+                <i class="fas fa-search"></i> Arama ve Filtreleme
+                <button class="btn btn-sm btn-outline-secondary float-end" type="button" data-bs-toggle="collapse" data-bs-target="#searchFilters">
+                    <i class="fas fa-filter"></i> Filtreler
+                </button>
+            </h6>
+        </div>
+        <div class="collapse show" id="searchFilters">
+            <div class="card-body">
+                <form method="get" id="searchForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-3 col-md-4">
+                            <label for="searchName" class="form-label">
+                                <i class="fas fa-user text-muted"></i> Ad veya Soyad
+                            </label>
+                            <input type="text" name="searchName" id="searchName" value="@searchName"
+                                   class="form-control" placeholder="Çalışan ara...">
+                        </div>
+                        <div class="col-lg-3 col-md-4">
+                            <label for="companyId" class="form-label">
+                                <i class="fas fa-building text-muted"></i> Firma
+                            </label>
+                            <select name="companyId" id="companyId" class="form-select">
+                                <option value="">Tüm Firmalar</option>
+                                @if (ViewBag.Companies != null)
+                                {
+                                    @try
+                                    {
+                                        var companiesList = ViewBag.Companies as IEnumerable<object>;
+                                        if (companiesList != null)
+                                        {
+                                            @foreach (var company in companiesList)
+                                            {
+                                                var companyId_val = company.GetType().GetProperty("Id")?.GetValue(company)?.ToString();
+                                                var companyName = company.GetType().GetProperty("Name")?.GetValue(company)?.ToString();
+                                                <option value="@companyId_val" selected="@(companyId == companyId_val)">
+                                                    @companyName
+                                                </option>
+                                            }
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        // Hata durumunda boş bırak
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-4">
+                            <label for="status" class="form-label">
+                                <i class="fas fa-toggle-on text-muted"></i> Durum
+                            </label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">Tüm Durumlar</option>
+                                <option value="Aktif" selected="@(status == "Aktif")">Aktif</option>
+                                <option value="Pasif" selected="@(status == "Pasif")">Pasif</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Ara
+                            </button>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-times"></i> Temizle
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employees Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-table"></i> Çalışan Listesi
+                    <span class="badge bg-primary">@totalEmployees kayıt</span>
+                </h6>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-secondary" onclick="toggleView('table')" id="tableViewBtn">
+                        <i class="fas fa-table"></i> Tablo
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="toggleView('cards')" id="cardsViewBtn">
+                        <i class="fas fa-th-large"></i> Kartlar
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <!-- Table View -->
+                <div id="tableView" class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="fas fa-user"></i> Ad Soyad</th>
+                                <th><i class="fas fa-envelope"></i> İletişim</th>
+                                <th><i class="fas fa-building"></i> Firma</th>
+                                <th><i class="fas fa-toggle-on"></i> Durum</th>
+                                <th><i class="fas fa-calendar"></i> Tarih</th>
+                                <th width="200"><i class="fas fa-cogs"></i> İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var emp in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2">
+                                                @emp.FirstName.Substring(0, 1).ToUpper()
+                                            </div>
+                                            <div>
+                                                <strong>@emp.FirstName @emp.LastName</strong>
+                                                <br><small class="text-muted">ID: @emp.Id</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            @if (!string.IsNullOrEmpty(emp.Email))
+                                            {
+                                                <div><i class="fas fa-envelope text-muted"></i> <a href="mailto:@emp.Email">@emp.Email</a></div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(emp.Phone))
+                                            {
+                                                <div><i class="fas fa-phone text-muted"></i> <a href="tel:@emp.Phone">@emp.Phone</a></div>
+                                            }
+                                            @if (string.IsNullOrEmpty(emp.Email) && string.IsNullOrEmpty(emp.Phone))
+                                            {
+                                                <small class="text-muted">Bilgi yok</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (emp.Company != null)
+                                        {
+                                            <span class="badge bg-info">@emp.Company.Name</span>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">Firma bulunamadı</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (emp.IsActive)
+                                        {
+                                            <span class="badge bg-success"><i class="fas fa-check"></i> Aktif</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger"><i class="fas fa-times"></i> Pasif</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@emp.CreatedDate.ToString("dd.MM.yyyy")</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Details" asp-route-id="@emp.Id"
+                                               class="btn btn-sm btn-outline-info" title="Detayları Görüntüle">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@emp.Id"
+                                               class="btn btn-sm btn-outline-warning" title="Düzenle">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    onclick="deleteEmployee(@emp.Id, '@emp.FirstName @emp.LastName')" title="Sil">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Cards View -->
+                <div id="cardsView" style="display: none;" class="p-3">
+                    <div class="row">
+                        @foreach (var emp in Model)
+                        {
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <div class="card h-100 employee-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="avatar-circle-lg me-3">
+                                                @emp.FirstName.Substring(0, 1).ToUpper()
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">@emp.FirstName @emp.LastName</h6>
+                                                <small class="text-muted">@emp.Company?.Name</small>
+                                            </div>
+                                            @if (emp.IsActive)
+                                            {
+                                                <span class="badge bg-success">Aktif</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Pasif</span>
+                                            }
+                                        </div>
+
+                                        <div class="mb-2">
+                                            @if (!string.IsNullOrEmpty(emp.Email))
+                                            {
+                                                <div><i class="fas fa-envelope text-muted"></i> @emp.Email</div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(emp.Phone))
+                                            {
+                                                <div><i class="fas fa-phone text-muted"></i> @emp.Phone</div>
+                                            }
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">@emp.CreatedDate.ToString("dd.MM.yyyy")</small>
+                                            <div class="btn-group btn-group-sm">
+                                                <a asp-action="Details" asp-route-id="@emp.Id" class="btn btn-outline-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@emp.Id" class="btn btn-outline-warning">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger"
+                                                        onclick="deleteEmployee(@emp.Id, '@emp.FirstName @emp.LastName')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Çalışan Bulunamadı</h5>
+                    <p class="text-muted">Henüz sisteme çalışan eklenmemiş veya arama kriterlerinize uygun sonuç bulunmuyor.</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> İlk Çalışanı Ekle
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Delete employee function
+        function deleteEmployee(empId, empName) {
+            Swal.fire({
+                title: 'Çalışanı Sil?',
+                text: `${empName} adlı çalışan silinecek. Bu işlem geri alınamaz!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash"></i> Evet, Sil',
+                cancelButtonText: '<i class="fas fa-times"></i> İptal',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-secondary'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Siliniyor...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Redirect to delete action
+                    window.location.href = `/Employee/Delete/${empId}`;
+                }
+            });
+        }
+
+        // Toggle between table and cards view
+        function toggleView(viewType) {
+            const tableView = document.getElementById('tableView');
+            const cardsView = document.getElementById('cardsView');
+            const tableBtn = document.getElementById('tableViewBtn');
+            const cardsBtn = document.getElementById('cardsViewBtn');
+
+            if (viewType === 'table') {
+                tableView.style.display = 'block';
+                cardsView.style.display = 'none';
+                tableBtn.classList.add('active');
+                cardsBtn.classList.remove('active');
+                localStorage.setItem('employeeViewType', 'table');
+            } else {
+                tableView.style.display = 'none';
+                cardsView.style.display = 'block';
+                cardsBtn.classList.add('active');
+                tableBtn.classList.remove('active');
+                localStorage.setItem('employeeViewType', 'cards');
+            }
+        }
+
+        // Export to Excel function
+        function exportToExcel() {
+            Swal.fire({
+                title: 'Excel\'e Aktar',
+                text: 'Çalışan listesi Excel dosyası olarak indirilecek.',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'İndir',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Implement Excel export logic here
+                    window.location.href = '/Employee/ExportToExcel';
+                }
+            });
+        }
+
+        // Initialize view type from localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedViewType = localStorage.getItem('employeeViewType') || 'table';
+            toggleView(savedViewType);
+
+            // Auto-submit search form on input change
+            const searchInputs = document.querySelectorAll('#searchForm input, #searchForm select');
+            searchInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    if (this.type !== 'text') {
+                        document.getElementById('searchForm').submit();
+                    }
+                });
+            });
+
+            // Real-time search for text inputs
+            let searchTimeout;
+            document.getElementById('searchName').addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    document.getElementById('searchForm').submit();
+                }, 1000);
+            });
+        });
+    </script>
+}
+
+<style>
+    .avatar-circle {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .avatar-circle-lg {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .employee-card {
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+
+        .employee-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #007bff;
+        }
+
+    .btn-group .btn {
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        background-color: #f8f9fa;
+    }
+
+    .badge {
+        font-size: 0.75em;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .opacity-75 {
+        opacity: 0.75;
+    }
+    {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .btn-group {
+        flex-direction: column;
+    }
+
+        .btn-group .btn {
+            margin-bottom: 5px;
+        }
+
+    }
+</style>

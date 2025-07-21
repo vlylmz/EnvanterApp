@@ -41,9 +41,16 @@ app.UseRouting();
 app.UseAuthentication(); // <<< Giriş kontrolü
 app.UseAuthorization();
 
+
+//app.MapControllerRoute(
+   // name: "default",
+   // pattern: "{controller=Account}/{action=Login}/{id?}");
+
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
 
 using (var scope = app.Services.CreateScope())
 {

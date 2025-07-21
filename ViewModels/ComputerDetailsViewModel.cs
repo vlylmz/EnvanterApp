@@ -21,5 +21,10 @@ namespace WebApplication1.ViewModels
 
         public List<Software> InstalledSoftwares { get; set; } = new();
         public List<Supply> Accessories { get; set; } = new();
+
+
+        public Computer Computer { get; set; }
+        public string OwnerName { get; set; }
+        public List<string> InstalledSoftwareList { get; set; }
     }
 }

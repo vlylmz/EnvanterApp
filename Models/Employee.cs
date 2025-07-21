@@ -1,27 +1,38 @@
 ﻿using System.ComponentModel.DataAnnotations;
+
 namespace WebApplication1.Models
 {
     public class Employee
     {
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Ad alanı zorunludur")]
+        [Display(Name = "Ad")]
         public string FirstName { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Soyad alanı zorunludur")]
+        [Display(Name = "Soyad")]
         public string LastName { get; set; }
 
+        [Required(ErrorMessage = "Firma seçimi zorunludur")]
+        [Display(Name = "Firma")]
         public int CompanyId { get; set; }
 
-        public string Phone { get; set; }
+        [Display(Name = "Telefon")]
+        public string? Phone { get; set; }
 
-        [EmailAddress]
-        public string Email { get; set; }
+        [EmailAddress(ErrorMessage = "Geçerli bir email adresi giriniz")]
+        [Display(Name = "Email")]
+        public string? Email { get; set; }
 
-        public bool IsActive { get; set; }
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;  
+        [Display(Name = "Aktif")]
+        public bool IsActive { get; set; } = true;
 
-        [Required]
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+
         public string Password { get; set; } = "Manisa.45";
+
+        // Navigation Property
+        public Company? Company { get; set; }
     }
 }

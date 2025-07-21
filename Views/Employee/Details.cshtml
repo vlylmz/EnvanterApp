@@ -1,0 +1,344 @@
+﻿@model WebApplication1.ViewModels.EmployeeDetailViewModel
+
+@{
+    ViewData["Title"] = "Çalışan Detayı";
+}
+
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-user-circle text-primary"></i> Çalışan Detayı</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Çalışanlar</a></li>
+                    <li class="breadcrumb-item active">@Model.Employee.FirstName @Model.Employee.LastName</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.Employee.Id" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Düzenle
+            </a>
+            <a asp-action="Index" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <!-- Employee Info Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-id-card"></i> Kişisel Bilgiler</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4"><i class="fas fa-user text-muted"></i> Ad</dt>
+                        <dd class="col-sm-8 fw-bold">@Model.Employee.FirstName</dd>
+
+                        <dt class="col-sm-4"><i class="fas fa-user text-muted"></i> Soyad</dt>
+                        <dd class="col-sm-8 fw-bold">@Model.Employee.LastName</dd>
+
+                        <dt class="col-sm-4"><i class="fas fa-envelope text-muted"></i> Email</dt>
+                        <dd class="col-sm-8">
+                            @if (!string.IsNullOrEmpty(Model.Employee.Email))
+                            {
+                                <a href="mailto:@Model.Employee.Email">@Model.Employee.Email</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Belirtilmemiş</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-4"><i class="fas fa-phone text-muted"></i> Telefon</dt>
+                        <dd class="col-sm-8">
+                            @if (!string.IsNullOrEmpty(Model.Employee.Phone))
+                            {
+                                <a href="tel:@Model.Employee.Phone">@Model.Employee.Phone</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Belirtilmemiş</span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4"><i class="fas fa-building text-muted"></i> Firma</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.Employee.Company != null)
+                            {
+                                <span class="badge bg-info">@Model.Employee.Company.Name</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">ID: @Model.Employee.CompanyId</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-4"><i class="fas fa-toggle-on text-muted"></i> Durum</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.Employee.IsActive)
+                            {
+                                <span class="badge bg-success"><i class="fas fa-check"></i> Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger"><i class="fas fa-times"></i> Pasif</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-4"><i class="fas fa-calendar text-muted"></i> Oluşturulma</dt>
+                        <dd class="col-sm-8">
+                            <span class="text-muted">@Model.Employee.CreatedDate.ToString("dd.MM.yyyy HH:mm")</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assets Section -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-box"></i> Zimmetli Varlıklar</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="accordion" id="employeeAssetsAccordion">
+                <!-- Bilgisayarlar -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingComputers">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseComputers" aria-expanded="false" aria-controls="collapseComputers">
+                            <i class="fas fa-laptop me-2 text-primary"></i>
+                            <strong>Bilgisayarlar</strong>
+                            <span class="badge bg-primary rounded-pill ms-2">@(Model.Computers?.Count ?? 0)</span>
+                        </button>
+                    </h2>
+                    <div id="collapseComputers" class="accordion-collapse collapse" aria-labelledby="headingComputers" data-bs-parent="#employeeAssetsAccordion">
+                        <div class="accordion-body">
+                            @if (Model.Computers != null && Model.Computers.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th><i class="fas fa-desktop"></i> Bilgisayar Adı</th>
+                                                <th><i class="fas fa-barcode"></i> Seri No</th>
+                                                <th><i class="fas fa-info-circle"></i> Durum</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var pc in Model.Computers)
+                                            {
+                                                <tr>
+                                                    <td><strong>@pc.Name</strong></td>
+                                                    <td><code>@pc.SerialNumber</code></td>
+                                                    <td>
+                                                        <span class="badge bg-info">@pc.Status</span>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4 text-muted">
+                                    <i class="fas fa-laptop fa-2x mb-2"></i>
+                                    <p><em>Bu çalışana zimmetli bilgisayar bulunmuyor.</em></p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yazılımlar -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingSoftwares">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSoftwares" aria-expanded="false" aria-controls="collapseSoftwares">
+                            <i class="fas fa-compact-disc me-2 text-success"></i>
+                            <strong>Yazılımlar</strong>
+                            <span class="badge bg-success rounded-pill ms-2">@(Model.Softwares?.Count ?? 0)</span>
+                        </button>
+                    </h2>
+                    <div id="collapseSoftwares" class="accordion-collapse collapse" aria-labelledby="headingSoftwares" data-bs-parent="#employeeAssetsAccordion">
+                        <div class="accordion-body">
+                            @if (Model.Softwares != null && Model.Softwares.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th><i class="fas fa-code"></i> Yazılım Adı</th>
+                                                <th><i class="fas fa-tag"></i> Marka</th>
+                                                <th><i class="fas fa-calendar"></i> Satın Alma</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var sw in Model.Softwares)
+                                            {
+                                                <tr>
+                                                    <td><strong>@sw.Name</strong></td>
+                                                    <td><span class="badge bg-secondary">@sw.Brand</span></td>
+                                                    <td>
+                                                        @if (sw.PurchaseDate.HasValue)
+                                                        {
+                                                            <small class="text-muted">@sw.PurchaseDate.Value.ToString("dd.MM.yyyy")</small>
+                                                        }
+                                                        else
+                                                        {
+                                                            <small class="text-muted">-</small>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4 text-muted">
+                                    <i class="fas fa-compact-disc fa-2x mb-2"></i>
+                                    <p><em>Bu çalışana zimmetli yazılım bulunmuyor.</em></p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sarf Malzemeleri -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingSupplies">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSupplies" aria-expanded="false" aria-controls="collapseSupplies">
+                            <i class="fas fa-mouse me-2 text-warning"></i>
+                            <strong>Sarf Malzemeleri</strong>
+                            <span class="badge bg-warning rounded-pill ms-2">@(Model.Supplies?.Count ?? 0)</span>
+                        </button>
+                    </h2>
+                    <div id="collapseSupplies" class="accordion-collapse collapse" aria-labelledby="headingSupplies" data-bs-parent="#employeeAssetsAccordion">
+                        <div class="accordion-body">
+                            @if (Model.Supplies != null && Model.Supplies.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th><i class="fas fa-box"></i> Malzeme Adı</th>
+                                                <th><i class="fas fa-barcode"></i> Sistem Barkodu</th>
+                                                <th><i class="fas fa-info-circle"></i> Durum</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model.Supplies)
+                                            {
+                                                <tr>
+                                                    <td><strong>@item.Name</strong></td>
+                                                    <td><code>@item.SystemBarcode</code></td>
+                                                    <td>
+                                                        <span class="badge bg-warning">@item.Status</span>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-4 text-muted">
+                                    <i class="fas fa-mouse fa-2x mb-2"></i>
+                                    <p><em>Bu çalışana zimmetli sarf malzemesi bulunmuyor.</em></p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-4 text-center">
+        <div class="btn-group" role="group">
+            <a asp-action="Edit" asp-route-id="@Model.Employee.Id" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Düzenle
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-list"></i> Tüm Çalışanlar
+            </a>
+            <button type="button" class="btn btn-info" onclick="window.print()">
+                <i class="fas fa-print"></i> Yazdır
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Smooth accordion animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto expand first accordion if there are items
+            @if ((Model.Computers?.Count ?? 0) > 0)
+            {
+                    <text>
+                    $('#collapseComputers').addClass('show');
+                    $('#headingComputers .accordion-button').removeClass('collapsed').attr('aria-expanded', 'true');
+                    </text>
+            }
+            else if ((Model.Softwares?.Count ?? 0) > 0)
+            {
+                    <text>
+                    $('#collapseSoftwares').addClass('show');
+                    $('#headingSoftwares .accordion-button').removeClass('collapsed').attr('aria-expanded', 'true');
+                    </text>
+            }
+            else if ((Model.Supplies?.Count ?? 0) > 0)
+            {
+                    <text>
+                    $('#collapseSupplies').addClass('show');
+                    $('#headingSupplies .accordion-button').removeClass('collapsed').attr('aria-expanded', 'true');
+                    </text>
+            }
+        });
+    </script>
+}
+
+<style>
+    .accordion-button:not(.collapsed) {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: #dee2e6;
+    }
+
+
+
+    {
+        display: none !important;
+    }
+
+    .accordion-collapse {
+        display: block !important;
+    }
+
+    .accordion-button {
+        display: none !important;
+    }
+
+    }
+</style>
