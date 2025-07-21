@@ -1,24 +1,533 @@
 ﻿@model WebApplication1.Models.Company
 @{
-    ViewData["Title"] = "Firma Ekle";
+    ViewData["Title"] = "Yeni Firma Ekle";
 }
 
-<h2>Yeni Firma</h2>
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-building-circle-plus text-primary"></i> Yeni Firma Ekle</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Index">Firmalar</a></li>
+                    <li class="breadcrumb-item active">Yeni Ekle</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-secondary btn-sm">
+                <i class="fas fa-list"></i> Liste
+            </a>
+        </div>
+    </div>
 
-<form asp-action="Create" method="post">
-    <div class="form-group">
-        <label>Ad</label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label>Açıklama</label>
-        <input asp-for="Description" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label>Aktif mi?</label>
-        <input asp-for="IsActive" type="checkbox" />
-    </div>
-    <button type="submit" class="btn btn-success">Kaydet</button>
-    <a asp-action="Index" class="btn btn-secondary">İptal</a>
-</form>
+    <form asp-action="Create" method="post" id="companyForm" class="needs-validation" novalidate>
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Temel Bilgiler Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-info-circle"></i> Temel Bilgiler</h5>
+                    </div>
+                    <div class="card-body">
+                        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label">
+                                        <i class="fas fa-building text-muted"></i> Şirket Adı <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Name" class="form-control form-control-lg" placeholder="Şirket adını giriniz" required />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label">
+                                        <i class="fas fa-envelope text-muted"></i> E-posta <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Email" type="email" class="form-control" placeholder="info@sirket.com" required />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Phone" class="form-label">
+                                        <i class="fas fa-phone text-muted"></i> Telefon
+                                    </label>
+                                    <input asp-for="Phone" type="tel" class="form-control" placeholder="0212 123 45 67" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Website" class="form-label">
+                                        <i class="fas fa-globe text-muted"></i> Web Sitesi
+                                    </label>
+                                    <input asp-for="Website" type="url" class="form-control" placeholder="https://www.sirket.com" />
+                                    <span asp-validation-for="Website" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label asp-for="Description" class="form-label">
+                                        <i class="fas fa-comment text-muted"></i> Açıklama
+                                    </label>
+                                    <textarea asp-for="Description" class="form-control" rows="3" 
+                                              placeholder="Şirket hakkında kısa açıklama..."></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adres Bilgileri Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Adres Bilgileri</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label asp-for="Address" class="form-label">
+                                        <i class="fas fa-home text-muted"></i> Adres
+                                    </label>
+                                    <textarea asp-for="Address" class="form-control" rows="2" 
+                                              placeholder="Sokak, mahalle, bina no..."></textarea>
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="City" class="form-label">
+                                        <i class="fas fa-city text-muted"></i> Şehir
+                                    </label>
+                                    <input asp-for="City" class="form-control" placeholder="İstanbul" />
+                                    <span asp-validation-for="City" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="District" class="form-label">
+                                        <i class="fas fa-map text-muted"></i> İlçe
+                                    </label>
+                                    <input asp-for="District" class="form-control" placeholder="Kadıköy" />
+                                    <span asp-validation-for="District" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="PostalCode" class="form-label">
+                                        <i class="fas fa-mailbox text-muted"></i> Posta Kodu
+                                    </label>
+                                    <input asp-for="PostalCode" class="form-control" placeholder="34000" />
+                                    <span asp-validation-for="PostalCode" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Country" class="form-label">
+                                        <i class="fas fa-flag text-muted"></i> Ülke
+                                    </label>
+                                    <input asp-for="Country" class="form-control" value="Türkiye" />
+                                    <span asp-validation-for="Country" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="EmployeeCount" class="form-label">
+                                        <i class="fas fa-users text-muted"></i> Çalışan Sayısı
+                                    </label>
+                                    <input asp-for="EmployeeCount" type="number" class="form-control" placeholder="50" min="0" />
+                                    <span asp-validation-for="EmployeeCount" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- İletişim Kişisi Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-user-tie"></i> İletişim Kişisi</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ContactPerson" class="form-label">
+                                        <i class="fas fa-user text-muted"></i> Yetkili Kişi
+                                    </label>
+                                    <input asp-for="ContactPerson" class="form-control" placeholder="Ahmet Yılmaz" />
+                                    <span asp-validation-for="ContactPerson" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ContactTitle" class="form-label">
+                                        <i class="fas fa-id-badge text-muted"></i> Yetkili Unvanı
+                                    </label>
+                                    <input asp-for="ContactTitle" class="form-control" placeholder="Genel Müdür" />
+                                    <span asp-validation-for="ContactTitle" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ContactEmail" class="form-label">
+                                        <i class="fas fa-envelope text-muted"></i> Yetkili E-posta
+                                    </label>
+                                    <input asp-for="ContactEmail" type="email" class="form-control" placeholder="ahmet@sirket.com" />
+                                    <span asp-validation-for="ContactEmail" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="ContactPhone" class="form-label">
+                                        <i class="fas fa-phone text-muted"></i> Yetkili Telefon
+                                    </label>
+                                    <input asp-for="ContactPhone" type="tel" class="form-control" placeholder="0532 123 45 67" />
+                                    <span asp-validation-for="ContactPhone" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notlar Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-sticky-note"></i> Notlar ve Ek Bilgiler</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="LogoUrl" class="form-label">
+                                        <i class="fas fa-image text-muted"></i> Logo URL
+                                    </label>
+                                    <input asp-for="LogoUrl" type="url" class="form-control" placeholder="https://sirket.com/logo.png" />
+                                    <span asp-validation-for="LogoUrl" class="text-danger"></span>
+                                    <small class="form-text text-muted">Logo görselinin internet adresini giriniz</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label asp-for="Notes" class="form-label">
+                                        <i class="fas fa-clipboard text-muted"></i> Notlar
+                                    </label>
+                                    <textarea asp-for="Notes" class="form-control" rows="4" 
+                                              placeholder="Şirket hakkında ek notlar, özel durumlar..."></textarea>
+                                    <span asp-validation-for="Notes" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Logo Preview Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="fas fa-image"></i> Logo Önizleme</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <div id="logoPreview" class="logo-preview-container">
+                            <i class="fas fa-building fa-4x text-muted"></i>
+                            <p class="text-muted mt-2">Logo URL girildiğinde burada görünecek</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Durum Ayarları Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-cog"></i> Durum Ayarları</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="IsActive" class="form-check-input" style="transform: scale(1.5);" checked />
+                                <label asp-for="IsActive" class="form-check-label ms-2">
+                                    <strong>Aktif Durum</strong>
+                                    <br><small class="text-muted">Firma aktif olarak listelensin</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="IsVerified" class="form-check-input" style="transform: scale(1.5);" />
+                                <label asp-for="IsVerified" class="form-check-label ms-2">
+                                    <strong>Onaylı Firma</strong>
+                                    <br><small class="text-muted">Firma doğrulanmış ve onaylanmış</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sistem Bilgileri Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-info"></i> Sistem Bilgileri</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-plus text-muted"></i> Oluşturulma Tarihi
+                            </label>
+                            <div class="p-2 bg-light rounded">
+                                <small class="text-muted">@DateTime.Now.ToString("dd.MM.yyyy HH:mm")</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CreatedBy" class="form-label">
+                                <i class="fas fa-user-plus text-muted"></i> Oluşturan
+                            </label>
+                            <input asp-for="CreatedBy" class="form-control" placeholder="Kullanıcı adı" />
+                            <span asp-validation-for="CreatedBy" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <i class="fas fa-save"></i> Firmayı Kaydet
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> İptal Et
+                            </a>
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                <span class="text-danger">*</span> işaretli alanlar zorunludur
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            // Logo preview
+            $('#LogoUrl').on('input', function() {
+                var logoUrl = $(this).val();
+                var preview = $('#logoPreview');
+                
+                if (logoUrl && isValidUrl(logoUrl)) {
+                    preview.html(`<img src="${logoUrl}" alt="Logo" class="img-fluid" style="max-height: 100px;" 
+                                    onerror="showDefaultLogo()" onload="showLogo()">`);
+                } else {
+                    showDefaultLogo();
+                }
+            });
+
+            // Form submission with confirmation
+            $('#companyForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                if (!$(this).valid()) {
+                    Swal.fire({
+                        title: 'Eksik Bilgiler!',
+                        text: 'Lütfen gerekli alanları doldurunuz.',
+                        icon: 'warning',
+                        confirmButtonText: 'Tamam'
+                    });
+                    return false;
+                }
+                
+                Swal.fire({
+                    title: 'Firmayı Kaydet?',
+                    text: 'Yeni firma sisteme eklenecektir.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Evet, Kaydet',
+                    cancelButtonText: 'İptal',
+                    confirmButtonColor: '#007bff',
+                    cancelButtonColor: '#6c757d'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#submitBtn').prop('disabled', true)
+                                      .html('<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...');
+                        this.submit();
+                    }
+                });
+            });
+
+            // Phone number formatting
+            $('#Phone, #ContactPhone').on('input', function() {
+                var value = $(this).val().replace(/\D/g, '');
+                if (value.length > 0) {
+                    if (value.startsWith('90')) {
+                        value = value.substring(2);
+                    }
+                    if (value.length >= 10) {
+                        value = value.replace(/(\d{4})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4');
+                    }
+                    $(this).val(value);
+                }
+            });
+
+            // Website URL formatting
+            $('#Website').on('blur', function() {
+                var url = $(this).val();
+                if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+                    $(this).val('https://' + url);
+                }
+            });
+
+            // Auto-fill contact email from main email
+            $('#Email').on('blur', function() {
+                var email = $(this).val();
+                if (email && !$('#ContactEmail').val()) {
+                    $('#ContactEmail').val(email);
+                }
+            });
+
+            // Character counter for textarea
+            $('#Notes').on('input', function() {
+                var remaining = 1000 - $(this).val().length;
+                var counter = $(this).next('.char-counter');
+                if (counter.length === 0) {
+                    counter = $('<small class="char-counter text-muted"></small>').insertAfter(this);
+                }
+                counter.text(`${remaining} karakter kaldı`);
+                if (remaining < 100) {
+                    counter.removeClass('text-muted').addClass('text-warning');
+                } else {
+                    counter.removeClass('text-warning').addClass('text-muted');
+                }
+            });
+
+            // Form field focus animations
+            $('.form-control, .form-select').focus(function() {
+                $(this).parent().addClass('focused');
+            }).blur(function() {
+                $(this).parent().removeClass('focused');
+            });
+        });
+
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function showDefaultLogo() {
+            $('#logoPreview').html(`
+                <i class="fas fa-building fa-4x text-muted"></i>
+                <p class="text-muted mt-2">Logo URL girildiğinde burada görünecek</p>
+            `);
+        }
+
+        function showLogo() {
+            // Logo successfully loaded
+        }
+    </script>
+}
+
+<style>
+    .card {
+        border: none;
+        border-radius: 15px;
+    }
+    
+    .card-header {
+        border-radius: 15px 15px 0 0 !important;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    .focused {
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+    
+    .form-control-lg {
+        font-weight: 500;
+    }
+    
+    .form-check-input:checked {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+    
+    .logo-preview-container {
+        min-height: 120px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+    }
+    
+    .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .breadcrumb {
+        background: none;
+        padding: 0;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+
+</style>

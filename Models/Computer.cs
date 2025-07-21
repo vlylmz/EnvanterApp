@@ -1,162 +1,121 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace WebApplication1.Models
+namespace WebApplication1.Models;
+
+public class Computer
 {
-    public class Computer
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        [Required(ErrorMessage = "Bilgisayar adı zorunludur")]
-        [StringLength(100, ErrorMessage = "Bilgisayar adı en fazla 100 karakter olabilir")]
-        [Display(Name = "Bilgisayar Adı")]
-        public string Name { get; set; }
+    [Required(ErrorMessage = "Bilgisayar adı zorunludur")]
+    [StringLength(100, ErrorMessage = "Bilgisayar adı en fazla 100 karakter olabilir")]
+    [Display(Name = "Bilgisayar Adı")]
+    public string Name { get; set; } = string.Empty;
 
-        [Display(Name = "Açıklama")]
-        [StringLength(500, ErrorMessage = "Açıklama en fazla 500 karakter olabilir")]
-        public string? Description { get; set; }
+    [Required(ErrorMessage = "Varlık etiketi zorunludur")]
+    [StringLength(50, ErrorMessage = "Varlık etiketi en fazla 50 karakter olabilir")]
+    [Display(Name = "Varlık Etiketi")]
+    public string AssetTag { get; set; } = string.Empty;
 
-        [Display(Name = "Asset Tag")]
-        [StringLength(50, ErrorMessage = "Asset tag en fazla 50 karakter olabilir")]
-        public string? AssetTag { get; set; }
+    [Required(ErrorMessage = "Seri numarası zorunludur")]
+    [StringLength(100, ErrorMessage = "Seri numarası en fazla 100 karakter olabilir")]
+    [Display(Name = "Seri Numarası")]
+    public string SerialNumber { get; set; } = string.Empty;
 
-        [Display(Name = "Seri Numarası")]
-        [StringLength(100, ErrorMessage = "Seri numarası en fazla 100 karakter olabilir")]
-        public string? SerialNumber { get; set; }
+    [Required(ErrorMessage = "Firma seçimi zorunludur")]
+    [Display(Name = "Firma")]
+    public int CompanyId { get; set; }
 
-        [Display(Name = "Marka")]
-        [StringLength(50, ErrorMessage = "Marka en fazla 50 karakter olabilir")]
-        public string? Brand { get; set; }
+    [Display(Name = "Atanan Çalışan")]
+    public int? AssignedEmployeeId { get; set; }
 
-        [Display(Name = "Model")]
-        [StringLength(100, ErrorMessage = "Model en fazla 100 karakter olabilir")]
-        public string? Model { get; set; }
+    // --- Enum tabanlı Status ---
+    [Required]
+    [Display(Name = "Durum")]
+    public ComputerStatus Status { get; set; } = ComputerStatus.Havuzda;
 
-        [Display(Name = "İşlemci")]
-        [StringLength(100, ErrorMessage = "İşlemci bilgisi en fazla 100 karakter olabilir")]
-        public string? Processor { get; set; }
+    // Donanım özellikleri
+    [StringLength(255)]
+    public string? ProcessorName { get; set; }
 
-        [Display(Name = "RAM (GB)")]
-        [Range(1, 1024, ErrorMessage = "RAM 1-1024 GB arasında olmalıdır")]
-        public int? RamGB { get; set; }
+    [Range(0.1, 10.0)]
+    public decimal? ProcessorSpeed { get; set; }
 
-        [Display(Name = "Depolama (GB)")]
-        [Range(1, 10240, ErrorMessage = "Depolama 1-10240 GB arasında olmalıdır")]
-        public int? StorageGB { get; set; }
+    [Range(1, 128)]
+    public int? ProcessorCores { get; set; }
 
-        [Display(Name = "Depolama Türü")]
-        public StorageType? StorageType { get; set; }
+    [Range(1, 1024)]
+    public int? RamAmount { get; set; }
 
-        [Display(Name = "İşletim Sistemi")]
-        [StringLength(100, ErrorMessage = "İşletim sistemi bilgisi en fazla 100 karakter olabilir")]
-        public string? OperatingSystem { get; set; }
+    [StringLength(50)]
+    public string? RamType { get; set; }
 
-        [Required(ErrorMessage = "Şirket ID zorunludur")]
-        [Display(Name = "Şirket")]
-        public int CompanyId { get; set; }
+    [Range(800, 8000)]
+    public int? RamSpeed { get; set; }
 
-        [Display(Name = "Atanan Çalışan")]
-        public int? AssignedEmployeeId { get; set; }
+    [Display(Name = "Depolama Tipi")]
+    public StorageType? StorageType { get; set; }
 
-        [Display(Name = "Durum")]
-        public ComputerStatus Status { get; set; } = ComputerStatus.Aktif;
+    [Range(1, 10000)]
+    public int? StorageSize { get; set; }
 
-        [Display(Name = "Konum")]
-        [StringLength(200, ErrorMessage = "Konum bilgisi en fazla 200 karakter olabilir")]
-        public string? Location { get; set; }
+    [StringLength(255)]
+    public string? GraphicsCard { get; set; }
 
-        [Display(Name = "Satın Alma Tarihi")]
-        [DataType(DataType.Date)]
-        public DateTime? PurchaseDate { get; set; }
+    [StringLength(100)]
+    public string? OperatingSystem { get; set; }
 
-        [Display(Name = "Garanti Bitiş Tarihi")]
-        [DataType(DataType.Date)]
-        public DateTime? WarrantyEndDate { get; set; }
+    [StringLength(100)]
+    public string? Brand { get; set; }
 
-        [Display(Name = "Satın Alma Fiyatı")]
-        [Range(0, 999999, ErrorMessage = "Fiyat 0-999999 arasında olmalıdır")]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? PurchasePrice { get; set; }
+    [StringLength(100)]
+    public string? Model { get; set; }
 
-        [Display(Name = "IP Adresi")]
-        [StringLength(15, ErrorMessage = "IP adresi en fazla 15 karakter olabilir")]
-        public string? IpAddress { get; set; }
+    [DataType(DataType.Date)]
+    public DateTime? PurchaseDate { get; set; }
 
-        [Display(Name = "MAC Adresi")]
-        [StringLength(17, ErrorMessage = "MAC adresi en fazla 17 karakter olabilir")]
-        public string? MacAddress { get; set; }
+    [DataType(DataType.Date)]
+    public DateTime? WarrantyEndDate { get; set; } // (WarrantyExpiry ile aynı)
 
-        [Display(Name = "Oluşturulma Tarihi")]
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+    [StringLength(1000)]
+    public string? Description { get; set; }
 
-        [Display(Name = "Son Güncelleme Tarihi")]
-        public DateTime? LastUpdatedDate { get; set; }
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public DateTime? LastUpdatedDate { get; set; }
+    public string? LastUpdatedBy { get; set; }
 
-        [Display(Name = "Güncelleyen Kullanıcı")]
-        [StringLength(100, ErrorMessage = "Kullanıcı adı en fazla 100 karakter olabilir")]
-        public string? LastUpdatedBy { get; set; }
+    // Hatalar yüzünden eklenen migration uyumlu property'ler:
+    public string? StatusDisplayName { get; set; }
+    public string? StatusBadgeClass { get; set; }
 
-        [Display(Name = "Notlar")]
-        [StringLength(1000, ErrorMessage = "Notlar en fazla 1000 karakter olabilir")]
-        public string? Notes { get; set; }
+    // Navigation
+    public Company? Company { get; set; }
+    public Employee? AssignedEmployee { get; set; }
 
-        [Display(Name = "Aktif Mi?")]
-        public bool IsActive { get; set; } = true;
+    // Computed Properties (opsiyonel)
+    public bool IsWarrantyExpired => WarrantyEndDate.HasValue && WarrantyEndDate < DateTime.Now;
 
-        // Computed Properties
-        [NotMapped]
-        public bool IsUnderWarranty => WarrantyEndDate.HasValue && WarrantyEndDate.Value > DateTime.Now;
+    public int? WarrantyDaysRemaining => WarrantyEndDate.HasValue
+        ? Math.Max(0, (int)(WarrantyEndDate.Value - DateTime.Now).TotalDays)
+        : null;
+}
 
-        [NotMapped]
-        public int? AgeInDays => PurchaseDate.HasValue ? (DateTime.Now - PurchaseDate.Value).Days : null;
+// --- Enumlar ---
+public enum ComputerStatus
+{
+    Havuzda = 0,
+    Zimmetli = 1,
+    Kullanımda = 2,
+    Bakim = 3,
+    Arızalı = 4,
+    Aktif = 5,
+    Bozuk = 6
+}
 
-        [NotMapped]
-        public string StatusDisplayName => Status switch
-        {
-            ComputerStatus.Aktif => "Aktif",
-            ComputerStatus.Pasif => "Pasif",
-            ComputerStatus.Bakim => "Bakımda",
-            ComputerStatus.Bozuk => "Bozuk",
-            ComputerStatus.Emekliye_Ayrildi => "Emekliye Ayrıldı",
-            _ => "Bilinmiyor"
-        };
-
-        [NotMapped]
-        public string StatusBadgeClass => Status switch
-        {
-            ComputerStatus.Aktif => "badge bg-success",
-            ComputerStatus.Pasif => "badge bg-secondary",
-            ComputerStatus.Bakim => "badge bg-warning",
-            ComputerStatus.Bozuk => "badge bg-danger",
-            ComputerStatus.Emekliye_Ayrildi => "badge bg-dark",
-            _ => "badge bg-light text-dark"
-        };
-    }
-
-    public enum ComputerStatus
-    {
-        [Display(Name = "Aktif")]
-        Aktif = 1,
-        [Display(Name = "Pasif")]
-        Pasif = 2,
-        [Display(Name = "Bakımda")]
-        Bakim = 3,
-        [Display(Name = "Bozuk")]
-        Bozuk = 4,
-        [Display(Name = "Emekliye Ayrıldı")]
-        Emekliye_Ayrildi = 5
-    }
-
-    public enum StorageType
-    {
-        [Display(Name = "HDD")]
-        HDD = 1,
-        [Display(Name = "SSD")]
-        SSD = 2,
-        [Display(Name = "NVMe")]
-        NVMe = 3,
-        [Display(Name = "Hybrid")]
-        Hybrid = 4
-    }
+public enum StorageType
+{
+    HDD = 0,
+    SSD = 1,
+    NVMe = 2,
+    Hybrid = 3,
+    Diğer = 4
 }

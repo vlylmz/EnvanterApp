@@ -1,5 +1,10 @@
 ﻿using System.Collections.Generic;
 using WebApplication1.Models;
+using System.Diagnostics;
+using WebApplication1.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace WebApplication1.ViewModels
 {

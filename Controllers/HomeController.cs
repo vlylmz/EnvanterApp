@@ -1,11 +1,8 @@
 using System.Diagnostics;
+using WebApplication1.Models;
 using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Models;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using WebApplication1.Models;
-
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace WebApplication1.Controllers
 {

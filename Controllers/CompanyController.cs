@@ -45,6 +45,24 @@ namespace WebApplication1.Controllers
             return View(companies);
         }
 
+        // Detayları gösterme
+       public async Task<IActionResult> Details(int id)
+{
+    var company = await _context.Companies.FindAsync(id);
+    if (company == null)
+        return NotFound();
+
+    var viewModel = new CompanyDetailsViewModel
+    {
+        Company = company,
+        Employees = await _context.Employees.Where(e => e.CompanyId == id).ToListAsync(),
+        Computers = await _context.Computers.Where(c => c.CompanyId == id).ToListAsync(),
+        Software = await _context.Software.Where(s => s.CompanyId == id).ToListAsync(),
+        Supplies = await _context.Supplies.Where(s => s.CompanyId == id).ToListAsync()
+    };
+
+    return View(viewModel); // ← sadece bunu düzelt!
+}
 
         // Ekle (GET)
         public IActionResult Create()
@@ -54,14 +72,18 @@ namespace WebApplication1.Controllers
 
         // Ekle (POST)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Company model)
         {
-            if (!ModelState.IsValid)
-                return View(model);
-
-            _context.Companies.Add(model);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if (ModelState.IsValid)
+            {
+                model.CreatedDate = DateTime.Now;
+                _context.Companies.Add(model);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Şirket başarıyla eklendi.";
+                return RedirectToAction(nameof(Index));
+            }
+            return View(model);
         }
 
         // Güncelle (GET)
@@ -76,17 +98,31 @@ namespace WebApplication1.Controllers
 
         // Güncelle (POST)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Company model)
         {
             if (id != model.Id)
                 return NotFound();
 
-            if (!ModelState.IsValid)
-                return View(model);
-
-            _context.Companies.Update(model);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    model.UpdatedDate = DateTime.Now;
+                    _context.Update(model);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = "Şirket başarıyla güncellendi.";
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!CompanyExists(model.Id))
+                        return NotFound();
+                    else
+                        throw;
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(model);
         }
 
         // Sil (GET)
@@ -101,6 +137,7 @@ namespace WebApplication1.Controllers
 
         // Sil (POST)
         [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var company = await _context.Companies.FindAsync(id);
@@ -108,31 +145,15 @@ namespace WebApplication1.Controllers
             {
                 _context.Companies.Remove(company);
                 await _context.SaveChangesAsync();
+                TempData["Success"] = "Şirket başarıyla silindi.";
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-
-        //Detayları gösterme
-        public async Task<IActionResult> Details(int id)
+        private bool CompanyExists(int id)
         {
-            var company = await _context.Companies.FindAsync(id);
-            if (company == null)
-                return NotFound();
-
-            var viewModel = new CompanyDetailsViewModel
-            {
-                Company = company,
-                Employees = await _context.Employees.Where(e => e.CompanyId == id).ToListAsync(),
-                Computers = await _context.Computers.Where(c => c.CompanyId == id).ToListAsync(),
-                Software = await _context.Software.Where(s => s.CompanyId == id).ToListAsync(),
-                Supplies = await _context.Supplies.Where(s => s.CompanyId == id).ToListAsync()
-            };
-
-            return View(viewModel);
+            return _context.Companies.Any(e => e.Id == id);
         }
-
-
     }
 }

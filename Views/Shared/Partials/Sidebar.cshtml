@@ -1,4 +1,110 @@
-﻿<div class="bg-dark text-white p-3 sidebar" style="width: 250px; min-height: 100vh; height: 100vh; overflow-y: auto;">
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envanter Sidebar</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            background: #2c3e50;
+            border-right: 1px solid #34495e;
+        }
+
+        .sidebar .text-center {
+            padding: 20px 0;
+            border-bottom: 1px solid #34495e;
+            margin-bottom: 10px;
+        }
+
+        .sidebar .text-center a {
+            font-size: 1.6rem !important;
+            font-weight: 600 !important;
+            letter-spacing: 2px !important;
+        }
+
+        .nav-item {
+            margin-bottom: 3px;
+        }
+
+        .nav-link {
+            padding: 12px 20px !important;
+            margin: 0 8px;
+            border-radius: 6px !important;
+            transition: all 0.2s ease !important;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-left-color: #3498db;
+            color: #ffffff !important;
+        }
+
+        .nav-link i {
+            width: 18px;
+            text-align: center;
+            margin-right: 10px !important;
+            opacity: 0.8;
+        }
+
+        .nav-link:hover i {
+            opacity: 1;
+            color: #3498db;
+        }
+
+        .collapse .nav-link {
+            padding: 10px 20px !important;
+            margin: 0 8px 0 20px;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.1);
+            border-left: 2px solid transparent;
+        }
+
+        .collapse .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-left-color: #3498db;
+        }
+
+        .collapse .nav-link i {
+            font-size: 0.85rem;
+            margin-right: 8px !important;
+        }
+
+        /* Scrollbar */
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #34495e;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 2px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
+
+        /* Aktif link */
+        .nav-link.active {
+            background: rgba(52, 152, 219, 0.2) !important;
+            border-left-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-dark text-white p-3 sidebar" style="width: 250px; min-height: 100vh; height: 100vh; overflow-y: auto;">
     <a href="/Home/Index" class="text-center d-block text-decoration-none text-white" style="font-size: 1.5rem; font-weight: bold; letter-spacing: 1px;">
         ENVANTER
     </a>    
@@ -42,9 +148,7 @@
             </div>
         </li>
 
-
         <!-- Çalışanlar -->
-
         <li class="nav-item">
             <a class="nav-link text-white" data-bs-toggle="collapse" href="#calisanSubMenu" role="button"
                aria-expanded="false" aria-controls="calisanSubMenu">
@@ -57,8 +161,6 @@
                 </ul>
             </div>
         </li>
-
-
 
         <!-- Bilgisayarlar -->
         <li class="nav-item">
@@ -120,7 +222,6 @@
             <div class="collapse ms-3" id="zimmetSubMenu">
                 <ul class="nav flex-column">
                     <li class="nav-item"><a class="nav-link text-white" href="/Assignment/Index">Zimmetleri Listele</a></li>
-
                     <li class="nav-item"><a class="nav-link text-white" href="/Assignment/Create">Zimmetle</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="#">İade Et</a></li>
                 </ul>
@@ -155,3 +256,8 @@
 
     </ul>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
