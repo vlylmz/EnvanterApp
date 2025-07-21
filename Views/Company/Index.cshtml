@@ -1,0 +1,97 @@
+﻿@model List<WebApplication1.Models.Company>  
+@{  
+    ViewData["Title"] = "Firma Listesi";  
+}  
+
+<div class="container mt-4">  
+    <div class="d-flex justify-content-between align-items-center mb-3">  
+        <h2>📁 Firma Listesi</h2>  
+        <a asp-action="Create" class="btn btn-success">➕ Yeni Firma</a>  
+    </div>  
+
+    <form method="get" asp-action="Index" class="row g-2 mb-3">  
+        <div class="col-md-6">  
+            <input type="text" name="search" class="form-control" placeholder="Firma adı veya açıklama..." value="@ViewBag.Search" />  
+        </div>  
+        <div class="col-md-3">  
+            <select name="status" class="form-select">  
+                <option value="">Tümü</option>  
+                <option value="active" selected="@(ViewBag.Status == "active")">Aktif</option>  
+                <option value="passive" selected="@(ViewBag.Status == "passive")">Pasif</option>  
+            </select>  
+        </div>  
+        <div class="col-md-3">  
+            <button type="submit" class="btn btn-outline-primary w-100">Ara</button>  
+        </div>  
+    </form>  
+
+    @if (!Model.Any())  
+    {  
+        <div class="alert alert-info">Aradığınız kriterlere uygun firma bulunamadı.</div>  
+    }  
+    else  
+    {  
+        <table class="table table-bordered table-striped">  
+            <thead class="table-dark">  
+                <tr>  
+                    <th>Ad</th>  
+                    <th>Açıklama</th>  
+                    <th>Durum</th>  
+                    <th>Oluşturulma</th>  
+                    <th class="text-end">İşlemler</th>  
+                </tr>  
+            </thead>  
+            <tbody>  
+                @foreach (var firm in Model)  
+                {  
+                    <tr>  
+                        <td>@firm.Name</td>  
+                        <td>@firm.Description</td>  
+                        <td>  
+                            @if (firm.IsActive)  
+                            {  
+                                <span class="badge bg-success">Aktif</span>  
+                            }  
+                            else  
+                            {  
+                                <span class="badge bg-secondary">Pasif</span>  
+                            }  
+                        </td>  
+                        <td>@firm.CreatedDate.ToString("dd.MM.yyyy")</td>  
+                        <td class="text-end">  
+                            <a asp-action="Details" asp-route-id="@firm.Id" class="btn btn-sm btn-info">🔍Detay</a>  
+                            <a asp-action="Edit" asp-route-id="@firm.Id" class="btn btn-sm btn-warning">✏️Güncelle</a>  
+
+                            <button class="btn btn-sm btn-danger" onclick="confirmDelete(@firm.Id)">🗑Sil</button>  
+
+                            <form id="delete-form-@firm.Id" asp-action="Delete" asp-route-id="@firm.Id" method="post" style="display:none">  
+                                <input type="hidden" name="id" value="@firm.Id" />  
+                            </form>  
+                        </td>  
+
+                    </tr>  
+                }  
+            </tbody>  
+        </table>  
+    }  
+</div>  
+@section Scripts {  
+    <script>  
+        function confirmDelete(id) {  
+            Swal.fire({  
+                title: 'Emin misiniz?',  
+                text: "Bu firmayı silmek üzeresiniz!",  
+                icon: 'warning',  
+                showCancelButton: true,  
+                confirmButtonColor: '#d33',  
+                cancelButtonColor: '#3085d6',  
+                confirmButtonText: 'Evet, sil!',  
+                cancelButtonText: 'İptal'  
+            }).then((result) => {  
+                if (result.isConfirmed) {  
+                    document.getElementById(`delete-form-${id}`).submit();  
+                }  
+            });  
+        }  
+    </script>  
+}

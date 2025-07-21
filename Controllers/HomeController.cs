@@ -4,6 +4,7 @@ using WebApplication1.Models;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
+using WebApplication1.Models;
 
 
 namespace WebApplication1.Controllers
