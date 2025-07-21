@@ -1,6 +1,9 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.ViewModels;
@@ -11,6 +14,11 @@ namespace WebApplication1.Controllers
     {
         private readonly AppDbContext _context = context;
         private readonly int _pageSize = 10;
+
+        public ComputerController(AppDbContext context)
+        {
+            _context = context;
+        }
 
         public async Task<IActionResult> Index(string searchString, string statusFilter,
             string sortOrder, int page = 1)
