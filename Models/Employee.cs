@@ -8,11 +8,11 @@ namespace WebApplication1.Models
 
         [Required(ErrorMessage = "Ad alanı zorunludur")]
         [Display(Name = "Ad")]
-        public string FirstName { get; set; }
+        public string? FirstName { get; set; }
 
         [Required(ErrorMessage = "Soyad alanı zorunludur")]
         [Display(Name = "Soyad")]
-        public string LastName { get; set; }
+        public string? LastName { get; set; }
 
         [Required(ErrorMessage = "Firma seçimi zorunludur")]
         [Display(Name = "Firma")]
@@ -37,6 +37,6 @@ namespace WebApplication1.Models
         // Navigation Property
         public Company? Company { get; set; }
 
-        public string title { get; set; }
+        public string? Title { get; set; }
     }
 }

@@ -1,30 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using WebApplication1.Models;
+﻿using WebApplication1.Models;
 
 namespace WebApplication1.ViewModels
 {
     public class ComputerDetailsViewModel
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public string AssetTag { get; set; }
-        public string Status { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public string? AssetTag { get; set; }
+        public string? Status { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? PurchaseDate { get; set; } // PurchaseDate özelliği eklendi
 
         // İlişkili bilgiler
-        public string AssignedUserFullName { get; set; }  // Örn: "Ali Yılmaz"
-        public string AssignedUserEmail { get; set; }
+        public string? AssignedUserFullName { get; set; }  // Örn: "Ali Yılmaz"
+        public string? AssignedUserEmail { get; set; }
 
-        public List<Software> InstalledSoftwares { get; set; } = new();
-        public List<Supply> Accessories { get; set; } = new();
+        public List<Software> InstalledSoftwares { get; set; } = [];
+        public List<Supply> Accessories { get; set; } = [];
 
 
-        public Computer Computer { get; set; }
-        public string OwnerName { get; set; }
-        public List<string> InstalledSoftwareList { get; set; }
+        public Computer? Computer { get; set; }
+        public string? OwnerName { get; set; }
+        public List<string>? InstalledSoftwareList { get; set; }
     }
 }

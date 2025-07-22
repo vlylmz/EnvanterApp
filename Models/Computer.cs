@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebApplication1.Models
@@ -11,7 +10,7 @@ namespace WebApplication1.Models
         [Required(ErrorMessage = "Bilgisayar adı zorunludur")]
         [StringLength(100, ErrorMessage = "Bilgisayar adı en fazla 100 karakter olabilir")]
         [Display(Name = "Bilgisayar Adı")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [Display(Name = "Açıklama")]
         [StringLength(500, ErrorMessage = "Açıklama en fazla 500 karakter olabilir")]

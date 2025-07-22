@@ -8,11 +8,11 @@ namespace WebApplication1.Models
 
         [Required]
         [Display(Name = "Yazılım Adı")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [Required]
         [Display(Name = "Marka")]
-        public string Brand { get; set; }
+        public string? Brand { get; set; }
 
         [Required]
         [Display(Name = "Firma")]

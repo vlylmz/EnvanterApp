@@ -10,16 +10,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 🔐 2. Identity Servisleri
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+/*builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders();*/
 
 // 🛡️ 3. Cookie Ayarları
-builder.Services.ConfigureApplicationCookie(options =>
+/*builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
-});
+});*/
 
 // 4. MVC Controller + Razor
 builder.Services.AddControllersWithViews();
@@ -29,7 +29,7 @@ var app = builder.Build();
 // 📦 Middleware Pipeline
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    //app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
@@ -38,13 +38,13 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication(); // <<< Giriş kontrolü
-app.UseAuthorization();
+/*app.UseAuthentication(); // <<< Giriş kontrolü
+app.UseAuthorization();*/
 
 
 //app.MapControllerRoute(
-   // name: "default",
-   // pattern: "{controller=Account}/{action=Login}/{id?}");
+// name: "default",
+// pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.MapControllerRoute(
     name: "default",
@@ -52,14 +52,14 @@ app.MapControllerRoute(
 
 
 
-using (var scope = app.Services.CreateScope())
+/*using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
     // Gerekli roller
-    string[] roles = new[] { "Süper Admin", "Admin", "Employee" };
+    string[] roles = ["Süper Admin", "Admin", "Employee"];
 
     foreach (var role in roles)
     {
@@ -91,6 +91,6 @@ using (var scope = app.Services.CreateScope())
             await userManager.AddToRoleAsync(newUser, "Süper Admin");
         }
     }
-}
+}*/
 
 app.Run();

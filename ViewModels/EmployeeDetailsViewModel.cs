@@ -11,9 +11,10 @@ namespace WebApplication1.ViewModels
 
         public EmployeeDetailViewModel()
         {
-            Computers = new List<Computer>();
-            Softwares = new List<Software>();
-            Supplies = new List<Supply>();
+            Computers = [];
+            Softwares = [];
+            Supplies = [];
+            Employee = new Employee();
         }
     }
 }

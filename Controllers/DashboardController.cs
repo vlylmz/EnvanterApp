@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 
-namespace YourProject.Controllers
+namespace WebApplication1.Controllers
 {
     public class DashboardController : Controller
     {

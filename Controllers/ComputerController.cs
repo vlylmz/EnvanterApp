@@ -1,23 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.ViewModels;
 
 namespace WebApplication1.Controllers
 {
-    public class ComputerController : Controller
+    public class ComputerController(AppDbContext context) : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly AppDbContext _context = context;
         private readonly int _pageSize = 10;
-
-        public ComputerController(AppDbContext context)
-        {
-            _context = context;
-        }
 
         public async Task<IActionResult> Index(string searchString, string statusFilter,
             string sortOrder, int page = 1)
@@ -139,19 +132,19 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Computer model)
+        public async Task<IActionResult> Edit(int id, Computer comp)
         {
-            if (id != model.Id)
+            if (id != comp.Id)
                 return NotFound();
 
             try
             {
                 if (ModelState.IsValid)
                 {
-                    model.LastUpdatedDate = DateTime.Now;
-                    model.LastUpdatedBy = User.Identity?.Name ?? "System";
+                    comp.LastUpdatedDate = DateTime.Now;
+                    comp.LastUpdatedBy = User.Identity?.Name ?? "System";
 
-                    _context.Update(model);
+                    _context.Update(comp);
                     await _context.SaveChangesAsync();
 
                     TempData["SuccessMessage"] = "Bilgisayar başarıyla güncellendi.";
@@ -160,7 +153,7 @@ namespace WebApplication1.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await ComputerExists(model.Id))
+                if (!await ComputerExists(comp.Id))
                     return NotFound();
                 else
                     throw;
@@ -172,7 +165,7 @@ namespace WebApplication1.Controllers
 
             ViewBag.StatusList = GetStatusSelectList();
             ViewBag.StorageTypeList = GetStorageTypeSelectList();
-            return View(model);
+            return View(comp);
         }
 
         public async Task<IActionResult> Delete(int id)
@@ -307,28 +300,26 @@ namespace WebApplication1.Controllers
             return await _context.Computers.AnyAsync(e => e.Id == id);
         }
 
-        private List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> GetStatusSelectList()
+        private static List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> GetStatusSelectList()
         {
-            return Enum.GetValues(typeof(ComputerStatus))
+            return [.. Enum.GetValues<ComputerStatus>()
                 .Cast<ComputerStatus>()
                 .Select(status => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                 {
                     Value = ((int)status).ToString(),
                     Text = status.ToString().Replace("_", " ")
-                })
-                .ToList();
+                })];
         }
 
-        private List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> GetStorageTypeSelectList()
+        private static List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> GetStorageTypeSelectList()
         {
-            return Enum.GetValues(typeof(StorageType))
+            return [.. Enum.GetValues<StorageType>()
                 .Cast<StorageType>()
                 .Select(type => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                 {
                     Value = ((int)type).ToString(),
                     Text = type.ToString()
-                })
-                .ToList();
+                })];
         }
     }
 }

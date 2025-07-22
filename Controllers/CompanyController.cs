@@ -1,21 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Threading.Tasks;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.ViewModels;
 
 namespace WebApplication1.Controllers
 {
-    public class CompanyController : Controller
+    public class CompanyController(AppDbContext context) : Controller
     {
-        private readonly AppDbContext _context;
-
-        public CompanyController(AppDbContext context)
-        {
-            _context = context;
-        }
+        private readonly AppDbContext _context = context;
 
         // Listele
         public async Task<IActionResult> Index(string search, string status)
@@ -26,8 +20,8 @@ namespace WebApplication1.Controllers
             {
                 search = search.ToLower();
                 query = query.Where(c =>
-                    c.Name.ToLower().Contains(search) ||
-                    (c.Description != null && c.Description.ToLower().Contains(search))
+                    c.Name != null && (c.Name.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
+                    (c.Description != null && c.Description.Contains(search, StringComparison.CurrentCultureIgnoreCase)) )
                 );
             }
 
