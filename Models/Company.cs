@@ -85,11 +85,11 @@ namespace WebApplication1.Models
 
         [MaxLength(100)]
         [Display(Name = "Oluşturan")]
-        public string CreatedBy { get; set; }
+        public string? CreatedBy { get; set; }
 
         [MaxLength(100)]
         [Display(Name = "Güncelleyen")]
-        public string UpdatedBy { get; set; }
+        public string? UpdatedBy { get; set; }
 
         // İletişim kişisi bilgileri
         [MaxLength(100)]
