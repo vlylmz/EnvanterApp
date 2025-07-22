@@ -406,44 +406,7 @@
                                                         <th><i class="fas fa-info-circle"></i> Durum</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody>
-                                                    @foreach (var software in Model.Software)
-                                                    {
-                                                        <tr>
-                                                            <td><strong>@software.Name</strong></td>
-                                                            <td><span class="badge bg-secondary">@software.Brand</span></td>
-                                                            <td>
-                                                                @if (software.AssignedEmployeeId.HasValue)
-                                                                {
-                                                                    <span>Atanmış</span>
-                                                                }
-                                                                else
-                                                                {
-                                                                    <span class="text-muted">Atanmamış</span>
-                                                                }
-                                                            </td>
-                                                            <td>
-                                                                @if (software.ExpiryDate.HasValue)
-                                                                {
-                                                                    <span>@software.ExpiryDate.Value.ToString("dd.MM.yyyy")</span>
-                                                                    @if (software.ExpiryDate < DateTime.Now)
-                                                                    {
-                                                                        <br><span class="badge bg-danger">Süresi Dolmuş</span>
-                                                                    }
-                                                                    else if (software.ExpiryDate <= DateTime.Now.AddDays(30))
-                                                                    {
-                                                                        <br><span class="badge bg-warning">Yakında Dolacak</span>
-                                                                    }
-                                                                }
-                                                                else
-                                                                {
-                                                                    <span class="text-muted">Belirtilmemiş</span>
-                                                                }
-                                                            </td>
-                                                            <td><span class="badge bg-warning">@software.Status</span></td>
-                                                        </tr>
-                                                    }
-                                                </tbody>
+                                                
                                             </table>
                                         </div>
                                     }

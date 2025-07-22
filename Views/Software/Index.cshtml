@@ -1,11 +1,12 @@
-@model List<WebApplication1.Models.Computer>
+@model List<WebApplication1.Models.Software>
 @{
-    ViewData["Title"] = "Bilgisayar Yönetimi";
-    var totalComputers = Model.Count;
-    var activeComputers = Model.Count(c => c.Status == ComputerStatus.Aktif);
-    var passiveComputers = totalComputers - activeComputers;
-    var successMessage = TempData["Success"] as string;
-    var errorMessage = TempData["Error"] as string;
+    ViewData["Title"] = "Yazılım Lisans Yönetimi";
+    var totalSoftware = Model.Count;
+    var activeSoftware = Model.Count(s => s.Status == SoftwareStatus.Active);
+    var expiringSoftware = Model.Count(s => s.Status == SoftwareStatus.Approaching);
+    var expiredSoftware = Model.Count(s => s.Status == SoftwareStatus.Expired);
+    var successMessage = TempData["SuccessMessage"] as string;
+    var errorMessage = TempData["ErrorMessage"] as string;
 }
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.3/sweetalert2.min.css" rel="stylesheet">
@@ -34,7 +35,7 @@
     }
 
     .page-title i {
-        color: #3498db;
+        color: #9b59b6;
         font-size: 1.8rem;
     }
 
@@ -70,10 +71,10 @@
         height: 4px;
     }
 
-    .stat-card.blue::before { background: #3498db; }
+    .stat-card.purple::before { background: #9b59b6; }
     .stat-card.green::before { background: #2ecc71; }
-    .stat-card.gray::before { background: #95a5a6; }
-    .stat-card.teal::before { background: #1abc9c; }
+    .stat-card.orange::before { background: #f39c12; }
+    .stat-card.red::before { background: #e74c3c; }
 
     .stat-content {
         display: flex;
@@ -106,10 +107,10 @@
         color: white;
     }
 
-    .stat-icon.blue { background: #3498db; }
+    .stat-icon.purple { background: #9b59b6; }
     .stat-icon.green { background: #2ecc71; }
-    .stat-icon.gray { background: #95a5a6; }
-    .stat-icon.teal { background: #1abc9c; }
+    .stat-icon.orange { background: #f39c12; }
+    .stat-icon.red { background: #e74c3c; }
 
     .controls-section {
         background: white;
@@ -138,8 +139,8 @@
 
     .search-input:focus {
         outline: none;
-        border-color: #3498db;
-        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        border-color: #9b59b6;
+        box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
     }
 
     .search-input::placeholder {
@@ -175,12 +176,12 @@
     }
 
     .btn-primary {
-        background: #3498db;
+        background: #9b59b6;
         color: white;
     }
 
     .btn-primary:hover {
-        background: #2980b9;
+        background: #8e44ad;
         color: white;
         transform: translateY(-1px);
     }
@@ -240,7 +241,7 @@
     }
 
     .record-count {
-        background: #3498db;
+        background: #9b59b6;
         color: white;
         padding: 0.25rem 0.75rem;
         border-radius: 20px;
@@ -289,28 +290,49 @@
         color: #2ecc71;
     }
 
-    .status-badge.inactive {
-        background: #f5f6fa;
-        color: #95a5a6;
+    .status-badge.approaching {
+        background: #fef5e7;
+        color: #f39c12;
     }
 
-    .employee-info {
+    .status-badge.expired {
+        background: #fadbd8;
+        color: #e74c3c;
+    }
+
+    .software-info {
         display: flex;
         align-items: center;
         gap: 0.75rem;
     }
 
-    .employee-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: #3498db;
+    .software-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: #9b59b6;
         color: white;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 600;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .remaining-time {
+        font-weight: 600;
+    }
+
+    .remaining-time.expired {
+        color: #e74c3c;
+    }
+
+    .remaining-time.approaching {
+        color: #f39c12;
+    }
+
+    .remaining-time.active {
+        color: #2ecc71;
     }
 
     .action-buttons {
@@ -331,7 +353,7 @@
         transition: all 0.2s ease;
     }
 
-    .action-btn.view { background: #3498db; color: white; }
+    .action-btn.view { background: #9b59b6; color: white; }
     .action-btn.edit { background: #f39c12; color: white; }
     .action-btn.delete { background: #e74c3c; color: white; }
 
@@ -416,28 +438,28 @@
         <div class="d-flex justify-content-between align-items-start">
             <div>
                 <h1 class="page-title">
-                    <i class="fas fa-desktop"></i>
-                    Bilgisayar Yönetimi
+                    <i class="fas fa-compact-disc"></i>
+                    Yazılım Lisans Yönetimi
                 </h1>
-                <p class="page-subtitle">Sisteme kayıtlı bilgisayarları yönetin</p>
+                <p class="page-subtitle">Yazılım lisanslarınızı yönetin ve takip edin</p>
             </div>
             <a asp-action="Create" class="btn btn-primary">
                 <i class="fas fa-plus"></i>
-                Yeni Bilgisayar Ekle
+                Yeni Lisans Ekle
             </a>
         </div>
     </div>
 
     <!-- Statistics Cards -->
     <div class="stats-container">
-        <div class="stat-card blue">
+        <div class="stat-card purple">
             <div class="stat-content">
                 <div class="stat-info">
-                    <h3>@totalComputers</h3>
-                    <p>Toplam Bilgisayar</p>
+                    <h3>@totalSoftware</h3>
+                    <p>Toplam Lisans</p>
                 </div>
-                <div class="stat-icon blue">
-                    <i class="fas fa-desktop"></i>
+                <div class="stat-icon purple">
+                    <i class="fas fa-compact-disc"></i>
                 </div>
             </div>
         </div>
@@ -445,8 +467,8 @@
         <div class="stat-card green">
             <div class="stat-content">
                 <div class="stat-info">
-                    <h3>@activeComputers</h3>
-                    <p>Aktif Bilgisayar</p>
+                    <h3>@activeSoftware</h3>
+                    <p>Aktif Lisans</p>
                 </div>
                 <div class="stat-icon green">
                     <i class="fas fa-check-circle"></i>
@@ -454,14 +476,26 @@
             </div>
         </div>
 
-        <div class="stat-card gray">
+        <div class="stat-card orange">
             <div class="stat-content">
                 <div class="stat-info">
-                    <h3>@passiveComputers</h3>
-                    <p>Pasif Bilgisayar</p>
+                    <h3>@expiringSoftware</h3>
+                    <p>Süresi Yaklaşan</p>
                 </div>
-                <div class="stat-icon gray">
-                    <i class="fas fa-pause-circle"></i>
+                <div class="stat-icon orange">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card red">
+            <div class="stat-content">
+                <div class="stat-info">
+                    <h3>@expiredSoftware</h3>
+                    <p>Süresi Dolmuş</p>
+                </div>
+                <div class="stat-icon red">
+                    <i class="fas fa-times-circle"></i>
                 </div>
             </div>
         </div>
@@ -470,15 +504,28 @@
     <!-- Search and Filter Controls -->
     <div class="controls-section">
         <div class="search-section">
-            <input type="text" class="search-input" placeholder="🔍 Bilgisayar Adı veya Açıklama" id="searchInput">
+            <input type="text" class="search-input" placeholder="🔍 Yazılım Adı veya Marka" id="searchInput">
             
             <div class="status-toggle">
                 <label>Durum</label>
                 <select class="status-dropdown" id="statusFilter">
                     <option value="">Tüm Durumlar</option>
-                    @foreach (ComputerStatus status in Enum.GetValues<ComputerStatus>())
+                    @foreach (SoftwareStatus status in Enum.GetValues<SoftwareStatus>())
                     {
-                        <option value="@status">@status</option>
+                        <option value="@status">
+                            @switch(status)
+                            {
+                                case SoftwareStatus.Active:
+                                    @:Aktif
+                                    break;
+                                case SoftwareStatus.Approaching:
+                                    @:Yaklaşan
+                                    break;
+                                case SoftwareStatus.Expired:
+                                    @:Süresi Dolmuş
+                                    break;
+                            }
+                        </option>
                     }
                 </select>
             </div>
@@ -494,6 +541,14 @@
                     <i class="fas fa-times"></i>
                     Temizle
                 </button>
+                <a asp-action="Expiring" class="btn btn-secondary">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Süresi Yaklaşanlar
+                </a>
+                <a asp-action="Expired" class="btn btn-secondary">
+                    <i class="fas fa-times-circle"></i>
+                    Süresi Dolmuşlar
+                </a>
             </div>
 
             <div class="view-toggle">
@@ -514,7 +569,7 @@
         <div class="data-header">
             <div class="data-title">
                 <i class="fas fa-list"></i>
-                Bilgisayar Listesi
+                Yazılım Lisans Listesi
                 <span class="record-count">@Model.Count kayıt</span>
             </div>
         </div>
@@ -522,28 +577,28 @@
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table" id="computerTable">
+                <table class="table" id="softwareTable">
                     <thead>
                         <tr>
                             <th>
-                                <i class="fas fa-desktop me-2"></i>
-                                Bilgisayar Bilgileri
+                                <i class="fas fa-compact-disc me-2"></i>
+                                Yazılım Bilgileri
                             </th>
                             <th>
-                                <i class="fas fa-building me-2"></i>
-                                Firma
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                Satın Alma Tarihi
                             </th>
                             <th>
-                                <i class="fas fa-user me-2"></i>
-                                Zimmetli Çalışan
+                                <i class="fas fa-hourglass-half me-2"></i>
+                                Süre / Bitiş
+                            </th>
+                            <th>
+                                <i class="fas fa-clock me-2"></i>
+                                Kalan Süre
                             </th>
                             <th>
                                 <i class="fas fa-circle me-2"></i>
                                 Durum
-                            </th>
-                            <th>
-                                <i class="fas fa-calendar me-2"></i>
-                                Kayıt Tarihi
                             </th>
                             <th>
                                 <i class="fas fa-cog me-2"></i>
@@ -552,60 +607,64 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var computer in Model)
+                        @foreach (var software in Model)
                         {
                             <tr>
                                 <td>
-                                    <div>
-                                        <strong>@computer.Name</strong>
-                                        @if (!string.IsNullOrEmpty(computer.AssetTag))
-                                        {
-                                            <br><small class="text-muted">@computer.AssetTag</small>
-                                        }
+                                    <div class="software-info">
+                                        <div class="software-icon">
+                                            @(software.Name.Substring(0, Math.Min(2, software.Name.Length)).ToUpper())
+                                        </div>
+                                        <div>
+                                            <strong>@software.Name</strong>
+                                            <br><small class="text-muted">@software.Brand</small>
+                                        </div>
                                     </div>
                                 </td>
-                                <td>@(computer.Company?.Name ?? "-")</td>
+                                <td>@software.PurchaseDate.ToString("dd.MM.yyyy")</td>
                                 <td>
-                                    @if (computer.AssignedEmployee != null)
-                                    {
-                                        <div class="employee-info">
-                                            <div class="employee-avatar">
-                                                @(computer.AssignedEmployee.FirstName?.Substring(0, 1).ToUpper())@(computer.AssignedEmployee.LastName?.Substring(0, 1).ToUpper())
-                                            </div>
-                                            <span>@computer.AssignedEmployee.FirstName @computer.AssignedEmployee.LastName</span>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">Atanmamış</span>
-                                    }
+                                    <div>
+                                        <strong>@software.Duration</strong>
+                                        <br><small class="text-muted">@software.CompletionDate.ToString("dd.MM.yyyy")</small>
+                                    </div>
                                 </td>
                                 <td>
-                                    @if (computer.Status == ComputerStatus.Aktif)
+                                    <span class="remaining-time @(software.Status.ToString().ToLower())">
+                                        @software.RemainingTime
+                                    </span>
+                                </td>
+                                <td>
+                                    @switch(software.Status)
                                     {
-                                        <span class="status-badge active">
-                                            <i class="fas fa-circle"></i>
-                                            Aktif
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="status-badge inactive">
-                                            <i class="fas fa-circle"></i>
-                                            @computer.Status
-                                        </span>
+                                        case SoftwareStatus.Active:
+                                            <span class="status-badge active">
+                                                <i class="fas fa-circle"></i>
+                                                Aktif
+                                            </span>
+                                            break;
+                                        case SoftwareStatus.Approaching:
+                                            <span class="status-badge approaching">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                Yaklaşan
+                                            </span>
+                                            break;
+                                        case SoftwareStatus.Expired:
+                                            <span class="status-badge expired">
+                                                <i class="fas fa-times-circle"></i>
+                                                Süresi Dolmuş
+                                            </span>
+                                            break;
                                     }
                                 </td>
-                                <td>@computer.CreatedDate.ToString("dd.MM.yyyy")</td>
                                 <td>
                                     <div class="action-buttons">
-                                        <a asp-action="Details" asp-route-id="@computer.Id" class="action-btn view" title="Detaylar">
+                                        <a asp-action="Details" asp-route-id="@software.Id" class="action-btn view" title="Detaylar">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a asp-action="Edit" asp-route-id="@computer.Id" class="action-btn edit" title="Düzenle">
+                                        <a asp-action="Edit" asp-route-id="@software.Id" class="action-btn edit" title="Düzenle">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a asp-action="Delete" asp-route-id="@computer.Id" class="action-btn delete delete-btn" title="Sil">
+                                        <a asp-action="Delete" asp-route-id="@software.Id" class="action-btn delete delete-btn" title="Sil">
                                             <i class="fas fa-trash"></i>
                                         </a>
                                     </div>
@@ -619,9 +678,9 @@
         else
         {
             <div class="empty-state">
-                <i class="fas fa-desktop"></i>
-                <h3>Henüz bilgisayar kaydı yok</h3>
-                <p>İlk bilgisayarınızı eklemek için yukarıdaki "Yeni Bilgisayar Ekle" butonunu kullanın.</p>
+                <i class="fas fa-compact-disc"></i>
+                <h3>Henüz yazılım lisansı yok</h3>
+                <p>İlk yazılım lisansınızı eklemek için yukarıdaki "Yeni Lisans Ekle" butonunu kullanın.</p>
             </div>
         }
     </div>
@@ -642,7 +701,7 @@
         function filterTable() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
-            const tableRows = document.querySelectorAll('#computerTable tbody tr');
+            const tableRows = document.querySelectorAll('#softwareTable tbody tr');
             
             tableRows.forEach(row => {
                 const text = row.textContent.toLowerCase();
@@ -665,11 +724,11 @@
             button.addEventListener('click', function(e) {
                 e.preventDefault();
                 const deleteUrl = this.href.replace('/Delete/', '/DeleteConfirmed/');
-                const computerName = this.closest('tr').querySelector('td:first-child strong').textContent;
+                const softwareName = this.closest('tr').querySelector('.software-info strong').textContent;
                 
                 Swal.fire({
-                    title: 'Bilgisayarı Sil?',
-                    html: `<strong>${computerName}</strong> bilgisayarını silmek istediğinizden emin misiniz?<br><br><small style="color: #e74c3c;">Bu işlem geri alınamaz!</small>`,
+                    title: 'Yazılım Lisansını Sil?',
+                    html: `<strong>${softwareName}</strong> yazılım lisansını silmek istediğinizden emin misiniz?<br><br><small style="color: #e74c3c;">Bu işlem geri alınamaz!</small>`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#e74c3c',
@@ -683,7 +742,7 @@
                         // Loading göster
                         Swal.fire({
                             title: 'Siliniyor...',
-                            text: 'Bilgisayar kaydı siliniyor, lütfen bekleyin.',
+                            text: 'Yazılım lisansı siliniyor, lütfen bekleyin.',
                             icon: 'info',
                             allowOutsideClick: false,
                             allowEscapeKey: false,
@@ -706,7 +765,7 @@
                                 Swal.fire({
                                     icon: 'success',
                                     title: 'Silindi!',
-                                    text: 'Bilgisayar başarıyla silindi.',
+                                    text: 'Yazılım lisansı başarıyla silindi.',
                                     timer: 2000,
                                     showConfirmButton: false
                                 }).then(() => {
@@ -720,7 +779,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Hata!',
-                                text: 'Bilgisayar silinirken bir hata oluştu.',
+                                text: 'Yazılım lisansı silinirken bir hata oluştu.',
                                 confirmButtonColor: '#e74c3c'
                             });
                         });
