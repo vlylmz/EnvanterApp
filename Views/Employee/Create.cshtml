@@ -17,7 +17,7 @@
                     @if (TempData["Error"] != null)
                     {
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            @TempData["Error"]
+                            @(TempData["Error"] ?? "An unknown error occurred.")
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     }
@@ -55,6 +55,11 @@
                                     <span asp-validation-for="Phone" class="text-danger"></span>
                                 </div>
                             </div>
+                            <div class="mb-3">
+                                <label asp-for="Title" class="form-label"></label>
+                                <input asp-for="Title" class="form-control" placeholder="Bilgisayar Mühendisi" />
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
                         </div>
 
                         <div class="row">
@@ -82,11 +87,15 @@
                             <a asp-action="Index" class="btn btn-secondary me-md-2">
                                 <i class="fas fa-arrow-left"></i> Geri
                             </a>
-                            <a asp-action="_" button type="submit" class="btn btn-primary" id="submitBtn">
-                                <i class="fas fa-save"></i> Kaydet
-                            </a>
-                            </abutton>
+                            
+                                <!-- Form inputları burada olacaksa buraya ekle veya sadece buton kalabilir -->
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Kaydet
+                                </button>
+                          
+
                         </div>
+
                     </form>
                 </div>
             </div>
@@ -96,15 +105,17 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        $(document).ready(function() {
-            // Form submit olayını yakala
-            $('#employeeForm').on('submit', function(e) {
-                e.preventDefault();
+        $(document).ready(function () {
+            let form = $('#employeeForm');
 
-                // jQuery validation kontrolü
-                if (!$(this).valid()) {
+            form.on('submit', function (e) {
+                e.preventDefault(); // Normal submit işlemini durdur
+
+                // Geçerli mi kontrol et
+                if (!form.valid()) {
                     return false;
                 }
 
@@ -120,11 +131,14 @@
                     cancelButtonColor: '#d33'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Submit butonunu deaktif et
+                        // Submit event'ini unbind et ki yeniden tetiklenince engellenmesin
+                        form.off('submit');
+
+                        // Submit butonunu pasifleştir
                         $('#submitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...');
 
                         // Formu submit et
-                        this.submit();
+                        form.submit();
                     }
                 });
             });

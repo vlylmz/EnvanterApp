@@ -200,13 +200,7 @@
             </div>
 
             <!-- Statistics Card -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-bar text-primary me-2"></i>
-                        İstatistikler
-                    </h5>
-                </div>
+            
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-6">
@@ -227,36 +221,83 @@
                 </div>
             </div>
 
-            <!-- Timeline -->
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0">
-                        <i class="fas fa-history text-primary me-2"></i>
-                        Zaman Çizelgesi
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-primary"></div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">Hesap Oluşturuldu</h6>
-                                <small class="text-muted">@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</small>
-                            </div>
-                        </div>
-                        @if (Model.IsActive)
-                        {
-                            <div class="timeline-item">
-                                <div class="timeline-marker bg-success"></div>
-                                <div class="timeline-content">
-                                    <h6 class="mb-1">Hesap Aktif</h6>
-                                    <small class="text-muted">Şu anda aktif durumda</small>
-                                </div>
-                            </div>
-                        }
+        <!-- Time Log Panel Sliderlı -->
+        <div class="card shadow-sm border-0" style="max-width: 980px; margin-top: 20px; margin-right: auto; margin-bottom: 20px; margin-left: 0;"
+             ">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0">
+                    <i class="fas fa-history text-primary me-2"></i>
+                    Zaman Çizelgesi
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="timeline-logs px-3 py-2">
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Hesap oluşturuldu</div>
+                        <div class="text-muted small">08.05.2024 09:10</div>
+                    </div>
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Şifre güncellendi</div>
+                        <div class="text-muted small">10.05.2024 13:31</div>
+                    </div>
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Email adresi eklendi</div>
+                        <div class="text-muted small">13.05.2024 21:08</div>
+                    </div>
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Hesap aktif edildi</div>
+                        <div class="text-muted small">15.05.2024 07:17</div>
+                    </div>
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Telefon numarası değiştirildi</div>
+                        <div class="text-muted small">25.05.2024 16:42</div>
+                    </div>
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Hesap pasif edildi</div>
+                        <div class="text-muted small">31.05.2024 18:59</div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <style>
+            .timeline-logs {
+                max-height: 208px; /* 5-6 log için ideal yükseklik */
+                overflow-y: auto;
+                background: #f7fafc;
+                border-radius: 0 0 12px 12px;
+            }
+
+                .timeline-logs::-webkit-scrollbar {
+                    width: 10px;
+                    background: #e2e8f0;
+                    border-radius: 10px;
+                }
+
+                .timeline-logs::-webkit-scrollbar-thumb {
+                    background: linear-gradient(160deg, #007bff 30%, #54a0ff 100%);
+                    border-radius: 10px;
+                }
+
+                    .timeline-logs::-webkit-scrollbar-thumb:hover {
+                        background: linear-gradient(180deg, #0056b3, #007bff);
+                    }
+
+            .log-entry:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+                padding-bottom: 0;
+            }
+
+            .log-entry {
+                transition: background 0.2s;
+            }
+
+                .log-entry:hover {
+                    background: #e3ebf6;
+                }
+        </style>
+
         </div>
     </div>
 

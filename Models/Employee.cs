@@ -37,6 +37,6 @@ namespace WebApplication1.Models
         // Navigation Property
         public Company? Company { get; set; }
 
-        public string title { get; set; }
+        public string Title { get; set; }
     }
 }
