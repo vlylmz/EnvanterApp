@@ -15,11 +15,6 @@ namespace WebApplication1.Controllers
         private readonly AppDbContext _context = context;
         private readonly int _pageSize = 10;
 
-        public ComputerController(AppDbContext context)
-        {
-            _context = context;
-        }
-
         public async Task<IActionResult> Index(string searchString, string statusFilter,
             string sortOrder, int page = 1)
         {

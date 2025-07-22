@@ -5,10 +5,10 @@ using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.ViewModels;
 
+
 public class EmployeeController : Controller
 
-namespace WebApplication1.Controllers
-{   
+{
     private readonly AppDbContext _context;
 
     public EmployeeController(AppDbContext context)
@@ -50,7 +50,7 @@ namespace WebApplication1.Controllers
         return View();
     }
 
-    [HttpPost]  
+    [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Employee model)
     {
@@ -64,19 +64,9 @@ namespace WebApplication1.Controllers
                 {
                     Console.WriteLine($"Key: {modelError.Key}, Error: {error.ErrorMessage}");
                 }
-            return View(model);
             }
-
-        public async Task<IActionResult> Edit(int id)
-        {
-            var emp = await _context.Employees.FindAsync(id);
-            if (emp == null) return NotFound();
-            return View(emp);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Edit(Employee model)
-        {
         if (ModelState.IsValid)
         {
             try

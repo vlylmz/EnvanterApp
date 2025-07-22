@@ -7,11 +7,6 @@ namespace WebApplication1.Data
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options)
-            : base(options)
-        {
-        }
-
         // İleride eklenecek diğer DbSet'ler:
         //DbSet<Company> Companies için db bağlantısı   
         public DbSet<Company> Companies { get; set; }
