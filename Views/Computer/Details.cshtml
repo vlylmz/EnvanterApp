@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilgisayar Detayları - PC-001</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #206bc4;
+            --success-color: #28a745;
+            --warning-color: #fd7e14;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --secondary-color: #6c757d;
+            --light-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --border-radius: 0.5rem;
+            --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --transition: all 0.2s ease-in-out;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container-fluid {
+            max-width: 1400px;
+            padding: 2rem 1rem;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), #1a5bb8);
+            color: white;
+            padding: 2rem;
+            margin: -2rem -1rem 2rem -1rem;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .computer-icon {
+            width: 4rem;
+            height: 4rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 1.5rem;
+        }
+
+        .computer-info h1 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 2rem;
+        }
+
+        .computer-meta {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-active { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+        .status-maintenance { background: rgba(253, 126, 20, 0.2); color: #fd7e14; }
+        .status-broken { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+        .status-available { background: rgba(108, 117, 125, 0.2); color: #6c757d; }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .details-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .card-header {
+            background: var(--light-bg);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .card-icon {
+            background: var(--primary-color);
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .info-value.empty {
+            color: var(--secondary-color);
+            font-style: italic;
+        }
+
+        .progress-card {
+            background: linear-gradient(135deg, #e3f2fd, #f8f9fa);
+            border: 1px solid #bbdefb;
+        }
+
+        .progress-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .progress-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .progress-label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .progress-value {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .warranty-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+        }
+
+        .warranty-good { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+        .warranty-warning { background: rgba(253, 126, 20, 0.1); color: #fd7e14; }
+        .warranty-expired { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.75rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-color);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.75rem;
+            top: 0.25rem;
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background: var(--primary-color);
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .timeline-date {
+            font-size: 0.875rem;
+            color: var(--secondary-color);
+        }
+
+        .timeline-description {
+            color: var(--secondary-color);
+            margin: 0;
+        }
+
+        .assignment-card {
+            background: linear-gradient(135deg, #e8f5e8, #f8f9fa);
+            border: 1px solid #c3e6cb;
+        }
+
+        .user-avatar {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: var(--success-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .user-info {
+            flex: 1;
+            margin-left: 1rem;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .user-details {
+            color: var(--secondary-color);
+            font-size: 0.875rem;
+            margin: 0.25rem 0 0 0;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .quick-action-btn {
+            flex: 1;
+            background: white;
+            border: 1px solid var(--border-color);
+            color: var(--secondary-color);
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .tabs-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .nav-tabs {
+            background: var(--light-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 1rem;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: var(--secondary-color);
+            padding: 1rem 1.5rem;
+            font-weight: 500;
+            border-radius: 0;
+            transition: var(--transition);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: white;
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-color);
+            background: rgba(32, 107, 196, 0.05);
+        }
+
+        .tab-content {
+            padding: 1.5rem;
+        }
+
+        .software-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .software-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--light-bg);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+
+        .software-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .software-info {
+            flex: 1;
+        }
+
+        .software-name {
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+        }
+
+        .software-version {
+            color: var(--secondary-color);
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        .maintenance-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--light-bg);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+        }
+
+        .maintenance-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .maintenance-routine { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+        .maintenance-repair { background: rgba(253, 126, 20, 0.2); color: #fd7e14; }
+        .maintenance-upgrade { background: rgba(32, 107, 196, 0.2); color: var(--primary-color); }
+
+        .maintenance-content {
+            flex: 1;
+        }
+
+        .maintenance-title {
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .maintenance-description {
+            color: var(--secondary-color);
+            margin: 0 0 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .maintenance-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: var(--secondary-color);
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .spec-category {
+            background: var(--light-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+
+        .spec-category-title {
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .spec-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-item:last-child {
+            border-bottom: none;
+        }
+
+        .spec-label {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .spec-value {
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 1200px) {
+            .details-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: -1;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .container-fluid {
+                padding: 1rem 0.5rem;
+            }
+
+            .page-header {
+                margin: -1rem -0.5rem 1.5rem -0.5rem;
+                padding: 1.5rem 1rem;
+            }
+
+            .computer-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .action-buttons {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .btn-action {
+                flex: 1;
+                min-width: 120px;
+                justify-content: center;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .specs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @@keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Loading skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @@keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .modal-backdrop {
+            backdrop-filter: blur(5px);
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1055;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex align-items-center">
+                <div class="computer-icon">
+                    <i class="fas fa-desktop"></i>
+                </div>
+                <div class="computer-info flex-grow-1">
+                    <h1 id="computerName">Dell OptiPlex 7090</h1>
+                    <div class="computer-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-tag"></i>
+                            <span id="assetTag">AST-2024-001</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-barcode"></i>
+                            <span id="serialNumber">SN123456789</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-building"></i>
+                            <span id="companyName">Tech Corp</span>
+                        </div>
+                        <div class="status-badge status-active" id="statusBadge">
+                            <i class="fas fa-circle"></i>
+                            <span>Aktif</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="/Computer/Edit/1" class="btn-action">
+                    <i class="fas fa-edit"></i>
+                    Düzenle
+                </a>
+                <button class="btn-action" onclick="changeStatus()">
+                    <i class="fas fa-exchange-alt"></i>
+                    Durum Değiştir
+                </button>
+                <button class="btn-action" onclick="assignUser()">
+                    <i class="fas fa-user-plus"></i>
+                    Kullanıcı Ata
+                </button>
+                <button class="btn-action" onclick="addMaintenance()">
+                    <i class="fas fa-tools"></i>
+                    Bakım Ekle
+                </button>
+                <div class="dropdown">
+                    <button class="btn-action dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                        Daha Fazla
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="generateQR()"><i class="fas fa-qrcode me-2"></i>QR Kod</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportDetails()"><i class="fas fa-download me-2"></i>Export</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="printLabel()"><i class="fas fa-print me-2"></i>Etiket Yazdır</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteComputer()"><i class="fas fa-trash me-2"></i>Sil</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Container -->
+        <div class="details-container">
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Detailed Specifications -->
+                <div class="info-card tabs-container">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#specifications">
+                                <i class="fas fa-microchip me-2"></i>Teknik Özellikler
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#software">
+                                <i class="fas fa-download me-2"></i>Yazılımlar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#maintenance">
+                                <i class="fas fa-tools me-2"></i>Bakım Geçmişi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#activity">
+                                <i class="fas fa-history me-2"></i>Aktivite Geçmişi
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        <!-- Specifications Tab -->
+                        <div class="tab-pane fade show active" id="specifications">
+                            <div class="specs-grid">
+                                <div class="spec-category">
+                                    <h6 class="spec-category-title">
+                                        <i class="fas fa-microchip text-primary"></i>
+                                        İşlemci
+                                    </h6>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Model</span>
+                                        <span class="spec-value">Intel Core i5-11400</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Çekirdek Sayısı</span>
+                                        <span class="spec-value">6 Çekirdek</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Temel Hız</span>
+                                        <span class="spec-value">2.6 GHz</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Turbo Hız</span>
+                                        <span class="spec-value">4.4 GHz</span>
+                                    </div>
+                                </div>
+
+                                <div class="spec-category">
+                                    <h6 class="spec-category-title">
+                                        <i class="fas fa-memory text-info"></i>
+                                        Bellek
+                                    </h6>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Toplam RAM</span>
+                                        <span class="spec-value">16 GB</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">RAM Tipi</span>
+                                        <span class="spec-value">DDR4</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">RAM Hızı</span>
+                                        <span class="spec-value">3200 MHz</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Slot Sayısı</span>
+                                        <span class="spec-value">4 Slot (2 Dolu)</span>
+                                    </div>
+                                </div>
+
+                                <div class="spec-category">
+                                    <h6 class="spec-category-title">
+                                        <i class="fas fa-hdd text-warning"></i>
+                                        Depolama
+                                    </h6>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Ana Disk</span>
+                                        <span class="spec-value">512 GB NVMe SSD</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">İkinci Disk</span>
+                                        <span class="spec-value">1 TB HDD</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Kullanılan Alan</span>
+                                        <span class="spec-value">387 GB / 1.5 TB</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Boş Alan</span>
+                                        <span class="spec-value">1.1 TB (%73)</span>
+                                    </div>
+                                </div>
+
+                                <div class="spec-category">
+                                    <h6 class="spec-category-title">
+                                        <i class="fas fa-desktop text-success"></i>
+                                        Grafik
+                                    </h6>
+                                    <div class="spec-item">
+                                        <span class="spec-label">GPU</span>
+                                        <span class="spec-value">Intel UHD Graphics 730</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Video Bellek</span>
+                                        <span class="spec-value">Paylaşımlı</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Monitör</span>
+                                        <span class="spec-value">24" 1920x1080</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Bağlantı</span>
+                                        <span class="spec-value">HDMI, DisplayPort</span>
+                                    </div>
+                                </div>
+
+                                <div class="spec-category">
+                                    <h6 class="spec-category-title">
+                                        <i class="fas fa-network-wired text-danger"></i>
+                                        Ağ ve Bağlantı
+                                    </h6>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Ethernet</span>
+                                        <span class="spec-value">Gigabit LAN</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Wi-Fi</span>
+                                        <span class="spec-value">Wi-Fi 6 (802.11ax)</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Bluetooth</span>
+                                        <span class="spec-value">Bluetooth 5.1</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">USB Portları</span>
+                                        <span class="spec-value">6x USB-A, 2x USB-C</span>
+                                    </div>
+                                </div>
+
+                                <div class="spec-category">
+                                    <h6 class="spec-category-title">
+                                        <i class="fas fa-cog text-secondary"></i>
+                                        Sistem
+                                    </h6>
+                                    <div class="spec-item">
+                                        <span class="spec-label">İşletim Sistemi</span>
+                                        <span class="spec-value">Windows 11 Pro</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Sürüm</span>
+                                        <span class="spec-value">22H2 (Build 22621)</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">BIOS</span>
+                                        <span class="spec-value">1.15.0 (UEFI)</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Son Açılış</span>
+                                        <span class="spec-value">2 saat önce</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Software Tab -->
+                        <div class="tab-pane fade" id="software">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Yüklü Yazılımlar</h6>
+                                <button class="btn btn-sm btn-outline-primary" onclick="scanSoftware()">
+                                    <i class="fas fa-sync me-1"></i>Yenile
+                                </button>
+                            </div>
+                            
+                            <div class="software-list">
+                                <div class="software-item">
+                                    <div class="software-icon">
+                                        <i class="fab fa-microsoft"></i>
+                                    </div>
+                                    <div class="software-info">
+                                        <h6 class="software-name">Microsoft Office 365</h6>
+                                        <p class="software-version">Sürüm 16.0.14326.20404</p>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <span class="badge bg-success">Lisanslı</span>
+                                        <span class="badge bg-info">Güncel</span>
+                                    </div>
+                                </div>
+
+                                <div class="software-item">
+                                    <div class="software-icon">
+                                        <i class="fab fa-chrome"></i>
+                                    </div>
+                                    <div class="software-info">
+                                        <h6 class="software-name">Google Chrome</h6>
+                                        <p class="software-version">Sürüm 118.0.5993.88</p>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <span class="badge bg-success">Ücretsiz</span>
+                                        <span class="badge bg-info">Güncel</span>
+                                    </div>
+                                </div>
+
+                                <div class="software-item">
+                                    <div class="software-icon">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div class="software-info">
+                                        <h6 class="software-name">Windows Defender</h6>
+                                        <p class="software-version">Sürüm 4.18.23090.2008</p>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <span class="badge bg-success">Aktif</span>
+                                        <span class="badge bg-info">Güncel</span>
+                                    </div>
+                                </div>
+
+                                <div class="software-item">
+                                    <div class="software-icon">
+                                        <i class="fas fa-code"></i>
+                                    </div>
+                                    <div class="software-info">
+                                        <h6 class="software-name">Visual Studio Code</h6>
+                                        <p class="software-version">Sürüm 1.83.1</p>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <span class="badge bg-success">Ücretsiz</span>
+                                        <span class="badge bg-warning">Güncelleme Mevcut</span>
+                                    </div>
+                                </div>
+
+                                <div class="software-item">
+                                    <div class="software-icon">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </div>
+                                    <div class="software-info">
+                                        <h6 class="software-name">Adobe Acrobat Reader</h6>
+                                        <p class="software-version">Sürüm 2023.006.20380</p>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <span class="badge bg-success">Ücretsiz</span>
+                                        <span class="badge bg-info">Güncel</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Maintenance Tab -->
+                        <div class="tab-pane fade" id="maintenance">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Bakım ve Onarım Geçmişi</h6>
+                                <button class="btn btn-sm btn-primary" onclick="addMaintenance()">
+                                    <i class="fas fa-plus me-1"></i>Bakım Ekle
+                                </button>
+                            </div>
+
+                            <div class="maintenance-item">
+                                <div class="maintenance-icon maintenance-routine">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="maintenance-content">
+                                    <h6 class="maintenance-title">Rutin Bakım</h6>
+                                    <p class="maintenance-description">
+                                        Sistem temizliği, güvenlik güncellemeleri ve performans optimizasyonu yapıldı.
+                                    </p>
+                                    <div class="maintenance-meta">
+                                        <span><i class="fas fa-calendar me-1"></i>15.11.2024</span>
+                                        <span><i class="fas fa-user me-1"></i>IT Ekibi</span>
+                                        <span><i class="fas fa-clock me-1"></i>2 saat</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="maintenance-item">
+                                <div class="maintenance-icon maintenance-upgrade">
+                                    <i class="fas fa-arrow-up"></i>
+                                </div>
+                                <div class="maintenance-content">
+                                    <h6 class="maintenance-title">RAM Yükseltme</h6>
+                                    <p class="maintenance-description">
+                                        8GB'dan 16GB'a RAM yükseltme işlemi gerçekleştirildi.
+                                    </p>
+                                    <div class="maintenance-meta">
+                                        <span><i class="fas fa-calendar me-1"></i>03.10.2024</span>
+                                        <span><i class="fas fa-user me-1"></i>Ahmet Demir</span>
+                                        <span><i class="fas fa-dollar-sign me-1"></i>₺850</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="maintenance-item">
+                                <div class="maintenance-icon maintenance-repair">
+                                    <i class="fas fa-wrench"></i>
+                                </div>
+                                <div class="maintenance-content">
+                                    <h6 class="maintenance-title">Fan Değişimi</h6>
+                                    <p class="maintenance-description">
+                                        Aşırı ısınma sorunu nedeniyle CPU fanı değiştirildi.
+                                    </p>
+                                    <div class="maintenance-meta">
+                                        <span><i class="fas fa-calendar me-1"></i>22.09.2024</span>
+                                        <span><i class="fas fa-user me-1"></i>Teknik Servis</span>
+                                        <span><i class="fas fa-dollar-sign me-1"></i>₺120</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="maintenance-item">
+                                <div class="maintenance-icon maintenance-routine">
+                                    <i class="fas fa-download"></i>
+                                </div>
+                                <div class="maintenance-content">
+                                    <h6 class="maintenance-title">Yazılım Güncellemesi</h6>
+                                    <p class="maintenance-description">
+                                        Windows 11 22H2 güncellemesi ve driver güncellemeleri yapıldı.
+                                    </p>
+                                    <div class="maintenance-meta">
+                                        <span><i class="fas fa-calendar me-1"></i>10.09.2024</span>
+                                        <span><i class="fas fa-user me-1"></i>Sistem Otomatik</span>
+                                        <span><i class="fas fa-clock me-1"></i>45 dakika</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Tab -->
+                        <div class="tab-pane fade" id="activity">
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-content">
+                                        <div class="timeline-header">
+                                            <h6 class="timeline-title">Durum Değiştirme</h6>
+                                            <span class="timeline-date">2 saat önce</span>
+                                        </div>
+                                        <p class="timeline-description">
+                                            Durum "Bakımda" durumundan "Aktif" durumuna değiştirildi.
+                                            <br><small class="text-muted">Değiştiren: Ahmet Yılmaz</small>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="timeline-item">
+                                    <div class="timeline-content">
+                                        <div class="timeline-header">
+                                            <h6 class="timeline-title">Kullanıcı Ataması</h6>
+                                            <span class="timeline-date">1 gün önce</span>
+                                        </div>
+                                        <p class="timeline-description">
+                                            Mehmet Demir kullanıcısına atandı.
+                                            <br><small class="text-muted">Atayan: IT Yöneticisi</small>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="timeline-item">
+                                    <div class="timeline-content">
+                                        <div class="timeline-header">
+                                            <h6 class="timeline-title">Bakım Tamamlandı</h6>
+                                            <span class="timeline-date">2 gün önce</span>
+                                        </div>
+                                        <p class="timeline-description">
+                                            Rutin bakım işlemi tamamlandı. Sistem temizliği ve güvenlik güncellemeleri yapıldı.
+                                            <br><small class="text-muted">Yapan: IT Ekibi</small>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="timeline-item">
+                                    <div class="timeline-content">
+                                        <div class="timeline-header">
+                                            <h6 class="timeline-title">Kayıt Güncelleme</h6>
+                                            <span class="timeline-date">1 hafta önce</span>
+                                        </div>
+                                        <p class="timeline-description">
+                                            Bilgisayar özellikleri güncellendi. RAM miktarı 16GB olarak değiştirildi.
+                                            <br><small class="text-muted">Güncelleyen: Sistem Yöneticisi</small>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="timeline-item">
+                                    <div class="timeline-content">
+                                        <div class="timeline-header">
+                                            <h6 class="timeline-title">İlk Kayıt</h6>
+                                            <span class="timeline-date">6 ay önce</span>
+                                        </div>
+                                        <p class="timeline-description">
+                                            Bilgisayar sisteme ilk kez kaydedildi.
+                                            <br><small class="text-muted">Kaydeden: IT Yöneticisi</small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Assignment Info -->
+                <div class="info-card assignment-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <div class="card-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            Atama Bilgileri
+                        </h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="changeAssignment()">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="user-avatar">M</div>
+                            <div class="user-info">
+                                <h6 class="user-name">Mehmet Demir</h6>
+                                <p class="user-details">
+                                    <i class="fas fa-building me-1"></i>Tech Corp<br>
+                                    <i class="fas fa-briefcase me-1"></i>Yazılım Geliştirici<br>
+                                    <i class="fas fa-envelope me-1"></i>mehmet.demir@techcorp.com
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-actions">
+                            <a href="#" class="quick-action-btn" onclick="sendMessage()">
+                                <i class="fas fa-envelope"></i><br>
+                                <small>Mesaj</small>
+                            </a>
+                            <a href="#" class="quick-action-btn" onclick="viewProfile()">
+                                <i class="fas fa-user"></i><br>
+                                <small>Profil</small>
+                            </a>
+                            <a href="#" class="quick-action-btn" onclick="removeAssignment()">
+                                <i class="fas fa-user-times"></i><br>
+                                <small>Kaldır</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Info -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <div class="card-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            Hızlı Bilgiler
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Satın Alma Tarihi</span>
+                                <span class="info-value">15.05.2024</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Satın Alma Fiyatı</span>
+                                <span class="info-value">₺12.500</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Tedarikçi</span>
+                                <span class="info-value">ABC Bilgisayar</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Konum</span>
+                                <span class="info-value">İstanbul Ofis - 3. Kat</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Son Görülme</span>
+                                <span class="info-value pulse">2 saat önce</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Kullanım Süresi</span>
+                                <span class="info-value">6 ay</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Warranty Info -->
+                <div class="info-card progress-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <div class="card-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            Garanti Bilgileri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="warranty-indicator warranty-good">
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <strong>18 ay kaldı</strong><br>
+                                <small>Garanti 15.05.2027 tarihine kadar geçerli</small>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-item mt-3">
+                            <span class="progress-label">Garanti Kullanımı</span>
+                            <span class="progress-value">25%</span>
+                        </div>
+                        <div class="progress mt-1">
+                            <div class="progress-bar bg-success" style="width: 25%"></div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Garanti kapsamında ücretsiz teknik destek mevcuttur.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="info-card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            Performans
+                        </h5>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="refreshMetrics()">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-item">
+                            <span class="progress-label">CPU Kullanımı</span>
+                            <span class="progress-value">23%</span>
+                        </div>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-info" style="width: 23%"></div>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <span class="progress-label">RAM Kullanımı</span>
+                            <span class="progress-value">67%</span>
+                        </div>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-warning" style="width: 67%"></div>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <span class="progress-label">Disk Kullanımı</span>
+                            <span class="progress-value">42%</span>
+                        </div>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-success" style="width: 42%"></div>
+                        </div>
+                        
+                        <div class="progress-item">
+                            <span class="progress-label">Sistem Sağlığı</span>
+                            <span class="progress-value text-success">İyi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Status Modal -->
+    <div class="modal fade" id="statusModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Durum Değiştir</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Yeni Durum</label>
+                        <select class="form-select" id="newStatus">
+                            <option value="Aktif">Aktif</option>
+                            <option value="Bakım">Bakımda</option>
+                            <option value="Arızalı">Arızalı</option>
+                            <option value="Havuzda">Havuzda</option>
+                            <option value="Zimmetli">Zimmetli</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Açıklama (Opsiyonel)</label>
+                        <textarea class="form-control" rows="3" placeholder="Durum değişikliği hakkında notlar..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" onclick="updateStatus()">Durumu Güncelle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign User Modal -->
+    <div class="modal fade" id="assignModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Kullanıcı Ata</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Firma</label>
+                        <select class="form-select" onchange="loadEmployeesForAssign()">
+                            <option value="">Firma seçin...</option>
+                            <option value="1">Tech Corp</option>
+                            <option value="2">Software Inc</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Çalışan</label>
+                        <select class="form-select" id="employeeSelect">
+                            <option value="">Önce firma seçin...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Atama Tarihi</label>
+                        <input type="date" class="form-control" value="2024-11-17">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" onclick="assignToUser()">Kullanıcıya Ata</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadComputerDetails();
+            initializeRealTimeUpdates();
+        });
+
+        // Load computer details (simulated API call)
+        function loadComputerDetails() {
+            // In real implementation, fetch from API
+            console.log('Loading computer details...');
+        }
+
+        // Real-time updates
+        function initializeRealTimeUpdates() {
+            // Update performance metrics every 30 seconds
+            setInterval(refreshMetrics, 30000);
+        }
+
+        // Action functions
+        function changeStatus() {
+            const modal = new bootstrap.Modal(document.getElementById('statusModal'));
+            modal.show();
+        }
+
+        function updateStatus() {
+            const newStatus = document.getElementById('newStatus').value;
+            
+            // Simulate API call
+            showToast('success', `Durum "${newStatus}" olarak güncellendi.`);
+            
+            // Update UI
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.innerHTML = `<i class="fas fa-circle"></i><span>${newStatus}</span>`;
+            
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('statusModal')).hide();
+        }
+
+        function assignUser() {
+            const modal = new bootstrap.Modal(document.getElementById('assignModal'));
+            modal.show();
+        }
+
+        function assignToUser() {
+            const employeeSelect = document.getElementById('employeeSelect');
+            const selectedEmployee = employeeSelect.options[employeeSelect.selectedIndex].text;
+            
+            if (selectedEmployee && selectedEmployee !== 'Önce firma seçin...') {
+                showToast('success', `${selectedEmployee} kullanıcısına atandı.`);
+                bootstrap.Modal.getInstance(document.getElementById('assignModal')).hide();
+                
+                // Refresh assignment info (in real app, reload data)
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showToast('error', 'Lütfen bir çalışan seçin.');
+            }
+        }
+
+        function addMaintenance() {
+            showToast('info', 'Bakım ekleme sayfasına yönlendiriliyorsunuz...');
+            setTimeout(() => {
+                window.location.href = '/Computer/AddMaintenance/1';
+            }, 1000);
+        }
+
+        function generateQR() {
+            showToast('info', 'QR kod oluşturuluyor...');
+            // In real implementation, generate and download QR code
+        }
+
+        function exportDetails() {
+            showToast('info', 'Detaylar Excel formatında dışa aktarılıyor...');
+            // In real implementation, generate and download report
+        }
+
+        function printLabel() {
+            showToast('info', 'Etiket yazdırma penceresi açılıyor...');
+            // In real implementation, open print dialog for label
+        }
+
+        function deleteComputer() {
+            if (confirm('Bu bilgisayarı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) {
+                showToast('success', 'Bilgisayar başarıyla silindi.');
+                setTimeout(() => {
+                    window.location.href = '/Computer';
+                }, 1500);
+            }
+        }
+
+        function refreshMetrics() {
+            // Simulate random metrics
+            const metrics = [
+                { selector: '.progress-bar.bg-info', value: Math.floor(Math.random() * 40) + 10 },
+                { selector: '.progress-bar.bg-warning', value: Math.floor(Math.random() * 30) + 50 },
+                { selector: '.progress-bar.bg-success', value: Math.floor(Math.random() * 20) + 30 }
+            ];
+
+            metrics.forEach((metric, index) => {
+                const progressBar = document.querySelectorAll(metric.selector)[0];
+                const progressValue = document.querySelectorAll('.progress-value')[index + 3]; // Skip warranty progress
+                
+                if (progressBar && progressValue) {
+                    progressBar.style.width = metric.value + '%';
+                    progressValue.textContent = metric.value + '%';
+                }
+            });
+
+            showToast('info', 'Performans metrikleri güncellendi.', 2000);
+        }
+
+        function scanSoftware() {
+            showToast('info', 'Yazılımlar taranıyor...');
+            
+            // Simulate scan delay
+            setTimeout(() => {
+                showToast('success', 'Yazılım taraması tamamlandı. 2 yeni yazılım bulundu.');
+            }, 2000);
+        }
+
+        function loadEmployeesForAssign() {
+            const employeeSelect = document.getElementById('employeeSelect');
+            
+            // Simulate loading employees
+            employeeSelect.innerHTML = '<option value="">Yükleniyor...</option>';
+            
+            setTimeout(() => {
+                employeeSelect.innerHTML = `
+                    <option value="">Çalışan seçin...</option>
+                    <option value="1">Ahmet Yılmaz</option>
+                    <option value="2">Ayşe Kaya</option>
+                    <option value="3">Mehmet Öz</option>
+                `;
+            }, 500);
+        }
+
+        function changeAssignment() {
+            assignUser();
+        }
+
+        function sendMessage() {
+            showToast('info', 'Mesaj gönderme özelliği yakında eklenecek.');
+        }
+
+        function viewProfile() {
+            showToast('info', 'Kullanıcı profiline yönlendiriliyorsunuz...');
+        }
+
+        function removeAssignment() {
+            if (confirm('Bu bilgisayarın kullanıcı atamasını kaldırmak istediğinizden emin misiniz?')) {
+                showToast('success', 'Kullanıcı ataması kaldırıldı.');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        }
+
+        // Toast notification system
+        function showToast(type, message, duration = 3000) {
+            const toastContainer = document.querySelector('.toast-container');
+            
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${getToastColor(type)} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="${getToastIcon(type)} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            const bsToast = new bootstrap.Toast(toast, { autohide: true, delay: duration });
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        function getToastColor(type) {
+            const colors = {
+                'success': 'success',
+                'error': 'danger',
+                'warning': 'warning',
+                'info': 'info'
+            };
+            return colors[type] || 'secondary';
+        }
+
+        function getToastIcon(type) {
+            const icons = {
+                'success': 'fas fa-check-circle',
+                'error': 'fas fa-exclamation-circle',
+                'warning': 'fas fa-exclamation-triangle',
+                'info': 'fas fa-info-circle'
+            };
+            return icons[type] || 'fas fa-info-circle';
+        }
+
+        // Utility functions
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function formatDate(dateString) {
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            };
+            return new Date(dateString).toLocaleDateString('tr-TR', options);
+        }
+
+        // Auto-refresh functionality
+        function startAutoRefresh() {
+            // Refresh performance metrics every 30 seconds
+            setInterval(() => {
+                refreshMetrics();
+            }, 30000);
+
+            // Update last seen timestamp every minute
+            setInterval(() => {
+                updateLastSeen();
+            }, 60000);
+        }
+
+        function updateLastSeen() {
+            const lastSeenElements = document.querySelectorAll('.pulse');
+            lastSeenElements.forEach(element => {
+                // Simulate updating last seen time
+                const minutes = Math.floor(Math.random() * 5) + 1;
+                element.textContent = `${minutes} dakika önce`;
+            });
+        }
+
+        // Initialize auto-refresh on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            startAutoRefresh();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+E to edit
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                window.location.href = '/Computer/Edit/1';
+            }
+            
+            // Ctrl+S to change status
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                changeStatus();
+            }
+            
+            // Ctrl+U to assign user
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+                assignUser();
+            }
+            
+            // Ctrl+M to add maintenance
+            if (e.ctrlKey && e.key === 'm') {
+                e.preventDefault();
+                addMaintenance();
+            }
+        });
+
+        // Search functionality for software and maintenance
+        function filterSoftware(searchTerm) {
+            const softwareItems = document.querySelectorAll('.software-item');
+            softwareItems.forEach(item => {
+                const softwareName = item.querySelector('.software-name').textContent.toLowerCase();
+                if (softwareName.includes(searchTerm.toLowerCase())) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function filterMaintenance(searchTerm) {
+            const maintenanceItems = document.querySelectorAll('.maintenance-item');
+            maintenanceItems.forEach(item => {
+                const maintenanceTitle = item.querySelector('.maintenance-title').textContent.toLowerCase();
+                const maintenanceDescription = item.querySelector('.maintenance-description').textContent.toLowerCase();
+                if (maintenanceTitle.includes(searchTerm.toLowerCase()) || 
+                    maintenanceDescription.includes(searchTerm.toLowerCase())) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Export functionality
+        function exportToExcel() {
+            // Simulate Excel export
+            showToast('info', 'Excel raporu oluşturuluyor...', 2000);
+            
+            setTimeout(() => {
+                // In real implementation, this would trigger actual file download
+                const data = {
+                    computerName: document.getElementById('computerName').textContent,
+                    assetTag: document.getElementById('assetTag').textContent,
+                    serialNumber: document.getElementById('serialNumber').textContent,
+                    companyName: document.getElementById('companyName').textContent,
+                    status: document.querySelector('#statusBadge span').textContent
+                };
+                
+                console.log('Export data:', data);
+                showToast('success', 'Excel raporu başarıyla oluşturuldu ve indiriliyor...');
+            }, 2000);
+        }
+
+        function exportToPDF() {
+            // Simulate PDF export
+            showToast('info', 'PDF raporu oluşturuluyor...', 2000);
+            
+            setTimeout(() => {
+                showToast('success', 'PDF raporu başarıyla oluşturuldu ve indiriliyor...');
+            }, 2000);
+        }
+
+        // Print functionality
+        function printComputerDetails() {
+            const printWindow = window.open('', '_blank');
+            const printContent = generatePrintContent();
+            
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }
+
+        function generatePrintContent() {
+            const computerName = document.getElementById('computerName').textContent;
+            const assetTag = document.getElementById('assetTag').textContent;
+            const serialNumber = document.getElementById('serialNumber').textContent;
+            
+            return `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Bilgisayar Detayları - ${computerName}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+                        .info-section { margin-bottom: 20px; }
+                        .info-section h3 { color: #333; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+                        .info-item { margin: 5px 0; }
+                        .label { font-weight: bold; }
+                        .value { margin-left: 10px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>${computerName}</h1>
+                        <p>Asset Tag: ${assetTag} | Serial Number: ${serialNumber}</p>
+                        <p>Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}</p>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>Temel Bilgiler</h3>
+                        <div class="info-item">
+                            <span class="label">Bilgisayar Adı:</span>
+                            <span class="value">${computerName}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Asset Tag:</span>
+                            <span class="value">${assetTag}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Seri Numarası:</span>
+                            <span class="value">${serialNumber}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>Teknik Özellikler</h3>
+                        <div class="info-item">
+                            <span class="label">İşlemci:</span>
+                            <span class="value">Intel Core i5-11400</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">RAM:</span>
+                            <span class="value">16 GB DDR4</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Depolama:</span>
+                            <span class="value">512 GB NVMe SSD + 1 TB HDD</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">İşletim Sistemi:</span>
+                            <span class="value">Windows 11 Pro</span>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+        }
+
+        // Advanced search and filter functionality
+        function advancedSearch() {
+            // This would open an advanced search modal in a real application
+            showToast('info', 'Gelişmiş arama özelliği yakında eklenecek.');
+        }
+
+        // Bulk operations (if multiple items selected)
+        function bulkExport() {
+            showToast('info', 'Toplu dışa aktarma özelliği yakında eklenecek.');
+        }
+
+        function bulkStatusChange() {
+            showToast('info', 'Toplu durum değiştirme özelliği yakında eklenecek.');
+        }
+
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('Bir hata oluştu:', e.error);
+            showToast('error', 'Bir hata oluştu. Lütfen sayfayı yenileyip tekrar deneyin.');
+        });
+
+        // Notification for unsaved changes
+        let hasUnsavedChanges = false;
+
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUnsavedChanges) {
+                e.preventDefault();
+                e.returnValue = 'Kaydedilmemiş değişiklikler var. Sayfadan ayrılmak istediğinizden emin misiniz?';
+                return e.returnValue;
+            }
+        });
+
+        // Mark as having unsaved changes when modals are opened
+        document.querySelectorAll('[data-bs-toggle="modal"]').forEach(button => {
+            button.addEventListener('click', () => {
+                hasUnsavedChanges = true;
+            });
+        });
+
+        // Clear unsaved changes flag when changes are saved
+        function clearUnsavedChanges() {
+            hasUnsavedChanges = false;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yeni Bilgisayar Ekle</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #206bc4;
+            --success-color: #28a745;
+            --warning-color: #fd7e14;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --secondary-color: #6c757d;
+            --light-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --border-radius: 0.5rem;
+            --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --transition: all 0.2s ease-in-out;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container-fluid {
+            max-width: 1200px;
+            padding: 2rem 1rem;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), #1a5bb8);
+            color: white;
+            padding: 2rem;
+            margin: -2rem -1rem 2rem -1rem;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 2rem;
+        }
+
+        .page-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+        }
+
+        .breadcrumb-custom {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            margin-top: 1rem;
+        }
+
+        .breadcrumb-custom .breadcrumb-item + .breadcrumb-item::before {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .breadcrumb-custom .breadcrumb-item a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+        }
+
+        .breadcrumb-custom .breadcrumb-item.active {
+            color: white;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        .form-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-bg);
+        }
+
+        .section-icon {
+            background: var(--primary-color);
+            color: white;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1rem;
+        }
+
+        .section-title {
+            margin: 0;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-label .required {
+            color: var(--danger-color);
+            margin-left: 0.25rem;
+        }
+
+        .form-label .form-help {
+            margin-left: 0.5rem;
+            color: var(--secondary-color);
+            cursor: help;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 0.75rem 1rem;
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(32, 107, 196, 0.15);
+        }
+
+        .input-group-text {
+            background: var(--light-bg);
+            border: 2px solid var(--border-color);
+            border-right: none;
+            color: var(--secondary-color);
+        }
+
+        .input-group .form-control {
+            border-left: none;
+        }
+
+        .input-group:focus-within .input-group-text {
+            border-color: var(--primary-color);
+            background: rgba(32, 107, 196, 0.1);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .btn-primary:hover {
+            background: #1a5bb8;
+            border-color: #1a5bb8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(32, 107, 196, 0.3);
+        }
+
+        .btn-outline-secondary {
+            border: 2px solid var(--border-color);
+            color: var(--secondary-color);
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .btn-outline-secondary:hover {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+
+        .action-buttons {
+            background: var(--light-bg);
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            margin: 0 1rem;
+        }
+
+        .step-number {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: var(--border-color);
+            color: var(--secondary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .step-number.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .step-number.completed {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .step-text {
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .step-text.active {
+            color: var(--primary-color);
+        }
+
+        .auto-fill-section {
+            background: linear-gradient(135deg, #e3f2fd, #f8f9fa);
+            border: 1px solid #bbdefb;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .auto-fill-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .auto-fill-icon {
+            background: var(--info-color);
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .template-card {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 0.5rem;
+        }
+
+        .template-card:hover {
+            border-color: var(--primary-color);
+            background: rgba(32, 107, 196, 0.05);
+        }
+
+        .template-card.selected {
+            border-color: var(--primary-color);
+            background: rgba(32, 107, 196, 0.1);
+        }
+
+        .validation-feedback {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .is-invalid .form-control {
+            border-color: var(--danger-color);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @@keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 768px) {
+            .container-fluid {
+                padding: 1rem 0.5rem;
+            }
+
+            .page-header {
+                margin: -1rem -0.5rem 1.5rem -0.5rem;
+                padding: 1.5rem 1rem;
+            }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .progress-indicator {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .progress-step {
+                margin: 0.5rem 0;
+            }
+
+            .form-section {
+                padding: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .section-icon {
+                margin-right: 0;
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        .tooltip-custom {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip-custom::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1000;
+        }
+
+        .tooltip-custom:hover::after {
+            opacity: 1;
+        }
+
+        .form-floating {
+            position: relative;
+        }
+
+        .form-floating > .form-control {
+            padding: 1rem 0.75rem 0.25rem 0.75rem;
+        }
+
+        .form-floating > label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 1rem 0.75rem;
+            transition: var(--transition);
+            pointer-events: none;
+            color: var(--secondary-color);
+        }
+
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label {
+            transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1>
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Yeni Bilgisayar Ekle
+                    </h1>
+                    <p>Sistem envanterine yeni bir bilgisayar kaydı oluşturun</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-light" onclick="showTemplates()">
+                        <i class="fas fa-magic me-1"></i>
+                        Şablon Kullan
+                    </button>
+                    <button class="btn btn-outline-light" onclick="scanBarcode()">
+                        <i class="fas fa-qrcode me-1"></i>
+                        Barkod Tara
+                    </button>
+                </div>
+            </div>
+            
+            <nav class="breadcrumb-custom mt-3">
+                <ol class="breadcrumb mb-0">
+                
+                    <li class="breadcrumb-item"><a href="/Computer">Bilgisayarlar</a></li>
+                    <li class="breadcrumb-item active">Yeni Ekle</li>
+                </ol>
+            </nav>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="progress-indicator">
+            <div class="progress-step">
+                <div class="step-number active">1</div>
+                <div class="step-text active">Temel Bilgiler</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-number">2</div>
+                <div class="step-text">Donanım</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-number">3</div>
+                <div class="step-text">Atama & Garanti</div>
+            </div>
+        </div>
+
+        <!-- Auto-fill Templates -->
+        <div class="auto-fill-section" id="templatesSection" style="display: none;">
+            <div class="auto-fill-header">
+                <div class="auto-fill-icon">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <div>
+                    <h6 class="mb-1">Hızlı Şablon Seçimi</h6>
+                    <small class="text-muted">Yaygın kullanılan konfigürasyonlardan birini seçin</small>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="template-card" onclick="applyTemplate('office')">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-briefcase text-primary me-2"></i>
+                            <div>
+                                <strong>Ofis Bilgisayarı</strong>
+                                <small class="d-block text-muted">Intel i5, 8GB RAM, 256GB SSD</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="template-card" onclick="applyTemplate('workstation')">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-desktop text-success me-2"></i>
+                            <div>
+                                <strong>İş İstasyonu</strong>
+                                <small class="d-block text-muted">Intel i7, 16GB RAM, 512GB SSD</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="template-card" onclick="applyTemplate('gaming')">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-gamepad text-warning me-2"></i>
+                            <div>
+                                <strong>Oyun Bilgisayarı</strong>
+                                <small class="d-block text-muted">AMD Ryzen 7, 32GB RAM, 1TB SSD</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Form -->
+        <form id="computerForm" class="form-container">
+            <!-- Section 1: Basic Information -->
+            <div class="form-section" id="section1">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <h3 class="section-title">Temel Bilgiler</h3>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                Bilgisayar Adı
+                                <span class="required">*</span>
+                                <i class="fas fa-question-circle form-help tooltip-custom" 
+                                   data-tooltip="Bilgisayarın ağdaki görünen adı"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-desktop"></i>
+                                </span>
+                                <input type="text" class="form-control" id="computerName" 
+                                       placeholder="örn: PC-001, LAPTOP-HR-01" required>
+                            </div>
+                            <div class="invalid-feedback">Bilgisayar adı gereklidir.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                Varlık Etiketi
+                                <span class="required">*</span>
+                                <i class="fas fa-question-circle form-help tooltip-custom" 
+                                   data-tooltip="Benzersiz envanter numarası"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-tag"></i>
+                                </span>
+                                <input type="text" class="form-control" id="assetTag" 
+                                       placeholder="AST-2024-001" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="generateAssetTag()">
+                                    <i class="fas fa-magic"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback">Varlık etiketi gereklidir.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                Seri Numarası
+                                <i class="fas fa-question-circle form-help tooltip-custom" 
+                                   data-tooltip="Üretici seri numarası"></i>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-barcode"></i>
+                                </span>
+                                <input type="text" class="form-control" id="serialNumber" 
+                                       placeholder="SN123456789">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                Durum
+                                <span class="required">*</span>
+                            </label>
+                            <select class="form-select" id="status" required>
+                                <option value="">Durum seçin...</option>
+                                <option value="Havuzda">Havuzda</option>
+                                <option value="Zimmetli">Zimmetli</option>
+                                <option value="Kullanımda">Kullanımda</option>
+                                <option value="Bakım">Bakımda</option>
+                                <option value="Arızalı">Arızalı</option>
+                                <option value="Aktif" selected>Aktif</option>
+                            </select>
+                            <div class="invalid-feedback">Durum seçimi gereklidir.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                Marka
+                                <span class="required">*</span>
+                            </label>
+                            <select class="form-select" id="brand" required onchange="updateModels()">
+                                <option value="">Marka seçin...</option>
+                                <option value="Dell">Dell</option>
+                                <option value="HP">HP</option>
+                                <option value="Lenovo">Lenovo</option>
+                                <option value="Asus">Asus</option>
+                                <option value="Acer">Acer</option>
+                                <option value="Apple">Apple</option>
+                                <option value="MSI">MSI</option>
+                                <option value="Diğer">Diğer</option>
+                            </select>
+                            <div class="invalid-feedback">Marka seçimi gereklidir.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Model</label>
+                            <input type="text" class="form-control" id="model" 
+                                   placeholder="OptiPlex 7090, EliteBook 840">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="form-label">Açıklama</label>
+                            <textarea class="form-control" id="description" rows="3" 
+                                      placeholder="Bilgisayar hakkında ek bilgiler..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Hardware Information -->
+            <div class="form-section" id="section2">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <h3 class="section-title">Donanım Bilgileri</h3>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">İşlemci (CPU)</label>
+                            <input type="text" class="form-control" id="processor" 
+                                   placeholder="Intel Core i5-11400, AMD Ryzen 5 5600X">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label">RAM Miktarı (GB)</label>
+                            <select class="form-select" id="ramAmount">
+                                <option value="">Seçin...</option>
+                                <option value="4">4 GB</option>
+                                <option value="8">8 GB</option>
+                                <option value="16">16 GB</option>
+                                <option value="32">32 GB</option>
+                                <option value="64">64 GB</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label">RAM Tipi</label>
+                            <select class="form-select" id="ramType">
+                                <option value="">Seçin...</option>
+                                <option value="DDR3">DDR3</option>
+                                <option value="DDR4">DDR4</option>
+                                <option value="DDR5">DDR5</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label">Depolama Tipi</label>
+                            <select class="form-select" id="storageType">
+                                <option value="">Seçin...</option>
+                                <option value="HDD">HDD</option>
+                                <option value="SSD">SSD</option>
+                                <option value="NVME">NVMe SSD</option>
+                                <option value="Hybrid">Hybrid</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label">Depolama Boyutu (GB)</label>
+                            <select class="form-select" id="storageSize">
+                                <option value="">Seçin...</option>
+                                <option value="128">128 GB</option>
+                                <option value="256">256 GB</option>
+                                <option value="512">512 GB</option>
+                                <option value="1024">1 TB</option>
+                                <option value="2048">2 TB</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">İşletim Sistemi</label>
+                            <select class="form-select" id="operatingSystem">
+                                <option value="">Seçin...</option>
+                                <option value="Windows 11">Windows 11</option>
+                                <option value="Windows 10">Windows 10</option>
+                                <option value="Ubuntu">Ubuntu</option>
+                                <option value="macOS">macOS</option>
+                                <option value="Diğer">Diğer</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Assignment & Warranty -->
+            <div class="form-section" id="section3">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h3 class="section-title">Atama ve Garanti Bilgileri</h3>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                Firma
+                                <span class="required">*</span>
+                            </label>
+                            <select class="form-select" id="company" required onchange="loadEmployees()">
+                                <option value="">Firma seçin...</option>
+                                <option value="1">Tech Corp</option>
+                                <option value="2">Software Inc</option>
+                                <option value="3">Digital Solutions</option>
+                                <option value="4">Innovation Labs</option>
+                            </select>
+                            <div class="invalid-feedback">Firma seçimi gereklidir.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Atanan Çalışan</label>
+                            <select class="form-select" id="assignedEmployee" disabled>
+                                <option value="">Önce firma seçin...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Satın Alma Tarihi</label>
+                            <input type="date" class="form-control" id="purchaseDate">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Garanti Bitiş Tarihi</label>
+                            <input type="date" class="form-control" id="warrantyEndDate">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">Garanti Süresi</label>
+                            <select class="form-select" id="warrantyPeriod" onchange="calculateWarrantyEnd()">
+                                <option value="">Manuel girin veya seçin...</option>
+                                <option value="1">1 Yıl</option>
+                                <option value="2">2 Yıl</option>
+                                <option value="3">3 Yıl</option>
+                                <option value="5">5 Yıl</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Satın Alma Fiyatı (₺)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₺</span>
+                                <input type="number" class="form-control" id="purchasePrice" 
+                                       placeholder="0.00" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Tedarikçi</label>
+                            <input type="text" class="form-control" id="supplier" 
+                                   placeholder="Bilgisayarı tedarik eden firma">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="form-label">Notlar</label>
+                            <textarea class="form-control" id="notes" rows="3" 
+                                      placeholder="Ek bilgiler, özel notlar..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <div>
+                    <button type="button" class="btn btn-outline-secondary" onclick="goBack()">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Geri Dön
+                    </button>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary" onclick="saveDraft()">
+                        <i class="fas fa-save me-1"></i>
+                        Taslak Kaydet
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check me-1"></i>
+                        Bilgisayarı Kaydet
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h5>Bilgisayar kaydediliyor...</h5>
+            <p class="text-muted mb-0">Lütfen bekleyin</p>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4 class="mb-3">Başarılı!</h4>
+                    <p class="mb-4">Bilgisayar başarıyla sisteme eklendi.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-primary" onclick="addAnother()">
+                            <i class="fas fa-plus me-1"></i>
+                            Yeni Ekle
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="goToList()">
+                            <i class="fas fa-list me-1"></i>
+                            Listeye Git
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let currentStep = 1;
+        let isFormDirty = false;
+        let templates = {
+            office: {
+                processor: 'Intel Core i5-11400',
+                ramAmount: '8',
+                ramType: 'DDR4',
+                storageType: 'SSD',
+                storageSize: '256',
+                operatingSystem: 'Windows 11'
+            },
+            workstation: {
+                processor: 'Intel Core i7-11700',
+                ramAmount: '16',
+                ramType: 'DDR4',
+                storageType: 'NVME',
+                storageSize: '512',
+                operatingSystem: 'Windows 11'
+            },
+            gaming: {
+                processor: 'AMD Ryzen 7 5800X',
+                ramAmount: '32',
+                ramType: 'DDR4',
+                storageType: 'NVME',
+                storageSize: '1024',
+                operatingSystem: 'Windows 11'
+            }
+        };
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeForm();
+            setupFormValidation();
+            setupAutoSave();
+            loadDraftIfExists();
+        });
+
+        function initializeForm() {
+            // Set default asset tag
+            generateAssetTag();
+            
+            // Set default purchase date to today
+            document.getElementById('purchaseDate').value = new Date().toISOString().split('T')[0];
+            
+            // Form change detection
+            const form = document.getElementById('computerForm');
+            form.addEventListener('input', () => {
+                isFormDirty = true;
+            });
+
+            // Prevent accidental page leave
+            window.addEventListener('beforeunload', function(e) {
+                if (isFormDirty) {
+                    e.preventDefault();
+                    e.returnValue = 'Kaydedilmemiş değişiklikler var. Sayfadan ayrılmak istediğinizden emin misiniz?';
+                }
+            });
+        }
+
+        function generateAssetTag() {
+            const year = new Date().getFullYear();
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            document.getElementById('assetTag').value = `AST-${year}-${random}`;
+        }
+
+        function showTemplates() {
+            const section = document.getElementById('templatesSection');
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function applyTemplate(type) {
+            const template = templates[type];
+            if (!template) return;
+
+            // Apply template values
+            Object.keys(template).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = template[key];
+                    
+                    // Trigger change event for dependent fields
+                    element.dispatchEvent(new Event('change'));
+                }
+            });
+
+            // Visual feedback
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            // Show success message
+            showToast('success', `${type.charAt(0).toUpperCase() + type.slice(1)} şablonu uygulandı!`);
+            
+            isFormDirty = true;
+        }
+
+        function updateModels() {
+            const brand = document.getElementById('brand').value;
+            const modelInput = document.getElementById('model');
+            
+            const models = {
+                'Dell': ['OptiPlex 7090', 'Latitude 5520', 'Inspiron 3511', 'Precision 3560'],
+                'HP': ['EliteBook 840', 'ProBook 450', 'Elite 800', 'Z2 Workstation'],
+                'Lenovo': ['ThinkPad E15', 'IdeaPad 3', 'ThinkCentre M90q', 'Legion 5'],
+                'Asus': ['VivoBook 15', 'ZenBook 14', 'ROG Strix', 'ProArt Studio'],
+                'Acer': ['Aspire 5', 'Swift 3', 'Predator Helios', 'TravelMate P2'],
+                'Apple': ['MacBook Air M2', 'MacBook Pro 14"', 'iMac 24"', 'Mac Studio'],
+                'MSI': ['Modern 14', 'Creator Z16', 'Gaming GF63', 'Workstation WS66']
+            };
+
+            if (models[brand]) {
+                modelInput.setAttribute('list', 'modelList');
+                
+                // Create or update datalist
+                let datalist = document.getElementById('modelList');
+                if (!datalist) {
+                    datalist = document.createElement('datalist');
+                    datalist.id = 'modelList';
+                    document.body.appendChild(datalist);
+                }
+                
+                datalist.innerHTML = '';
+                models[brand].forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    datalist.appendChild(option);
+                });
+            } else {
+                modelInput.removeAttribute('list');
+            }
+        }
+
+        function loadEmployees() {
+            const companyId = document.getElementById('company').value;
+            const employeeSelect = document.getElementById('assignedEmployee');
+            
+            if (!companyId) {
+                employeeSelect.disabled = true;
+                employeeSelect.innerHTML = '<option value="">Önce firma seçin...</option>';
+                return;
+            }
+
+            // Simulate API call
+            employeeSelect.disabled = false;
+            employeeSelect.innerHTML = '<option value="">Yükleniyor...</option>';
+            
+            setTimeout(() => {
+                const employees = {
+                    '1': [
+                        { id: '1', name: 'Ahmet Yılmaz' },
+                        { id: '2', name: 'Mehmet Demir' },
+                        { id: '3', name: 'Ayşe Kaya' }
+                    ],
+                    '2': [
+                        { id: '4', name: 'Fatma Öz' },
+                        { id: '5', name: 'Ali Veli' },
+                        { id: '6', name: 'Zeynep Ak' }
+                    ],
+                    '3': [
+                        { id: '7', name: 'Murat Çelik' },
+                        { id: '8', name: 'Seda Yurt' }
+                    ],
+                    '4': [
+                        { id: '9', name: 'Emre Şen' },
+                        { id: '10', name: 'Nur Güneş' }
+                    ]
+                };
+
+                let options = '<option value="">Çalışan seçin...</option>';
+                if (employees[companyId]) {
+                    employees[companyId].forEach(emp => {
+                        options += `<option value="${emp.id}">${emp.name}</option>`;
+                    });
+                }
+                
+                employeeSelect.innerHTML = options;
+            }, 500);
+        }
+
+        function calculateWarrantyEnd() {
+            const purchaseDate = document.getElementById('purchaseDate').value;
+            const warrantyPeriod = document.getElementById('warrantyPeriod').value;
+            const warrantyEndDate = document.getElementById('warrantyEndDate');
+            
+            if (purchaseDate && warrantyPeriod) {
+                const purchase = new Date(purchaseDate);
+                purchase.setFullYear(purchase.getFullYear() + parseInt(warrantyPeriod));
+                warrantyEndDate.value = purchase.toISOString().split('T')[0];
+            }
+        }
+
+        function setupFormValidation() {
+            const form = document.getElementById('computerForm');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (validateForm()) {
+                    submitForm();
+                } else {
+                    showToast('error', 'Lütfen gerekli alanları doldurun!');
+                }
+            });
+        }
+
+        function validateForm() {
+            const requiredFields = ['computerName', 'assetTag', 'status', 'brand', 'company'];
+            let isValid = true;
+            
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const value = field.value.trim();
+                
+                if (!value) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            return isValid;
+        }
+
+        function submitForm() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+            
+            // Collect form data
+            const formData = {
+                name: document.getElementById('computerName').value,
+                assetTag: document.getElementById('assetTag').value,
+                serialNumber: document.getElementById('serialNumber').value,
+                status: document.getElementById('status').value,
+                brand: document.getElementById('brand').value,
+                model: document.getElementById('model').value,
+                description: document.getElementById('description').value,
+                processor: document.getElementById('processor').value,
+                ramAmount: document.getElementById('ramAmount').value,
+                ramType: document.getElementById('ramType').value,
+                storageType: document.getElementById('storageType').value,
+                storageSize: document.getElementById('storageSize').value,
+                operatingSystem: document.getElementById('operatingSystem').value,
+                company: document.getElementById('company').value,
+                assignedEmployee: document.getElementById('assignedEmployee').value,
+                purchaseDate: document.getElementById('purchaseDate').value,
+                warrantyEndDate: document.getElementById('warrantyEndDate').value,
+                purchasePrice: document.getElementById('purchasePrice').value,
+                supplier: document.getElementById('supplier').value,
+                notes: document.getElementById('notes').value
+            };
+            
+            // Simulate API call
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+                
+                // Clear draft
+                localStorage.removeItem('computerFormDraft');
+                isFormDirty = false;
+                
+                // Show success modal
+                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+                
+                console.log('Form submitted:', formData);
+            }, 2000);
+        }
+
+        function setupAutoSave() {
+            // Auto-save every 30 seconds
+            setInterval(() => {
+                if (isFormDirty) {
+                    saveDraft(true); // silent save
+                }
+            }, 30000);
+        }
+
+        function saveDraft(silent = false) {
+            const formData = {
+                computerName: document.getElementById('computerName').value,
+                assetTag: document.getElementById('assetTag').value,
+                serialNumber: document.getElementById('serialNumber').value,
+                status: document.getElementById('status').value,
+                brand: document.getElementById('brand').value,
+                model: document.getElementById('model').value,
+                description: document.getElementById('description').value,
+                processor: document.getElementById('processor').value,
+                ramAmount: document.getElementById('ramAmount').value,
+                ramType: document.getElementById('ramType').value,
+                storageType: document.getElementById('storageType').value,
+                storageSize: document.getElementById('storageSize').value,
+                operatingSystem: document.getElementById('operatingSystem').value,
+                company: document.getElementById('company').value,
+                assignedEmployee: document.getElementById('assignedEmployee').value,
+                purchaseDate: document.getElementById('purchaseDate').value,
+                warrantyEndDate: document.getElementById('warrantyEndDate').value,
+                purchasePrice: document.getElementById('purchasePrice').value,
+                supplier: document.getElementById('supplier').value,
+                notes: document.getElementById('notes').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('computerFormDraft', JSON.stringify(formData));
+            
+            if (!silent) {
+                showToast('info', 'Taslak kaydedildi!');
+            }
+        }
+
+        function loadDraftIfExists() {
+            const draft = localStorage.getItem('computerFormDraft');
+            if (draft) {
+                const data = JSON.parse(draft);
+                
+                // Ask user if they want to load the draft
+                if (confirm('Kaydedilmiş bir taslak bulundu. Yüklemek istiyor musunuz?')) {
+                    Object.keys(data).forEach(key => {
+                        if (key !== 'timestamp') {
+                            const element = document.getElementById(key);
+                            if (element && data[key]) {
+                                element.value = data[key];
+                                
+                                // Trigger change event for dependent fields
+                                if (key === 'company') {
+                                    element.dispatchEvent(new Event('change'));
+                                }
+                            }
+                        }
+                    });
+                    
+                    isFormDirty = true;
+                    showToast('success', 'Taslak yüklendi!');
+                }
+            }
+        }
+
+        function scanBarcode() {
+            showToast('info', 'Barkod tarama özelliği yakında eklenecek!');
+        }
+
+        function goBack() {
+            if (isFormDirty) {
+                if (confirm('Kaydedilmemiş değişiklikler var. Geri dönmek istediğinizden emin misiniz?')) {
+                    window.location.href = '/Computer';
+                }
+            } else {
+                window.location.href = '/Computer';
+            }
+        }
+
+        function addAnother() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('successModal'));
+            modal.hide();
+            
+            // Reset form
+            document.getElementById('computerForm').reset();
+            generateAssetTag();
+            isFormDirty = false;
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+            
+            showToast('info', 'Form sıfırlandı, yeni bilgisayar ekleyebilirsiniz!');
+        }
+
+        function goToList() {
+            window.location.href = '/Computer';
+        }
+
+        // Toast notification function
+        function showToast(type, message, duration = 3000) {
+            const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${getToastColor(type)} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="${getToastIcon(type)} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            const bsToast = new bootstrap.Toast(toast, { autohide: true, delay: duration });
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '1055';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function getToastColor(type) {
+            const colors = {
+                'success': 'success',
+                'error': 'danger',
+                'warning': 'warning',
+                'info': 'info'
+            };
+            return colors[type] || 'secondary';
+        }
+
+        function getToastIcon(type) {
+            const icons = {
+                'success': 'fas fa-check-circle',
+                'error': 'fas fa-exclamation-circle',
+                'warning': 'fas fa-exclamation-triangle',
+                'info': 'fas fa-info-circle'
+            };
+            return icons[type] || 'fas fa-bell';
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + S: Save draft
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveDraft();
+            }
+            
+            // Ctrl + Enter: Submit form
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('computerForm').dispatchEvent(new Event('submit'));
+            }
+            
+            // Escape: Go back
+            if (e.key === 'Escape') {
+                goBack();
+            }
+        });
+
+        // Form field enhancements
+        document.getElementById('purchaseDate').addEventListener('change', function() {
+            if (document.getElementById('warrantyPeriod').value) {
+                calculateWarrantyEnd();
+            }
+        });
+
+        // Asset tag validation
+        document.getElementById('assetTag').addEventListener('blur', function() {
+            const assetTag = this.value.trim();
+            if (assetTag) {
+                // Simulate checking if asset tag exists
+                // In real implementation, make an AJAX call to check uniqueness
+                console.log('Checking asset tag uniqueness:', assetTag);
+            }
+        });
+
+        // Real-time character counting for description and notes
+        ['description', 'notes'].forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            const maxLength = 500;
+            
+            const counter = document.createElement('small');
+            counter.className = 'text-muted float-end';
+            field.parentNode.appendChild(counter);
+            
+            function updateCounter() {
+                const remaining = maxLength - field.value.length;
+                counter.textContent = `${remaining} karakter kaldı`;
+                counter.className = remaining < 50 ? 'text-warning float-end' : 'text-muted float-end';
+            }
+            
+            field.addEventListener('input', updateCounter);
+            field.setAttribute('maxlength', maxLength);
+            updateCounter();
+        });
+    </script>
+</body>
+</html>

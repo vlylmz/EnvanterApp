@@ -37,9 +37,16 @@ public class Computer
     [StringLength(255)]
     public string? ProcessorName { get; set; }
 
-    [Range(0.1, 10.0)]
-    public decimal? ProcessorSpeed { get; set; }
+[StringLength(50)]
+[Display(Name = "İşlemci Hızı")]
+public string? ProcessorSpeed { get; set; }
+[Range(1, 16)]
+[Display(Name = "İşlemci Sayısı")]
+public int? ProcessorCount { get; set; }
 
+[StringLength(200)]
+[Display(Name = "İşlemci Kimlik Bilgisi")]
+public string? ProcessorIdentity { get; set; }
     [Range(1, 128)]
     public int? ProcessorCores { get; set; }
 
@@ -74,7 +81,7 @@ public class Computer
     public DateTime? PurchaseDate { get; set; }
 
     [DataType(DataType.Date)]
-    public DateTime? WarrantyEndDate { get; set; } // (WarrantyExpiry ile aynı)
+    public DateTime? WarrantyEndDate { get; set; } 
 
     [StringLength(1000)]
     public string? Description { get; set; }
@@ -83,7 +90,6 @@ public class Computer
     public DateTime? LastUpdatedDate { get; set; }
     public string? LastUpdatedBy { get; set; }
 
-    // Hatalar yüzünden eklenen migration uyumlu property'ler:
     public string? StatusDisplayName { get; set; }
     public string? StatusBadgeClass { get; set; }
 
