@@ -95,17 +95,17 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Computer model)
+        public async Task<IActionResult> Create(Computer comp)
         {
             try
             {
                 if (ModelState.IsValid)
                 {
-                    model.CreatedDate = DateTime.Now;
-                    model.LastUpdatedDate = DateTime.Now;
-                    model.LastUpdatedBy = User.Identity?.Name ?? "System";
+                    comp.CreatedDate = DateTime.Now;
+                    comp.LastUpdatedDate = DateTime.Now;
+                    comp.LastUpdatedBy = User.Identity?.Name ?? "System";
 
-                    _context.Computers.Add(model);
+                    _context.Computers.Add(comp);
                     await _context.SaveChangesAsync();
 
                     TempData["SuccessMessage"] = "Bilgisayar başarıyla eklendi.";
@@ -119,7 +119,7 @@ namespace WebApplication1.Controllers
 
             ViewBag.StatusList = GetStatusSelectList();
             ViewBag.StorageTypeList = GetStorageTypeSelectList();
-            return View(model);
+            return View(comp);
         }
 
         public async Task<IActionResult> Edit(int id)
