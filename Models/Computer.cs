@@ -41,12 +41,30 @@ namespace WebApplication1.Models
         [Range(1, 1024, ErrorMessage = "RAM 1-1024 GB arasında olmalıdır")]
         public int? RamGB { get; set; }
 
-        [Display(Name = "Depolama (GB)")]
-        [Range(1, 10240, ErrorMessage = "Depolama 1-10240 GB arasında olmalıdır")]
-        public int? StorageGB { get; set; }
+[StringLength(50)]
+[Display(Name = "İşlemci Hızı")]
+public string? ProcessorSpeed { get; set; }
+[Range(1, 16)]
+[Display(Name = "İşlemci Sayısı")]
+public int? ProcessorCount { get; set; }
 
-        [Display(Name = "Depolama Türü")]
-        public StorageType? StorageType { get; set; }
+[StringLength(200)]
+[Display(Name = "İşlemci Kimlik Bilgisi")]
+public string? ProcessorIdentity { get; set; }
+    [Range(1, 128)]
+    public int? ProcessorCores { get; set; }
+
+    [Range(1, 1024)]
+    public int? RamAmount { get; set; }
+
+    [StringLength(50)]
+    public string? RamType { get; set; }
+
+    [Range(800, 8000)]
+    public int? RamSpeed { get; set; }
+
+    [Display(Name = "Depolama Tipi")]
+    public StorageType? StorageType { get; set; }
 
         [Display(Name = "İşletim Sistemi")]
         [StringLength(100, ErrorMessage = "İşletim sistemi bilgisi en fazla 100 karakter olabilir")]
@@ -70,22 +88,8 @@ namespace WebApplication1.Models
         [DataType(DataType.Date)]
         public DateTime? PurchaseDate { get; set; }
 
-        [Display(Name = "Garanti Bitiş Tarihi")]
-        [DataType(DataType.Date)]
-        public DateTime? WarrantyEndDate { get; set; }
-
-        [Display(Name = "Satın Alma Fiyatı")]
-        [Range(0, 999999, ErrorMessage = "Fiyat 0-999999 arasında olmalıdır")]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? PurchasePrice { get; set; }
-
-        [Display(Name = "IP Adresi")]
-        [StringLength(15, ErrorMessage = "IP adresi en fazla 15 karakter olabilir")]
-        public string? IpAddress { get; set; }
-
-        [Display(Name = "MAC Adresi")]
-        [StringLength(17, ErrorMessage = "MAC adresi en fazla 17 karakter olabilir")]
-        public string? MacAddress { get; set; }
+    [DataType(DataType.Date)]
+    public DateTime? WarrantyEndDate { get; set; } 
 
         [Display(Name = "Oluşturulma Tarihi")]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
@@ -97,16 +101,8 @@ namespace WebApplication1.Models
         [StringLength(100, ErrorMessage = "Kullanıcı adı en fazla 100 karakter olabilir")]
         public string? LastUpdatedBy { get; set; }
 
-        [Display(Name = "Notlar")]
-        [StringLength(1000, ErrorMessage = "Notlar en fazla 1000 karakter olabilir")]
-        public string? Notes { get; set; }
-
-        [Display(Name = "Aktif Mi?")]
-        public bool IsActive { get; set; } = true;
-
-        // Computed Properties
-        [NotMapped]
-        public bool IsUnderWarranty => WarrantyEndDate.HasValue && WarrantyEndDate.Value > DateTime.Now;
+    public string? StatusDisplayName { get; set; }
+    public string? StatusBadgeClass { get; set; }
 
         [NotMapped]
         public int? AgeInDays => PurchaseDate.HasValue ? (DateTime.Now - PurchaseDate.Value).Days : null;
