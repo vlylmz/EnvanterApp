@@ -1,97 +1,846 @@
-﻿@model List<WebApplication1.Models.Company>  
-@{  
-    ViewData["Title"] = "Firma Listesi";  
-}  
+﻿@model List<WebApplication1.Models.Company>
+@{
+    ViewData["Title"] = "Firma Yönetimi";
+    var successMessage = TempData["Success"] as string;
+    var errorMessage = TempData["Error"] as string;
+    var totalCompanies = Model.Count;
+    var activeCompanies = Model.Count(c => c.IsActive);
+    var passiveCompanies = totalCompanies - activeCompanies;
+    var searchValue = ViewBag.Search as string;
+    var statusValue = ViewBag.Status as string;
+}
 
-<div class="container mt-4">  
-    <div class="d-flex justify-content-between align-items-center mb-3">  
-        <h2>📁 Firma Listesi</h2>  
-        <a asp-action="Create" class="btn btn-success">➕ Yeni Firma</a>  
-    </div>  
+<!-- Success/Error Messages -->
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'success',
+                title: 'Başarılı!',
+                text: '@successMessage',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    </script>
+}
 
-    <form method="get" asp-action="Index" class="row g-2 mb-3">  
-        <div class="col-md-6">  
-            <input type="text" name="search" class="form-control" placeholder="Firma adı veya açıklama..." value="@ViewBag.Search" />  
-        </div>  
-        <div class="col-md-3">  
-            <select name="status" class="form-select">  
-                <option value="">Tümü</option>  
-                <option value="active" selected="@(ViewBag.Status == "active")">Aktif</option>  
-                <option value="passive" selected="@(ViewBag.Status == "passive")">Pasif</option>  
-            </select>  
-        </div>  
-        <div class="col-md-3">  
-            <button type="submit" class="btn btn-outline-primary w-100">Ara</button>  
-        </div>  
-    </form>  
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Hata!',
+                text: '@errorMessage',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    </script>
+}
 
-    @if (!Model.Any())  
-    {  
-        <div class="alert alert-info">Aradığınız kriterlere uygun firma bulunamadı.</div>  
-    }  
-    else  
-    {  
-        <table class="table table-bordered table-striped">  
-            <thead class="table-dark">  
-                <tr>  
-                    <th>Ad</th>  
-                    <th>Açıklama</th>  
-                    <th>Durum</th>  
-                    <th>Oluşturulma</th>  
-                    <th class="text-end">İşlemler</th>  
-                </tr>  
-            </thead>  
-            <tbody>  
-                @foreach (var firm in Model)  
-                {  
-                    <tr>  
-                        <td>@firm.Name</td>  
-                        <td>@firm.Description</td>  
-                        <td>  
-                            @if (firm.IsActive)  
-                            {  
-                                <span class="badge bg-success">Aktif</span>  
-                            }  
-                            else  
-                            {  
-                                <span class="badge bg-secondary">Pasif</span>  
-                            }  
-                        </td>  
-                        <td>@firm.CreatedDate.ToString("dd.MM.yyyy")</td>  
-                        <td class="text-end">  
-                            <a asp-action="Details" asp-route-id="@firm.Id" class="btn btn-sm btn-info">🔍Detay</a>  
-                            <a asp-action="Edit" asp-route-id="@firm.Id" class="btn btn-sm btn-warning">✏️Güncelle</a>  
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="h2 mb-1 d-flex align-items-center">
+                        <i class="fas fa-building text-primary me-2" aria-hidden="true"></i>
+                        Firma Yönetimi
+                    </h1>
+                    <p class="text-muted mb-0">Sisteme kayıtlı firmaları yönetin</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus me-1" aria-hidden="true"></i> Yeni Firma Ekle
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel me-1" aria-hidden="true"></i> Excel'e Aktar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                            <button class="btn btn-sm btn-danger" onclick="confirmDelete(@firm.Id)">🗑Sil</button>  
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Toplam Firma</h5>
+                            <h3 class="mb-0 fw-bold">@totalCompanies</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-building fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Aktif Firma</h5>
+                            <h3 class="mb-0 fw-bold">@activeCompanies</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-check-circle fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-secondary text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Pasif Firma</h5>
+                            <h3 class="mb-0 fw-bold">@passiveCompanies</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-pause-circle fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Bu Ay Eklenen</h5>
+                            <h3 class="mb-0 fw-bold">@Model.Count(c => c.CreatedDate.Month == DateTime.Now.Month)</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-calendar-plus fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                            <form id="delete-form-@firm.Id" asp-action="Delete" asp-route-id="@firm.Id" method="post" style="display:none">  
-                                <input type="hidden" name="id" value="@firm.Id" />  
-                            </form>  
-                        </td>  
+    <!-- Search and Filter Section -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0 d-flex align-items-center">
+                    <i class="fas fa-search me-2" aria-hidden="true"></i> Arama ve Filtreleme
+                </h2>
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#searchFilters" aria-expanded="true" aria-controls="searchFilters">
+                    <i class="fas fa-filter me-1" aria-hidden="true"></i> Filtreler
+                </button>
+            </div>
+        </div>
+        <div class="collapse show" id="searchFilters">
+            <div class="card-body">
+                <form method="get" asp-action="Index" id="searchForm" role="search">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-6 col-md-12">
+                            <label for="search" class="form-label">
+                                <i class="fas fa-building text-muted me-1" aria-hidden="true"></i>
+                                Firma Adı veya Açıklama
+                            </label>
+                            <input type="text" name="search" id="search" value="@searchValue" class="form-control"
+                                placeholder="Firma ara..." aria-describedby="searchHelp">
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label for="status" class="form-label">
+                                <i class="fas fa-toggle-on text-muted me-1" aria-hidden="true"></i> Durum
+                            </label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">Tüm Durumlar</option>
+                                <option value="active" selected="@(statusValue == "active")">Aktif</option>
+                                <option value="passive" selected="@(statusValue == "passive")")>Pasif
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-fill" aria-label="Arama yap">
+                                    <i class="fas fa-search me-1" aria-hidden="true"></i> Ara
+                                </button>
+                                <a href="@Url.Action("Index")" class="btn btn-outline-secondary flex-fill"
+                                    aria-label="Filtreleri temizle">
+                                    <i class="fas fa-times me-1" aria-hidden="true"></i> Temizle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                    </tr>  
-                }  
-            </tbody>  
-        </table>  
-    }  
-</div>  
-@section Scripts {  
-    <script>  
-        function confirmDelete(id) {  
-            Swal.fire({  
-                title: 'Emin misiniz?',  
-                text: "Bu firmayı silmek üzeresiniz!",  
-                icon: 'warning',  
-                showCancelButton: true,  
-                confirmButtonColor: '#d33',  
-                cancelButtonColor: '#3085d6',  
-                confirmButtonText: 'Evet, sil!',  
-                cancelButtonText: 'İptal'  
-            }).then((result) => {  
-                if (result.isConfirmed) {  
-                    document.getElementById(`delete-form-${id}`).submit();  
-                }  
-            });  
-        }  
-    </script>  
+    <!-- Companies Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h2 class="h6 mb-0 d-flex align-items-center">
+                    <i class="fas fa-table me-2" aria-hidden="true"></i> Firma Listesi
+                    <span class="badge bg-primary ms-2">@totalCompanies kayıt</span>
+                </h2>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Görünüm seçenekleri">
+                    <input type="radio" class="btn-check" name="viewType" id="tableViewRadio" autocomplete="off"
+                        checked>
+                    <label class="btn btn-outline-secondary" for="tableViewRadio" onclick="toggleView('table')">
+                        <i class="fas fa-table me-1" aria-hidden="true"></i> Tablo
+                    </label>
+
+                    <input type="radio" class="btn-check" name="viewType" id="cardsViewRadio" autocomplete="off">
+                    <label class="btn btn-outline-secondary" for="cardsViewRadio" onclick="toggleView('cards')">
+                        <i class="fas fa-th-large me-1" aria-hidden="true"></i> Kartlar
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <!-- Table View -->
+                <div id="tableView" class="table-responsive">
+                    <table class="table table-hover table-striped mb-0" role="table">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">
+                                    <i class="fas fa-building me-1" aria-hidden="true"></i> Firma Bilgileri
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-info-circle me-1" aria-hidden="true"></i> Açıklama
+                                </th>
+
+                                <th scope="col">
+                                    <i class="fas fa-toggle-on me-1" aria-hidden="true"></i> Durum
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-calendar me-1" aria-hidden="true"></i> Kayıt Tarihi
+                                </th>
+                                <th scope="col" style="width: 200px;">
+                                    <i class="fas fa-cogs me-1" aria-hidden="true"></i> İşlemler
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var company in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="company-icon me-3" aria-hidden="true">
+                                                <i class="fas fa-building fa-2x text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-bold">@company.Name</h6>
+                                                @if (!string.IsNullOrEmpty(company.Email))
+                                                {
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-envelope me-1" aria-hidden="true"></i>
+                                                        <a href="mailto:@company.Email"
+                                                            class="text-decoration-none">@company.Email</a>
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(company.Phone))
+                                                {
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-phone me-1" aria-hidden="true"></i>
+                                                        <a href="tel:@company.Phone" class="text-decoration-none">@company.Phone</a>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(company.Description))
+                                        {
+                                            var description = company.Description.Length > 100
+                                            ? company.Description.Substring(0, 100) + "..."
+                                            : company.Description;
+                                            <span title="@company.Description" data-bs-toggle="tooltip">@description</span>
+                                        }
+                                        else
+                                        {
+                                            <em class="text-muted">Açıklama yok</em>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (company.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1" aria-hidden="true"></i> Aktif
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-pause me-1" aria-hidden="true"></i> Pasif
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <time datetime="@company.CreatedDate.ToString("yyyy-MM-dd")" class="small text-muted">
+                                            @company.CreatedDate.ToString("dd.MM.yyyy")
+                                        </time>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group" aria-label="Firma işlemleri">
+                                            <a asp-action="Details" asp-route-id="@company.Id"
+                                                class="btn btn-sm btn-outline-info"
+                                                title="@company.Name firmasının detaylarını görüntüle" data-bs-toggle="tooltip">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                                <span class="visually-hidden">Detay</span>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@company.Id"
+                                                class="btn btn-sm btn-outline-warning" title="@company.Name firmasını düzenle"
+                                                data-bs-toggle="tooltip">
+                                                <i class="fas fa-edit" aria-hidden="true"></i>
+                                                <span class="visually-hidden">Düzenle</span>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                onclick="deleteCompany(@company.Id, '@company.Name')"
+                                                title="@company.Name firmasını sil" data-bs-toggle="tooltip">
+                                                <i class="fas fa-trash" aria-hidden="true"></i>
+                                                <span class="visually-hidden">Sil</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Cards View -->
+                <div id="cardsView" style="display: none;" class="p-3">
+                    <div class="row g-3">
+                        @foreach (var company in Model)
+                        {
+                            <div class="col-lg-4 col-md-6 col-12">
+                                <div class="card h-100 company-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start justify-content-between mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="company-icon-lg me-3" aria-hidden="true">
+                                                    <i class="fas fa-building fa-2x text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="card-title mb-1 fw-bold">@company.Name</h6>
+                                                    <small class="text-muted">
+                                                        <time datetime="@company.CreatedDate.ToString("yyyy-MM-dd")">
+                                                            @company.CreatedDate.ToString("dd.MM.yyyy")
+                                                        </time>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            @if (company.IsActive)
+                                            {
+                                                <span class="badge bg-success">Aktif</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Pasif</span>
+                                            }
+                                        </div>
+
+                                        @if (!string.IsNullOrEmpty(company.Description))
+                                        {
+                                            <div class="mb-3">
+                                                <p class="card-text small">
+                                                    @(company.Description.Length > 100 ? company.Description.Substring(0, 100) +
+                                                                                            "..." : company.Description)
+                                                </p>
+                                            </div>
+                                        }
+
+                                        <div class="mb-3">
+                                            @if (!string.IsNullOrEmpty(company.Email))
+                                            {
+                                                <div class="small mb-1">
+                                                    <i class="fas fa-envelope text-muted me-2" aria-hidden="true"></i>
+                                                    <a href="mailto:@company.Email" class="text-decoration-none">@company.Email</a>
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(company.Phone))
+                                            {
+                                                <div class="small mb-1">
+                                                    <i class="fas fa-phone text-muted me-2" aria-hidden="true"></i>
+                                                    <a href="tel:@company.Phone" class="text-decoration-none">@company.Phone</a>
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(company.Website))
+                                            {
+                                                <div class="small mb-1">
+                                                    <i class="fas fa-globe text-muted me-2" aria-hidden="true"></i>
+                                                    <a href="@company.Website" target="_blank" rel="noopener noreferrer"
+                                                        class="text-decoration-none">
+                                                        Website
+                                                        <i class="fas fa-external-link-alt fa-xs ms-1" aria-hidden="true"></i>
+                                                    </a>
+                                                </div>
+                                            }
+
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                                            <div class="btn-group btn-group-sm w-100" role="group" aria-label="Firma işlemleri">
+                                                <a asp-action="Details" asp-route-id="@company.Id"
+                                                    class="btn btn-outline-info flex-fill" title="Detayları görüntüle"
+                                                    data-bs-toggle="tooltip">
+                                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@company.Id"
+                                                    class="btn btn-outline-warning flex-fill" title="Düzenle"
+                                                    data-bs-toggle="tooltip">
+                                                    <i class="fas fa-edit" aria-hidden="true"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger flex-fill"
+                                                    onclick="deleteCompany(@company.Id, '@company.Name')" title="Sil"
+                                                    data-bs-toggle="tooltip">
+                                                    <i class="fas fa-trash" aria-hidden="true"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-building fa-3x text-muted mb-3" aria-hidden="true"></i>
+                    <h3 class="h5 text-muted">Firma Bulunamadı</h3>
+                    @if (!string.IsNullOrEmpty(searchValue) || !string.IsNullOrEmpty(statusValue))
+                    {
+                        <p class="text-muted">Arama kriterlerinize uygun firma bulunmuyor.</p>
+                        <a href="@Url.Action("Index")" class="btn btn-outline-primary">
+                            <i class="fas fa-times me-1" aria-hidden="true"></i> Filtreleri Temizle
+                        </a>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz sisteme firma eklenmemiş.</p>
+                        <a asp-action="Create" class="btn btn-primary">
+                            <i class="fas fa-plus me-1" aria-hidden="true"></i> İlk Firmayı Ekle
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Global variables for view management
+        let currentViewType = 'table';
+
+        // Delete company function
+        function deleteCompany(companyId, companyName) {
+            Swal.fire({
+                title: 'Firmayı Sil?',
+                html: `<strong>${companyName}</strong> firması silinecek.<br>Bu işlem geri alınamaz!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash"></i> Evet, Sil',
+                cancelButtonText: '<i class="fas fa-times"></i> İptal',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Siliniyor...',
+                        html: 'Lütfen bekleyin...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Create form and submit
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/Company/Delete/${companyId}`;
+
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (token) {
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '__RequestVerificationToken';
+                        tokenInput.value = token.value;
+                        form.appendChild(tokenInput);
+                    }
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        // Toggle between table and cards view
+        function toggleView(viewType) {
+            const tableView = document.getElementById('tableView');
+            const cardsView = document.getElementById('cardsView');
+            const tableRadio = document.getElementById('tableViewRadio');
+            const cardsRadio = document.getElementById('cardsViewRadio');
+
+            if (viewType === 'table') {
+                tableView.style.display = 'block';
+                cardsView.style.display = 'none';
+                tableRadio.checked = true;
+                cardsRadio.checked = false;
+                currentViewType = 'table';
+            } else {
+                tableView.style.display = 'none';
+                cardsView.style.display = 'block';
+                tableRadio.checked = false;
+                cardsRadio.checked = true;
+                currentViewType = 'cards';
+            }
+
+            // Save preference to session storage (not localStorage for artifact compatibility)
+            try {
+                sessionStorage.setItem('companyViewType', viewType);
+            } catch (e) {
+                // Silently handle storage errors
+            }
+        }
+
+        // Export to Excel function
+        function exportToExcel() {
+            Swal.fire({
+                title: 'Excel\'e Aktar',
+                text: 'Firma listesi Excel dosyası olarak indirilecek.',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-download"></i> İndir',
+                cancelButtonText: 'İptal',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Hazırlanıyor...',
+                        html: 'Excel dosyası hazırlanıyor, lütfen bekleyin...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Simulate file preparation time
+                    setTimeout(() => {
+                        window.location.href = '/Company/ExportToExcel';
+                        Swal.close();
+                    }, 1000);
+                }
+            });
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    delay: { show: 500, hide: 100 }
+                });
+            });
+
+            // Load saved view type
+            try {
+                const savedViewType = sessionStorage.getItem('companyViewType') || 'table';
+                toggleView(savedViewType);
+            } catch (e) {
+                toggleView('table');
+            }
+
+            // Auto-submit search form on select change
+            const statusSelect = document.getElementById('status');
+            if (statusSelect) {
+                statusSelect.addEventListener('change', function () {
+                    document.getElementById('searchForm').submit();
+                });
+            }
+
+            // Real-time search with debounce
+            const searchInput = document.getElementById('search');
+            if (searchInput) {
+                let searchTimeout;
+                searchInput.addEventListener('input', function () {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        document.getElementById('searchForm').submit();
+                    }, 1000);
+                });
+            }
+
+            // Prevent form submission on Enter key in search field to allow debounce to work
+            searchInput?.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('searchForm').submit();
+                }
+            });
+
+            // Focus management for accessibility
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('search') || urlParams.has('status')) {
+                const firstResult = document.querySelector('#tableView tbody tr:first-child a, #cardsView .card:first-child a');
+                if (firstResult) {
+                    setTimeout(() => firstResult.focus(), 100);
+                }
+            }
+
+            // Handle keyboard navigation for accessibility
+            document.addEventListener('keydown', function (e) {
+                // Alt + T for table view
+                if (e.altKey && e.key === 't') {
+                    e.preventDefault();
+                    toggleView('table');
+                }
+                // Alt + C for cards view
+                if (e.altKey && e.key === 'c') {
+                    e.preventDefault();
+                    toggleView('cards');
+                }
+                // Alt + N for new company
+                if (e.altKey && e.key === 'n') {
+                    e.preventDefault();
+                    const newCompanyBtn = document.querySelector('a[asp-action="Create"]');
+                    if (newCompanyBtn) {
+                        newCompanyBtn.click();
+                    }
+                }
+            });
+        });
+
+        // Handle responsive behavior
+        function handleResponsiveChanges() {
+            const isMobile = window.innerWidth < 768;
+
+            if (isMobile && currentViewType === 'table') {
+                // Auto-switch to cards view on mobile for better UX
+                toggleView('cards');
+            }
+        }
+
+        // Listen for window resize
+        window.addEventListener('resize', debounce(handleResponsiveChanges, 250));
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Loading state management
+        function showLoading(message = 'İşlem gerçekleştiriliyor...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+
+        function hideLoading() {
+            Swal.close();
+        }
+
+        // Error handling
+        window.addEventListener('error', function (e) {
+            console.error('JavaScript error:', e.error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Bir hata oluştu',
+                text: 'Sayfa yenilendiğinde sorun devam ederse sistem yöneticisine başvurun.',
+                confirmButtonText: 'Tamam'
+            });
+        });
+    </script>
+
+    <style>
+        /* Custom CSS for improved design */
+        :root {
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --warning-color: #fd7e14;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+            --secondary-color: #6c757d;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --border-radius: 0.375rem;
+            --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --box-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+            --transition: all 0.15s ease-in-out;
+        }
+
+        /* General improvements */
+        .card {
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        /* Statistics cards */
+        .card.bg-primary,
+        .card.bg-success,
+        .card.bg-secondary,
+        .card.bg-info {
+            border: none;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+        }
+
+        /* Company icons */
+        .company-icon {
+            width: 60px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .company-icon-lg {
+            width: 60px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Company cards */
+        .company-card {
+            transition: var(--transition);
+            border: 1px solid #e9ecef;
+            height: 100%;
+            position: relative;
+        }
+
+        .company-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .company-card .card-body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Button improvements */
+        .btn {
+            transition: var(--transition);
+            border-radius: var(--border-radius);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-group .btn {
+            border-radius: 0;
+        }
+
+        .btn-group .btn:first-child {
+            border-top-left-radius: var(--border-radius);
+            border-bottom-left-radius: var(--border-radius);
+        }
+
+        .btn-group .btn:last-child {
+            border-top-right-radius: var(--border-radius);
+            border-bottom-right-radius: var(--border-radius);
+        }
+
+        /* Table improvements */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            background-color: var(--light-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .table-striped>tbody>tr:nth-of-type(odd)>td {
+            background-color: rgba(0, 0, 0, 0.025);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.075);
+        }
+
+        /* Badge improvements */
+        .badge {
+            font-size: 0.75em;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Search and filter section */
+        .collapse {
+            transition: var(--transition);
+        }
+
+        /* Form improvements */
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Responsive improvements */
+       
+    </style>
 }

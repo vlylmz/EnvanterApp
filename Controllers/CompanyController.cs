@@ -1,17 +1,21 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Threading.Tasks;
+
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.ViewModels;
 
 namespace WebApplication1.Controllers
 {
-    public class CompanyController(AppDbContext context) : Controller
+    public class CompanyController : Controller
     {
-        private readonly AppDbContext _context = context;
+        private readonly AppDbContext _context;
+
+        public CompanyController(AppDbContext context)
+        {
+            _context = context;
+        }
 
         // Listele
         public async Task<IActionResult> Index(string search, string status)
@@ -22,8 +26,8 @@ namespace WebApplication1.Controllers
             {
                 search = search.ToLower();
                 query = query.Where(c =>
-                    c.Name != null && (c.Name.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
-                    (c.Description != null && c.Description.Contains(search, StringComparison.CurrentCultureIgnoreCase)) )
+                    c.Name.ToLower().Contains(search) ||
+                    (c.Description != null && c.Description.ToLower().Contains(search))
                 );
             }
 
@@ -41,6 +45,24 @@ namespace WebApplication1.Controllers
             return View(companies);
         }
 
+        // Detayları gösterme
+       public async Task<IActionResult> Details(int id)
+{
+    var company = await _context.Companies.FindAsync(id);
+    if (company == null)
+        return NotFound();
+
+    var viewModel = new CompanyDetailsViewModel
+    {
+        Company = company,
+        Employees = await _context.Employees.Where(e => e.CompanyId == id).ToListAsync(),
+        Computers = await _context.Computers.Where(c => c.CompanyId == id).ToListAsync(),
+        Software = await _context.Software.Where(s => s.CompanyId == id).ToListAsync(),
+        Supplies = await _context.Supplies.Where(s => s.CompanyId == id).ToListAsync()
+    };
+
+    return View(viewModel); // ← sadece bunu düzelt!
+}
 
         // Ekle (GET)
         public IActionResult Create()
@@ -50,14 +72,16 @@ namespace WebApplication1.Controllers
 
         // Ekle (POST)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Company model)
         {
-            if (!ModelState.IsValid)
-                return View(model);
-
+            model.CreatedDate = DateTime.Now;
             _context.Companies.Add(model);
             await _context.SaveChangesAsync();
+            TempData["Success"] = "Şirket başarıyla eklendi.";
             return RedirectToAction(nameof(Index));
+
+            //return View("/Views/Shared/Error");
         }
 
         // Güncelle (GET)
@@ -72,17 +96,31 @@ namespace WebApplication1.Controllers
 
         // Güncelle (POST)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Company model)
         {
             if (id != model.Id)
                 return NotFound();
 
-            if (!ModelState.IsValid)
-                return View(model);
-
-            _context.Companies.Update(model);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    model.UpdatedDate = DateTime.Now;
+                    _context.Update(model);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = "Şirket başarıyla güncellendi.";
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!CompanyExists(model.Id))
+                        return NotFound();
+                    else
+                        throw;
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(model);
         }
 
         // Sil (GET)
@@ -97,6 +135,7 @@ namespace WebApplication1.Controllers
 
         // Sil (POST)
         [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var company = await _context.Companies.FindAsync(id);
@@ -104,31 +143,15 @@ namespace WebApplication1.Controllers
             {
                 _context.Companies.Remove(company);
                 await _context.SaveChangesAsync();
+                TempData["Success"] = "Şirket başarıyla silindi.";
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-
-        //Detayları gösterme
-        public async Task<IActionResult> Details(int id)
+        private bool CompanyExists(int id)
         {
-            var company = await _context.Companies.FindAsync(id);
-            if (company == null)
-                return NotFound();
-
-            var viewModel = new CompanyDetailsViewModel
-            {
-                Company = company,
-                Employees = await _context.Employees.Where(e => e.CompanyId == id).ToListAsync(),
-                Computers = await _context.Computers.Where(c => c.CompanyId == id).ToListAsync(),
-                Software = await _context.Software.Where(s => s.CompanyId == id).ToListAsync(),
-                Supplies = await _context.Supplies.Where(s => s.CompanyId == id).ToListAsync()
-            };
-
-            return View(viewModel);
+            return _context.Companies.Any(e => e.Id == id);
         }
-
-
     }
 }
