@@ -37,3 +37,29 @@
 
 </body>
 </html>
+
+<script>
+    function confirmDelete(id, name) {
+        if (confirm(`${name} adlı çalışanı silmek istediğinize emin misiniz?`)) {
+            // AJAX ile silme işlemi
+            fetch(`/Employee/Delete/${id}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Sayfayı yenile veya silinen öğeyi DOM'dan kaldır
+                    location.reload();
+                } else {
+                    alert("Silme işlemi başarısız oldu.");
+                }
+            })
+            .catch(error => {
+                console.error("Hata:", error);
+                alert("Beklenmeyen bir hata oluştu.");
+            });
+        }
+    }
+</script>

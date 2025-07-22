@@ -50,10 +50,11 @@ namespace WebApplication1.Controllers
         return View();
     }
 
-    [HttpPost]
+    [HttpPost]  
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Employee model)
     {
+        Console.WriteLine(">>> Create POST çağrıldı");
         // ModelState debug için
         if (!ModelState.IsValid)
         {

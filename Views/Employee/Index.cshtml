@@ -316,9 +316,13 @@
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-outline-danger"
-                                                    onclick="deleteEmployee(@emp.Id, '@emp.FirstName @emp.LastName')" title="Sil">
+                                                    onclick="confirmDelete(@emp.Id, '@emp.FirstName @emp.LastName')" title="Sil">
                                                 <i class="fas fa-trash"></i>
                                             </button>
+                                            @Html.AntiForgeryToken()
+                                            <input name="__RequestVerificationToken" type="hidden" value="XYZ..." />
+
+
                                         </div>
                                     </td>
                                 </tr>
@@ -581,3 +585,32 @@
 
     }
 </style>
+
+<script>
+    function confirmDelete(id, name) {
+        if (confirm(`${name} adlı çalışanı silmek istediğinize emin misiniz?`)) {
+
+            // Sayfadaki request token'ı al
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch(`/Employee/Delete/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert("Silme işlemi başarısız oldu.");
+                }
+            })
+            .catch(error => {
+                console.error("Hata:", error);
+                alert("Bir hata oluştu.");
+            });
+        }
+    }
+</script>

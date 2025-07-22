@@ -223,8 +223,30 @@
                                                     </td>
                                                 </tr>
                         }
-                                        </tbody>
-                                    </table>
+
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash me-2"></i>Sil
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h4 class="text-primary mb-0">@((DateTime.Now - Model.CreatedDate).Days)</h4>
+                                <small class="text-muted">Gün Önce Eklendi</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h4 class="text-success mb-0">
+                                    @(Model.IsActive ? "✓" : "✗")
+                                </h4>
+                                <small class="text-muted">Durum</small>
                             </div>
                             }
                             else
@@ -238,53 +260,83 @@
                 </div>
             </div>
 
-                <!-- Sarf Malzemeleri -->
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingSupplies">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSupplies" aria-expanded="false" aria-controls="collapseSupplies">
-                            <i class="fas fa-mouse me-2 text-warning"></i>
-                            <strong>Sarf Malzemeleri</strong>
-                            <span class="badge bg-warning rounded-pill ms-2">@(Model.Supplies?.Count ?? 0)</span>
-                        </button>
-                    </h2>
-                    <div id="collapseSupplies" class="accordion-collapse collapse" aria-labelledby="headingSupplies" data-bs-parent="#employeeAssetsAccordion">
-                        <div class="accordion-body">
-                            @if (Model.Supplies != null && Model.Supplies.Any())
-                            {
-                                <div class="table-responsive">
-                                    <table class="table table-sm table-hover">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th><i class="fas fa-box"></i> Malzeme Adı</th>
-                                                <th><i class="fas fa-barcode"></i> Sistem Barkodu</th>
-                                                <th><i class="fas fa-info-circle"></i> Durum</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var item in Model.Supplies)
-                                            {
-                                                <tr>
-                                                    <td><strong>@item.Name</strong></td>
-                                                    <td><code>@item.SystemBarcode</code></td>
-                                                    <td>
-                                                        <span class="badge bg-warning">@item.Status</span>
-                                                    </td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                        </div>
-                            }
-                            else
-                        {
-                                <div class="text-center py-4 text-muted">
-                                    <i class="fas fa-mouse fa-2x mb-2"></i>
-                                    <p><em>Bu çalışana zimmetli sarf malzemesi bulunmuyor.</em></p>
-                            </div>
-                        }
+        <!-- Time Log Panel Sliderlı -->
+        <div class="card shadow-sm border-0" style="max-width: 980px; margin-top: 20px; margin-right: auto; margin-bottom: 20px; margin-left: 0;"
+             ">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0">
+                    <i class="fas fa-history text-primary me-2"></i>
+                    Zaman Çizelgesi
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="timeline-logs px-3 py-2">
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Hesap oluşturuldu</div>
+                        <div class="text-muted small">08.05.2024 09:10</div>
+                    </div>
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Şifre güncellendi</div>
+                        <div class="text-muted small">10.05.2024 13:31</div>
+                    </div>
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Email adresi eklendi</div>
+                        <div class="text-muted small">13.05.2024 21:08</div>
+                    </div>
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Hesap aktif edildi</div>
+                        <div class="text-muted small">15.05.2024 07:17</div>
+                    </div>
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Telefon numarası değiştirildi</div>
+                        <div class="text-muted small">25.05.2024 16:42</div>
+                    </div>
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Hesap pasif edildi</div>
+                        <div class="text-muted small">31.05.2024 18:59</div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <style>
+            .timeline-logs {
+                max-height: 208px; /* 5-6 log için ideal yükseklik */
+                overflow-y: auto;
+                background: #f7fafc;
+                border-radius: 0 0 12px 12px;
+            }
+
+                .timeline-logs::-webkit-scrollbar {
+                    width: 10px;
+                    background: #e2e8f0;
+                    border-radius: 10px;
+                }
+
+                .timeline-logs::-webkit-scrollbar-thumb {
+                    background: linear-gradient(160deg, #007bff 30%, #54a0ff 100%);
+                    border-radius: 10px;
+                }
+
+                    .timeline-logs::-webkit-scrollbar-thumb:hover {
+                        background: linear-gradient(180deg, #0056b3, #007bff);
+                    }
+
+            .log-entry:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+                padding-bottom: 0;
+            }
+
+            .log-entry {
+                transition: background 0.2s;
+            }
+
+                .log-entry:hover {
+                    background: #e3ebf6;
+                }
+        </style>
+
         </div>
     </div>
     </div>

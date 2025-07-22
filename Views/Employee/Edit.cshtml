@@ -13,6 +13,8 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-action="Index">Çalışanlar</a></li>
             <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Id">@Model.FirstName @Model.LastName</a></li>
+            <li class="breadcrumb-item"><a asp-action="Edit" >Düzenleme</a></li>
+
 
         </ol>
     </nav>
@@ -152,9 +154,9 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input asp-for="title" type="text" class="form-control"
-                                           id="title" placeholder="title">
-                                    <label for="title">
+                                    <input asp-for="Title" type="text" class="form-control"
+                                           id="Title" placeholder="Title">
+                                    <label for="Title">
                                         <i class="fa-solid fa-book me-2 text-muted"></i>Görevi
                                     </label>
                                     
@@ -212,8 +214,8 @@
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save"></i> Kaydet
                             </button>
                             <button type="button" class="btn btn-outline-warning" onclick="resetForm()">
                                 <i class="fas fa-undo me-2"></i>Formu Sıfırla
