@@ -1,0 +1,916 @@
+@model WebApplication1.Models.Computer
+@{
+    ViewData["Title"] = "Bilgisayar Düzenle";
+    var companies = ViewBag.Companies as List<SelectListItem> ?? new List<SelectListItem>();
+    var employees = ViewBag.Employees as List<SelectListItem> ?? new List<SelectListItem>();
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.3/sweetalert2.min.css" rel="stylesheet">
+
+<style>
+    body {
+        background-color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: #2c3e50;
+    }
+
+    .page-header {
+        padding: 2rem 0 1rem 0;
+        border-bottom: none;
+        background: transparent;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .page-title i {
+        color: #f39c12;
+        font-size: 1.8rem;
+    }
+
+    .page-subtitle {
+        color: #7f8c8d;
+        font-size: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: 1px solid #ecf0f1;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #ecf0f1;
+    }
+
+    .section-icon {
+        width: 40px;
+        height: 40px;
+        background: #f39c12;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .section-title {
+        margin: 0;
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.95rem;
+    }
+
+    .required {
+        color: #e74c3c;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #ecf0f1;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        background-color: white;
+        width: 100%;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: #f39c12;
+        box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: #bdc3c7;
+    }
+
+    .text-danger {
+        color: #e74c3c !important;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .help-text {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        margin-top: 0.25rem;
+    }
+
+    .info-badge {
+        background: #e8f4fd;
+        color: #2980b9;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #3498db;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .info-badge i {
+        margin-right: 0.5rem;
+    }
+
+    .system-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .system-info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #ecf0f1;
+    }
+
+    .system-info-item:last-child {
+        border-bottom: none;
+    }
+
+    .system-info-label {
+        font-weight: 500;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+
+    .system-info-value {
+        color: #2c3e50;
+        font-size: 0.9rem;
+    }
+
+    .collapsible-section {
+        background: white;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: 1px solid #ecf0f1;
+        overflow: hidden;
+    }
+
+    .section-toggle {
+        width: 100%;
+        background: #f8f9fa;
+        border: none;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .section-toggle:hover {
+        background: #ecf0f1;
+    }
+
+    .section-toggle.active {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .toggle-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .toggle-icon-bg {
+        width: 32px;
+        height: 32px;
+        background: #f39c12;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+    }
+
+    .toggle-text h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .toggle-text small {
+        color: #7f8c8d;
+    }
+
+    .toggle-icon {
+        transition: transform 0.2s ease;
+        color: #7f8c8d;
+    }
+
+    .toggle-icon.rotated {
+        transform: rotate(180deg);
+    }
+
+    .section-content {
+        padding: 2rem;
+        border-top: 1px solid #ecf0f1;
+        background: white;
+    }
+
+    .sub-section-title {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .action-buttons {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: 1px solid #ecf0f1;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn {
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        font-size: 0.95rem;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+        background: #f39c12;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #e67e22;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #ecf0f1;
+        color: #7f8c8d;
+    }
+
+    .btn-secondary:hover {
+        background: #d5dbdb;
+        color: #2c3e50;
+        transform: translateY(-1px);
+    }
+
+    .btn-info {
+        background: #3498db;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: #2980b9;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .btn-danger {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c0392b;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .changed-field {
+        border-color: #f39c12 !important;
+        background-color: #fff8e1;
+    }
+
+    @@media (max-width: 768px) {
+        .action-buttons {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="container-fluid px-4">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="page-title">
+                    <i class="fas fa-edit"></i>
+                    Bilgisayar Düzenle
+                </h1>
+                <p class="page-subtitle">@Model.Name kaydını düzenleyin</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+                    <i class="fas fa-eye"></i>
+                    Detayları Görüntüle
+                </a>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Geri Dön
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Badge -->
+    <div class="info-badge">
+        <i class="fas fa-info-circle"></i>
+        <strong>Bilgi:</strong> Bu sayfada mevcut bilgisayar kaydını düzenleyebilirsiniz. Değiştirmek istediğiniz alanları güncelleyin ve kaydedin.
+    </div>
+
+    <form asp-action="Edit" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="CreatedDate" />
+
+        <!-- Sistem Bilgileri -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <h3 class="section-title">Sistem Bilgileri</h3>
+            </div>
+
+            <div class="system-info">
+                <div class="system-info-item">
+                    <span class="system-info-label">Bilgisayar ID:</span>
+                    <span class="system-info-value">#@Model.Id</span>
+                </div>
+                <div class="system-info-item">
+                    <span class="system-info-label">Kayıt Tarihi:</span>
+                    <span class="system-info-value">@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</span>
+                </div>
+                @if (Model.LastUpdatedDate.HasValue)
+                {
+                    <div class="system-info-item">
+                        <span class="system-info-label">Son Güncelleme:</span>
+                        <span class="system-info-value">@Model.LastUpdatedDate?.ToString("dd.MM.yyyy HH:mm")</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Temel Bilgiler -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-desktop"></i>
+                </div>
+                <h3 class="section-title">Temel Bilgiler</h3>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Name" class="form-label">Bilgisayar Adı <span class="required">*</span></label>
+                        <input asp-for="Name" class="form-control" placeholder="Örn: DELL-PC-001" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="AssetTag" class="form-label">Varlık Etiketi <span class="required">*</span></label>
+                        <input asp-for="AssetTag" class="form-control" placeholder="Örn: AST-2024-001" />
+                        <span asp-validation-for="AssetTag" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="SerialNumber" class="form-label">Seri Numarası <span class="required">*</span></label>
+                        <input asp-for="SerialNumber" class="form-control" placeholder="Üreticinin seri numarası" />
+                        <span asp-validation-for="SerialNumber" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="Status" class="form-label">Durum <span class="required">*</span></label>
+                        <select asp-for="Status" asp-items="Html.GetEnumSelectList<ComputerStatus>()" class="form-select">
+                            <option value="">Durum seçin...</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label asp-for="Brand" class="form-label">Marka</label>
+                        <input asp-for="Brand" class="form-control" placeholder="Örn: Dell, HP, Lenovo" />
+                        <span asp-validation-for="Brand" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label asp-for="Model" class="form-label">Model</label>
+                        <input asp-for="Model" class="form-control" placeholder="Örn: OptiPlex 7090" />
+                        <span asp-validation-for="Model" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label asp-for="OperatingSystem" class="form-label">İşletim Sistemi</label>
+                        <input asp-for="OperatingSystem" class="form-control" placeholder="Örn: Windows 11 Pro" />
+                        <span asp-validation-for="OperatingSystem" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Firma & Çalışan -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="section-title">Firma & Çalışan Bilgileri</h3>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="CompanyId" class="form-label">Firma <span class="required">*</span></label>
+                        <select asp-for="CompanyId" asp-items="companies" class="form-select">
+                            <option value="">Firma seçin...</option>
+                        </select>
+                        <span asp-validation-for="CompanyId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="AssignedEmployeeId" class="form-label">Atanan Çalışan</label>
+                        <select asp-for="AssignedEmployeeId" asp-items="employees" class="form-select">
+                            <option value="">Çalışan seçin...</option>
+                        </select>
+                        <span asp-validation-for="AssignedEmployeeId" class="text-danger"></span>
+                        <div class="help-text">Bilgisayar bir çalışana atanmamışsa boş bırakabilirsiniz</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="PurchaseDate" class="form-label">Satın Alma Tarihi</label>
+                        <input asp-for="PurchaseDate" type="date" class="form-control" />
+                        <span asp-validation-for="PurchaseDate" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label asp-for="WarrantyEndDate" class="form-label">Garanti Bitiş Tarihi</label>
+                        <input asp-for="WarrantyEndDate" type="date" class="form-control" />
+                        <span asp-validation-for="WarrantyEndDate" class="text-danger"></span>
+                        @if (Model.WarrantyEndDate.HasValue)
+                        {
+                            @if (Model.IsWarrantyExpired)
+                            {
+                                <div class="help-text text-danger">⚠️ Garanti süresi dolmuş</div>
+                            }
+                            else if (Model.WarrantyDaysRemaining <= 30)
+                            {
+                                <div class="help-text text-warning">⚠️ Garanti @Model.WarrantyDaysRemaining gün içinde dolacak</div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donanım Özellikleri (Collapsible) -->
+        <div class="collapsible-section">
+            <button type="button" class="section-toggle" onclick="toggleSection('hardware-section')">
+                <div class="toggle-content">
+                    <div class="toggle-icon-bg">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div class="toggle-text">
+                        <h4>Donanım Özellikleri</h4>
+                        <small>Teknik detayları güncelleyin</small>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+            <div class="section-content" id="hardware-section" style="display: none;">
+                <!-- İşlemci Bilgileri -->
+                <h5 class="sub-section-title">
+                    <i class="fas fa-microchip"></i>
+                    İşlemci Bilgileri
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="ProcessorName" class="form-label">İşlemci Adı</label>
+                            <input asp-for="ProcessorName" class="form-control" placeholder="Örn: Intel Core i7-12700" />
+                            <span asp-validation-for="ProcessorName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label asp-for="ProcessorSpeed" class="form-label">İşlemci Hızı</label>
+                            <input asp-for="ProcessorSpeed" class="form-control" placeholder="Örn: 2.1 GHz" />
+                            <span asp-validation-for="ProcessorSpeed" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label asp-for="ProcessorCores" class="form-label">Çekirdek Sayısı</label>
+                            <input asp-for="ProcessorCores" type="number" class="form-control" min="1" max="128" placeholder="8" />
+                            <span asp-validation-for="ProcessorCores" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RAM Bilgileri -->
+                <h5 class="sub-section-title">
+                    <i class="fas fa-memory"></i>
+                    Bellek (RAM) Bilgileri
+                </h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="RamAmount" class="form-label">RAM Miktarı (GB)</label>
+                            <input asp-for="RamAmount" type="number" class="form-control" min="1" max="1024" placeholder="16" />
+                            <span asp-validation-for="RamAmount" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="RamType" class="form-label">RAM Tipi</label>
+                            <input asp-for="RamType" class="form-control" placeholder="Örn: DDR4, DDR5" />
+                            <span asp-validation-for="RamType" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label asp-for="RamSpeed" class="form-label">RAM Hızı (MHz)</label>
+                            <input asp-for="RamSpeed" type="number" class="form-control" min="800" max="8000" placeholder="3200" />
+                            <span asp-validation-for="RamSpeed" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Depolama Bilgileri -->
+                <h5 class="sub-section-title">
+                    <i class="fas fa-hdd"></i>
+                    Depolama Bilgileri
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="StorageType" class="form-label">Depolama Tipi</label>
+                            <select asp-for="StorageType" asp-items="Html.GetEnumSelectList<StorageType>()" class="form-select">
+                                <option value="">Depolama tipi seçin...</option>
+                            </select>
+                            <span asp-validation-for="StorageType" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="StorageSize" class="form-label">Depolama Boyutu (GB)</label>
+                            <input asp-for="StorageSize" type="number" class="form-control" min="1" max="10000" placeholder="512" />
+                            <span asp-validation-for="StorageSize" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ekran Kartı -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label asp-for="GraphicsCard" class="form-label">Ekran Kartı</label>
+                            <input asp-for="GraphicsCard" class="form-control" placeholder="Örn: NVIDIA GeForce RTX 3060" />
+                            <span asp-validation-for="GraphicsCard" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Açıklama -->
+        <div class="form-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-sticky-note"></i>
+                </div>
+                <h3 class="section-title">Açıklama</h3>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description" class="form-label">Notlar ve Açıklamalar</label>
+                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Bilgisayar hakkında ek bilgiler, özel durumlar, notlar..."></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+                <div class="help-text">Bu alan isteğe bağlıdır. Bilgisayar hakkında önemli notları buraya yazabilirsiniz.</div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <div class="d-flex gap-2">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-times"></i>
+                    İptal
+                </a>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+                    <i class="fas fa-eye"></i>
+                    Detaylar
+                </a>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                    <i class="fas fa-trash"></i>
+                    Sil
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Değişiklikleri Kaydet
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.3/sweetalert2.min.js"></script>
+    <script>
+        // Orijinal form verilerini sakla
+        const originalData = {};
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form yüklendiğinde orijinal değerleri sakla
+            document.querySelectorAll('.form-control, .form-select').forEach(input => {
+                originalData[input.name] = input.value;
+            });
+        });
+
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const toggle = section.previousElementSibling;
+            const icon = toggle.querySelector('.toggle-icon');
+            
+            if (section.style.display === 'none' || section.style.display === '') {
+                section.style.display = 'block';
+                toggle.classList.add('active');
+                icon.classList.add('rotated');
+            } else {
+                section.style.display = 'none';
+                toggle.classList.remove('active');
+                icon.classList.remove('rotated');
+            }
+        }
+
+        // Değişiklik takibi
+        document.querySelectorAll('.form-control, .form-select').forEach(input => {
+            input.addEventListener('input', function() {
+                if (originalData[this.name] !== this.value) {
+                    this.classList.add('changed-field');
+                } else {
+                    this.classList.remove('changed-field');
+                }
+            });
+        });
+
+        // Form validation enhancement
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const requiredFields = document.querySelectorAll('[required]');
+            let hasErrors = false;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    hasErrors = true;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            if (hasErrors) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Eksik Bilgiler',
+                    text: 'Lütfen zorunlu alanları doldurun.',
+                    confirmButtonColor: '#f39c12'
+                });
+                return;
+            }
+
+            // Değişiklik kontrolü
+            const hasChanges = document.querySelectorAll('.changed-field').length > 0;
+            
+            if (!hasChanges) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Değişiklik Yok',
+                    text: 'Henüz herhangi bir değişiklik yapmadınız.',
+                    confirmButtonColor: '#3498db'
+                });
+                return;
+            }
+
+            // Başarılı güncelleme için onay
+            Swal.fire({
+                icon: 'question',
+                title: 'Değişiklikleri Kaydet?',
+                text: 'Yaptığınız değişiklikleri kaydetmek istediğinizden emin misiniz?',
+                showCancelButton: true,
+                confirmButtonColor: '#f39c12',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Evet, Kaydet!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Form submit edilecek
+                    this.submit();
+                } else {
+                    e.preventDefault();
+                }
+            });
+            
+            e.preventDefault(); // İlk submit'i engelle, SweetAlert sonrasında manuel submit
+        });
+
+        // Sayfa ayrılırken değişiklik uyarısı
+        let formChanged = false;
+        
+        document.querySelectorAll('.form-control, .form-select').forEach(input => {
+            input.addEventListener('change', function() {
+                formChanged = true;
+            });
+        });
+
+        window.addEventListener('beforeunload', function(e) {
+            if (formChanged && document.querySelectorAll('.changed-field').length > 0) {
+                e.preventDefault();
+                e.returnValue = 'Kaydedilmemiş değişiklikleriniz var. Sayfadan ayrılmak istediğinizden emin misiniz?';
+            }
+        });
+
+        // Silme butonu için onay
+        document.querySelector('.btn-danger').addEventListener('click', function(e) {
+            e.preventDefault();
+            const deleteUrl = this.href;
+            
+            Swal.fire({
+                title: 'Bilgisayarı Sil?',
+                text: "Bu bilgisayar kaydını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#95a5a6',
+                confirmButtonText: 'Evet, Sil!',
+                cancelButtonText: 'İptal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = deleteUrl;
+                }
+            });
+        });
+
+        // Otomatik kaydetme özelliği (draft)
+        let autoSaveTimeout;
+        
+        document.querySelectorAll('.form-control, .form-select').forEach(input => {
+            input.addEventListener('input', function() {
+                clearTimeout(autoSaveTimeout);
+                autoSaveTimeout = setTimeout(saveDraft, 2000); // 2 saniye sonra kaydet
+            });
+        });
+
+        function saveDraft() {
+            const formData = {};
+            document.querySelectorAll('.form-control, .form-select').forEach(input => {
+                if (input.name) {
+                    formData[input.name] = input.value;
+                }
+            });
+            
+            localStorage.setItem('computerEditDraft_@Model.Id', JSON.stringify(formData));
+            
+            // Küçük bildirim göster
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #2ecc71;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-size: 14px;
+                z-index: 9999;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            `;
+            notification.textContent = '✓ Taslak kaydedildi';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.style.opacity = '1', 100);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 2000);
+        }
+
+        // Sayfa yüklendiğinde taslağı geri yükle
+        window.addEventListener('load', function() {
+            const draft = localStorage.getItem('computerEditDraft_@Model.Id');
+            if (draft) {
+                const data = JSON.parse(draft);
+                let hasLoadedData = false;
+                
+                Object.keys(data).forEach(key => {
+                    const input = document.querySelector(`[name="${key}"]`);
+                    if (input && data[key] && data[key] !== input.value) {
+                        input.value = data[key];
+                        input.classList.add('changed-field');
+                        hasLoadedData = true;
+                    }
+                });
+                
+                if (hasLoadedData) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Taslak Bulundu',
+                        text: 'Daha önce kaydedilmiş bir taslak bulundu ve form alanları güncellendi.',
+                        confirmButtonColor: '#3498db',
+                        timer: 3000
+                    });
+                }
+            }
+        });
+
+        // Form başarıyla gönderildiğinde taslağı temizle
+        document.querySelector('form').addEventListener('submit', function() {
+            localStorage.removeItem('computerEditDraft_@Model.Id');
+        });
+    </script>
+}

@@ -69,21 +69,55 @@ namespace WebApplication1.Controllers
         {
             return View();
         }
-
         // Ekle (POST)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Company model)
+            [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(Company model)
+    {
+            // Debug için
+        Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+        Console.WriteLine($"Company Name: {model.Name}");
+        if (ModelState.IsValid)
         {
-            model.CreatedDate = DateTime.Now;
-            _context.Companies.Add(model);
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "Şirket başarıyla eklendi.";
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                model.CreatedDate = DateTime.Now;
+                _context.Companies.Add(model);
 
-            //return View("/Views/Shared/Error");
+                // SaveChanges'tan önce kaç kayıt etkileneceğini kontrol et
+                var result = await _context.SaveChangesAsync();
+
+                // Eğer result 0 ise kayıt olmamış demektir
+                if (result > 0)
+                {
+                    TempData["Success"] = "Şirket başarıyla eklendi.";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    TempData["Error"] = "Kayıt yapılamadı!";
+                }
+            }
+            catch (Exception ex)
+            {
+                // Hata mesajını TempData ile göster
+                TempData["Error"] = $"Hata: {ex.Message}";
+
+                // Inner exception varsa onu da ekle
+                if (ex.InnerException != null)
+                {
+                    TempData["Error"] += $" - İç hata: {ex.InnerException.Message}";
+                }
+            }
         }
-
+        else
+        {
+            // Model validation hatalarını göster
+        TempData["Error"] = "Form validation hatası var!";
+    }
+    
+    return View(model);
+}
         // Güncelle (GET)
         public async Task<IActionResult> Edit(int id)
         {
