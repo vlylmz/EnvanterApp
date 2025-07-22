@@ -5,12 +5,9 @@ using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.ViewModels;
 
-public class EmployeeController : Controller
-{   
-    private readonly AppDbContext _context;
-
-    {
-        private readonly AppDbContext _context = context;
+public class EmployeeController(AppDbContext context) : Controller
+{
+    private readonly AppDbContext _context = context;
 
     public async Task<IActionResult> Index()
     {
