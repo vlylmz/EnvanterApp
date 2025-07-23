@@ -1,0 +1,435 @@
+@model IEnumerable<WebApplication1.Models.ItemModel>
+
+@{
+    ViewData["Title"] = "Sarf Malzeme Yönetimi";
+}
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-1">
+                <i class="fas fa-boxes text-primary me-2"></i>
+                Sarf Malzeme Yönetimi
+            </h2>
+            <p class="text-muted mb-0">Toplam @Model.Count() ürün bulundu</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Create" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>
+                Yeni Ürün Ekle
+            </a>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Search and Filter Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-filter me-2"></i>Arama ve Filtreleme
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="get" asp-action="Index">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label for="searchString" class="form-label">
+                            <i class="fas fa-search me-1"></i>Arama
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="searchString"
+                               name="searchString" 
+                               value="@ViewBag.SearchString" 
+                               placeholder="Ürün adı, açıklama veya barkod ile arayın...">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="category" class="form-label">
+                            <i class="fas fa-tags me-1"></i>Kategori
+                        </label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">Tüm Kategoriler</option>
+                            @if (ViewBag.Kategoriler != null)
+                            {
+                                @foreach (var kategori in ViewBag.Kategoriler)
+                                {
+                                    <option value="@kategori" selected="@(kategori == ViewBag.SelectedCategory)">
+                                        @kategori
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>Filtrele
+                        </button>
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchString?.ToString()) || !string.IsNullOrEmpty(ViewBag.SelectedCategory?.ToString()))
+                        {
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Temizle
+                            </a>
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Toplam Ürün</h6>
+                            <h3 class="mb-0">@Model.Count()</h3>
+                        </div>
+                        <i class="fas fa-boxes fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Zimmetli</h6>
+                            <h3 class="mb-0">@Model.Count(x => x.AssignmentStatus == "Zimmetli")</h3>
+                        </div>
+                        <i class="fas fa-user-check fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Kritik Seviye</h6>
+                            <h3 class="mb-0">@Model.Count(x => x.IsCriticalLevel)</h3>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Aktif Ürün</h6>
+                            <h3 class="mb-0">@Model.Count(x => x.IsActive)</h3>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    @if (Model.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list me-2"></i>Ürün Listesi
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col" style="width: 120px;">
+                                    <i class="fas fa-barcode me-1"></i>Barkod
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-tag me-1"></i>Ürün Bilgileri
+                                </th>
+                                <th scope="col" style="width: 140px;">
+                                    <i class="fas fa-list me-1"></i>Kategori
+                                </th>
+                                <th scope="col" style="width: 120px;">
+                                    <i class="fas fa-cubes me-1"></i>Stok
+                                </th>
+                                <th scope="col" style="width: 150px;">
+                                    <i class="fas fa-user-check me-1"></i>Zimmet
+                                </th>
+                                <th scope="col" style="width: 100px;">
+                                    <i class="fas fa-money-bill me-1"></i>Fiyat
+                                </th>
+                                <th scope="col" style="width: 80px;">
+                                    <i class="fas fa-toggle-on me-1"></i>Durum
+                                </th>
+                                <th scope="col" style="width: 120px;" class="text-center">
+                                    <i class="fas fa-cogs me-1"></i>İşlemler
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <code class="bg-light px-2 py-1 rounded small">@item.SystemBarcode</code>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong class="text-dark">@item.Name</strong>
+                                            @if (!string.IsNullOrEmpty(item.Description))
+                                            {
+                                                <br><small class="text-muted">@(item.Description.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description)</small>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.Location))
+                                            {
+                                                <br><small class="text-info"><i class="fas fa-map-marker-alt me-1"></i>@item.Location</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@item.Category</span>
+                                    </td>
+                                    <td>
+                                        <div class="text-center">
+                                            <span class="fw-bold @(item.IsCriticalLevel ? "text-danger" : "text-success")">
+                                                @item.StockQuantity
+                                            </span>
+                                            @if (item.IsCriticalLevel)
+                                            {
+                                                <br><small class="text-danger"><i class="fas fa-exclamation-triangle"></i> Kritik</small>
+                                            }
+                                            else
+                                            {
+                                                <br><small class="text-muted">Min: @item.MinimumStockLevel</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (item.AssignmentStatus == "Zimmetli")
+                                        {
+                                            <span class="badge bg-warning text-dark mb-1">
+                                                <i class="fas fa-user me-1"></i>Zimmetli
+                                            </span>
+                                            @if (!string.IsNullOrEmpty(item.AssignedPersonnel))
+                                            {
+                                                <br><small class="text-muted">@item.AssignedPersonnel</small>
+                                            }
+                                        }
+                                        else if (item.AssignmentStatus == "Bakımda")
+                                        {
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-wrench me-1"></i>Bakımda
+                                            </span>
+                                        }
+                                        else if (item.AssignmentStatus == "Kayıp")
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>Kayıp
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Müsait
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.UnitPrice.HasValue)
+                                        {
+                                            <strong class="text-success">@item.UnitPrice.Value.ToString("N0") ₺</strong>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check"></i>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-pause"></i>
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-action="Details" asp-route-id="@item.Id" 
+                                               class="btn btn-outline-info" 
+                                               title="Detayları Görüntüle">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@item.Id" 
+                                               class="btn btn-outline-warning" 
+                                               title="Düzenle">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger" 
+                                                    title="Sil"
+                                                    onclick="confirmDelete(@item.Id, '@item.Name')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-box-open fa-4x text-muted mb-4"></i>
+                <h4 class="text-muted mb-3">Henüz hiç ürün bulunmuyor</h4>
+                @if (!string.IsNullOrEmpty(ViewBag.SearchString?.ToString()) || !string.IsNullOrEmpty(ViewBag.SelectedCategory?.ToString()))
+                {
+                    <p class="text-muted mb-4">Arama kriterlerinize uygun ürün bulunamadı.</p>
+                    <a asp-action="Index" class="btn btn-outline-primary me-3">
+                        <i class="fas fa-times me-1"></i>Filtreleri Temizle
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted mb-4">İlk ürününüzü ekleyerek başlayın.</p>
+                }
+                <a asp-action="Create" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>İlk Ürünü Ekle
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Ürün Silme Onayı
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash fa-3x text-danger"></i>
+                </div>
+                <p class="text-center mb-3">Bu ürünü silmek istediğinizden emin misiniz?</p>
+                <div class="alert alert-warning">
+                    <strong id="deleteItemName"></strong> adlı ürün kalıcı olarak silinecektir.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>İptal
+                </button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Evet, Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(itemId, itemName) {
+            document.getElementById('deleteItemName').textContent = itemName;
+            document.getElementById('deleteForm').action = '/Items/Delete/' + itemId;
+            
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    </script>
+}
+
+<style>
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+    
+    .btn-group-sm > .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    code {
+        font-size: 0.8rem;
+    }
+    
+    .opacity-75 {
+        opacity: 0.75;
+    }
+</style>

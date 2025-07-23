@@ -1,0 +1,558 @@
+@model WebApplication1.Models.ItemModel
+
+@{
+    ViewData["Title"] = $"Ürün Detayları - {Model.Name}";
+}
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div class="me-4">
+                    <i class="fas fa-box fa-3x text-primary"></i>
+                </div>
+                <div>
+                    <h2 class="mb-1">@Model.Name</h2>
+                    <p class="text-muted mb-1">
+                        <span class="badge bg-secondary me-2">@Model.Category</span>
+                        <code class="bg-light px-2 py-1 rounded">@Model.SystemBarcode</code>
+                    </p>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-calendar me-1"></i>
+                        @Model.CreatedDate.ToString("dd MMMM yyyy") tarihinde oluşturuldu
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group mb-2" role="group">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-lg">
+                    <i class="fas fa-edit me-2"></i>Düzenle
+                </a>
+                <button type="button" class="btn btn-danger btn-lg" onclick="confirmDelete(@Model.Id, '@Model.Name')">
+                    <i class="fas fa-trash me-2"></i>Sil
+                </button>
+            </div>
+            <div>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>Listeye Dön
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Sol Kolon -->
+        <div class="col-lg-8">
+            <!-- Temel Bilgiler -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Temel Bilgiler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold text-muted" style="width: 30%;">
+                                        <i class="fas fa-tag me-1"></i>Ürün Adı:
+                                    </td>
+                                    <td>@Model.Name</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold text-muted">
+                                        <i class="fas fa-barcode me-1"></i>Barkod:
+                                    </td>
+                                    <td>
+                                        <code class="bg-light px-2 py-1 rounded font-monospace">@Model.SystemBarcode</code>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="copyToClipboard('@Model.SystemBarcode')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold text-muted">
+                                        <i class="fas fa-list me-1"></i>Kategori:
+                                    </td>
+                                    <td><span class="badge bg-secondary">@Model.Category</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold text-muted">
+                                        <i class="fas fa-map-marker-alt me-1"></i>Konum:
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(Model.Location))
+                                        {
+                                            <span class="text-info">@Model.Location</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                <div class="mb-3">
+                                    <h6 class="fw-bold text-muted">
+                                        <i class="fas fa-align-left me-1"></i>Açıklama:
+                                    </h6>
+                                    <p class="bg-light p-3 rounded">@Model.Description</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stok ve Fiyat Bilgileri -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cubes me-2"></i>Stok ve Fiyat Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center bg-light p-4 rounded">
+                                <h3 class="@(Model.IsCriticalLevel ? "text-danger" : "text-success") mb-2">
+                                    @Model.StockQuantity
+                                    @if (Model.IsCriticalLevel)
+                                    {
+                                        <i class="fas fa-exclamation-triangle text-danger ms-2"></i>
+                                    }
+                                </h3>
+                                <div class="text-muted">Mevcut Stok</div>
+                                @if (Model.IsCriticalLevel)
+                                {
+                                    <div class="badge bg-danger mt-2">Kritik Seviye!</div>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center bg-light p-4 rounded">
+                                <h3 class="text-warning mb-2">@Model.MinimumStockLevel</h3>
+                                <div class="text-muted">Minimum Seviye</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center bg-light p-4 rounded">
+                                @if (Model.UnitPrice.HasValue)
+                                {
+                                    <h3 class="text-success mb-2">@Model.UnitPrice.Value.ToString("N2") @Model.Currency</h3>
+                                    <div class="text-muted">Birim Fiyatı</div>
+                                    @if (Model.StockQuantity > 0)
+                                    {
+                                        <small class="text-muted">
+                                            Toplam: @((Model.UnitPrice.Value * Model.StockQuantity).ToString("N2")) @Model.Currency
+                                        </small>
+                                    }
+                                }
+                                else
+                                {
+                                    <h3 class="text-muted mb-2">-</h3>
+                                    <div class="text-muted">Fiyat Belirtilmemiş</div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tedarikçi Bilgileri -->
+            @if (!string.IsNullOrEmpty(Model.Supplier) || !string.IsNullOrEmpty(Model.SupplierCode))
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-truck me-2"></i>Tedarikçi Bilgileri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="fw-bold text-muted mb-1">
+                                    <i class="fas fa-building me-1"></i>Tedarikçi Adı:
+                                </div>
+                                <div class="fs-5">@(Model.Supplier ?? "Belirtilmemiş")</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="fw-bold text-muted mb-1">
+                                    <i class="fas fa-hashtag me-1"></i>Tedarikçi Kodu:
+                                </div>
+                                <div class="fs-5">
+                                    @if (!string.IsNullOrEmpty(Model.SupplierCode))
+                                    {
+                                        <code class="bg-light px-2 py-1 rounded">@Model.SupplierCode</code>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Belirtilmemiş</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Notlar -->
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-sticky-note me-2"></i>Notlar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="bg-light p-3 rounded">
+                            @Html.Raw(Model.Notes.Replace("\n", "<br>"))
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Sağ Kolon -->
+        <div class="col-lg-4">
+            <!-- Zimmet Durumu -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header @(Model.AssignmentStatus == "Zimmetli" ? "bg-warning text-dark" : Model.AssignmentStatus == "Bakımda" ? "bg-info text-white" : Model.AssignmentStatus == "Kayıp" ? "bg-danger text-white" : "bg-success text-white")">
+                    <h5 class="card-title mb-0">
+                        <i class="fas @(Model.AssignmentStatus == "Zimmetli" ? "fa-user-check" : Model.AssignmentStatus == "Bakımda" ? "fa-wrench" : Model.AssignmentStatus == "Kayıp" ? "fa-times" : "fa-check") me-2"></i>
+                        Zimmet Durumu
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="display-6 mb-2">
+                            @if (Model.AssignmentStatus == "Zimmetli")
+                            {
+                                <i class="fas fa-user-check text-warning"></i>
+                            }
+                            else if (Model.AssignmentStatus == "Bakımda")
+                            {
+                                <i class="fas fa-wrench text-info"></i>
+                            }
+                            else if (Model.AssignmentStatus == "Kayıp")
+                            {
+                                <i class="fas fa-times text-danger"></i>
+                            }
+                            else
+                            {
+                                <i class="fas fa-check text-success"></i>
+                            }
+                        </div>
+                        <h4>@Model.AssignmentStatus</h4>
+                    </div>
+
+                    @if (Model.AssignmentStatus == "Zimmetli")
+                    {
+                        <div class="alert alert-warning mb-3">
+                            <div class="fw-bold mb-1">
+                                <i class="fas fa-user me-1"></i>Zimmetli Personel:
+                            </div>
+                            <div class="fs-5">@(Model.AssignedPersonnel ?? "Belirtilmemiş")</div>
+                            @if (Model.AssignmentDate.HasValue)
+                            {
+                                <div class="text-muted mt-2">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    @Model.AssignmentDate.Value.ToString("dd.MM.yyyy HH:mm")
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Zimmet İade Formu -->
+                        <form asp-action="ReturnFromAssignment" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Bu ürünün zimmet iadesini yapmak istediğinizden emin misiniz?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-undo me-2"></i>
+                                Zimmet İadesini Yap
+                            </button>
+                        </form>
+                    }
+                    else if (Model.AssignmentStatus == "Zimmet Dışı" && Model.IsActive)
+                    {
+                        <!-- Zimmet Verme Formu -->
+                        <form asp-action="AssignToPersonnel" asp-route-id="@Model.Id" method="post" id="assignForm">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-3">
+                                <label for="personnel" class="form-label fw-bold">
+                                    <i class="fas fa-user me-1"></i>Zimmet Verilecek Personel:
+                                </label>
+                                <input type="text" class="form-control" id="personnel" name="personnel" placeholder="Personel adı girin..." required>
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100">
+                                <i class="fas fa-user-plus me-2"></i>
+                                Zimmet Ver
+                            </button>
+                        </form>
+                    }
+                    else if (!Model.IsActive)
+                    {
+                        <div class="alert alert-secondary">
+                            <i class="fas fa-pause me-1"></i>
+                            Ürün pasif durumda olduğu için zimmet işlemi yapılamaz.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Ürün Durumu -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header @(Model.IsActive ? "bg-success" : "bg-secondary") text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas @(Model.IsActive ? "fa-check-circle" : "fa-pause-circle") me-2"></i>
+                        Ürün Durumu
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <div class="display-6 mb-2">
+                            <i class="fas @(Model.IsActive ? "fa-toggle-on text-success" : "fa-toggle-off text-secondary")"></i>
+                        </div>
+                        <h4 class="@(Model.IsActive ? "text-success" : "text-muted")">
+                            @(Model.IsActive ? "Aktif" : "Pasif")
+                        </h4>
+                        @if (!Model.IsActive)
+                        {
+                            <p class="text-muted">Bu ürün pasif durumda ve yeni işlemler yapılamaz.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sistem Bilgileri -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info me-2"></i>Sistem Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="fw-bold text-muted mb-1">
+                            <i class="fas fa-calendar-plus me-1"></i>Oluşturulma:
+                        </div>
+                        <div>@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</div>
+                        @if (!string.IsNullOrEmpty(Model.CreatedBy))
+                        {
+                            <small class="text-muted">@Model.CreatedBy tarafından</small>
+                        }
+                    </div>
+
+                    @if (Model.UpdatedDate.HasValue)
+                    {
+                        <div class="mb-3">
+                            <div class="fw-bold text-muted mb-1">
+                                <i class="fas fa-calendar-edit me-1"></i>Son Güncelleme:
+                            </div>
+                            <div>@Model.UpdatedDate.Value.ToString("dd.MM.yyyy HH:mm")</div>
+                            @if (!string.IsNullOrEmpty(Model.UpdatedBy))
+                            {
+                                <small class="text-muted">@Model.UpdatedBy tarafından</small>
+                            }
+                        </div>
+                    }
+
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="bg-light p-2 rounded">
+                                <div class="fw-bold text-primary">@Model.Id</div>
+                                <small class="text-muted">Ürün ID</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="bg-light p-2 rounded">
+                                <div class="fw-bold @(Model.IsCriticalLevel ? "text-danger" : "text-success")">
+                                    @(Model.IsCriticalLevel ? "Kritik" : "Normal")
+                                </div>
+                                <small class="text-muted">Stok Seviye</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hızlı İşlemler -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Hızlı İşlemler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="mailto:?subject=Ürün Bilgisi: @Model.Name&body=Ürün: @Model.Name%0ABarkod: @Model.SystemBarcode%0AKategori: @Model.Category%0AStok: @Model.StockQuantity" 
+                           class="btn btn-outline-primary">
+                            <i class="fas fa-envelope me-2"></i>E-posta Gönder
+                        </a>
+                        <button type="button" class="btn btn-outline-info" onclick="printDetails()">
+                            <i class="fas fa-print me-2"></i>Yazdır
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="shareProduct()">
+                            <i class="fas fa-share-alt me-2"></i>Paylaş
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Ürün Silme Onayı
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-trash fa-3x text-danger"></i>
+                </div>
+                <p class="text-center mb-3">Bu ürünü silmek istediğinizden emin misiniz?</p>
+                <div class="alert alert-warning">
+                    <strong id="deleteItemName"></strong> adlı ürün kalıcı olarak silinecektir.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>İptal
+                </button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Evet, Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(itemId, itemName) {
+            document.getElementById('deleteItemName').textContent = itemName;
+            document.getElementById('deleteForm').action = '/Items/Delete/' + itemId;
+            
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('Barkod panoya kopyalandı: ' + text);
+            });
+        }
+
+        function printDetails() {
+            window.print();
+        }
+
+        function shareProduct() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '@Model.Name',
+                    text: 'Ürün: @Model.Name - Barkod: @Model.SystemBarcode',
+                    url: window.location.href
+                });
+            } else {
+                copyToClipboard(window.location.href);
+                alert('Ürün linki panoya kopyalandı!');
+            }
+        }
+
+        // Zimmet verme formu doğrulaması
+        document.getElementById('assignForm')?.addEventListener('submit', function(e) {
+            const personnel = document.getElementById('personnel').value.trim();
+            if (!personnel) {
+                e.preventDefault();
+                alert('Lütfen personel adı giriniz!');
+                return;
+            }
+            
+            if (!confirm(`Bu ürünü "${personnel}" adlı personele zimmet vermek istediğinizden emin misiniz?`)) {
+                e.preventDefault();
+            }
+        });
+
+        // Auto-hide alerts
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function(alert) {
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+}
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+    
+    .card-header {
+        border-bottom: none;
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    .font-monospace {
+        font-family: 'Courier New', monospace;
+        letter-spacing: 1px;
+    }
+    
+    .table-borderless td {
+        padding: 0.5rem 0;
+        border: none;
+    }
+    
+    @@media print {
+        .btn, .modal, script {
+            display: none !important;
+        }
+        
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #dee2e6 !important;
+        }
+    }
+</style>

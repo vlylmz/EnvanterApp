@@ -3,7 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data; // AppDbContext için
 using WebApplication1.Models; // ApplicationUser için
 using Microsoft.EntityFrameworkCore;
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
+
+
+var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
 
 // 🔗 1. Veritabanı Bağlantısı
 builder.Services.AddDbContext<AppDbContext>(options =>
