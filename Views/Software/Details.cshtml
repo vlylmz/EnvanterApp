@@ -1,7 +1,7 @@
 @model WebApplication1.Models.Software
-
 @{
     ViewData["Title"] = "Yazılım Lisansı Detayları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     
     string statusBadgeClass = Model.Status switch
     {
@@ -28,26 +28,59 @@
     };
 }
 
-<div class="container-fluid">
-    <!-- Header -->
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
-                    <h2 class="mb-1">
-                        <i class="fas fa-desktop text-primary me-2"></i>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-2">
+                            <li class="breadcrumb-item">
+                                <a asp-action="Index" class="text-decoration-none">
+                                    <i class="fas fa-compact-disc me-1"></i>Yazılım Lisansları
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">
+                                @Model.Name
+                            </li>
+                        </ol>
+                    </nav>
+                    <h1 class="h2 mb-1 d-flex align-items-center">
+                        <i class="fas fa-desktop text-primary me-2" aria-hidden="true"></i>
                         @Model.Name
-                    </h2>
-                    <p class="text-muted mb-0">@Model.Brand</p>
+                    </h1>
+                    <p class="text-muted mb-0">
+                        @Model.Brand • Lisans ID: #@Model.Id • @statusText
+                    </p>
                 </div>
-                <div class="d-flex gap-2">
-                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
-                        <i class="fas fa-edit me-1"></i>
-                        Düzenle
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                        <i class="fas fa-edit me-1" aria-hidden="true"></i> Düzenle
                     </a>
-                    <a asp-action="Index" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>
-                        Geri Dön
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-cogs me-1"></i> İşlemler
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="copyLicenseKey()">
+                                <i class="fas fa-copy me-2 text-info"></i> Lisans Anahtarını Kopyala
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="printDetails()">
+                                <i class="fas fa-print me-2 text-secondary"></i> Detayları Yazdır
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a asp-action="Create" class="dropdown-item">
+                                <i class="fas fa-plus me-2 text-success"></i> Yeni Lisans Ekle
+                            </a></li>
+                            <li><button class="dropdown-item text-danger" onclick="confirmDelete()">
+                                <i class="fas fa-trash me-2"></i> Lisansı Sil
+                            </button></li>
+                        </ul>
+                    </div>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1" aria-hidden="true"></i> Geri Dön
                     </a>
                 </div>
             </div>
@@ -55,107 +88,133 @@
     </div>
 
     <div class="row">
-        <!-- Ana Bilgiler -->
+        <!-- Left Column - Details -->
         <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-info-circle text-primary me-2"></i>
+            <!-- Basic Information Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-info-circle me-2 text-primary" aria-hidden="true"></i> 
                         Yazılım Bilgileri
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row g-4">
                         <div class="col-md-6">
-                            <div class="detail-item mb-3">
+                            <div class="detail-group">
                                 <label class="detail-label">
-                                    <i class="fas fa-desktop me-1"></i>
+                                    <i class="fas fa-desktop text-muted me-1" aria-hidden="true"></i>
                                     Yazılım Adı
                                 </label>
-                                <div class="detail-value">@Model.Name</div>
+                                <div class="detail-value fw-semibold">@Model.Name</div>
                             </div>
-                            
-                            <div class="detail-item mb-3">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-group">
                                 <label class="detail-label">
-                                    <i class="fas fa-tag me-1"></i>
+                                    <i class="fas fa-tag text-muted me-1" aria-hidden="true"></i>
                                     Marka
                                 </label>
-                                <div class="detail-value">@Model.Brand</div>
+                                <div class="detail-value fw-semibold">@Model.Brand</div>
                             </div>
-                            
-                            @if (!string.IsNullOrEmpty(Model.Description))
-                            {
-                                <div class="detail-item mb-3">
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="row g-4 mt-2">
+                            <div class="col-12">
+                                <div class="detail-group">
                                     <label class="detail-label">
-                                        <i class="fas fa-info me-1"></i>
+                                        <i class="fas fa-comment text-muted me-1" aria-hidden="true"></i>
                                         Açıklama
                                     </label>
                                     <div class="detail-value">@Model.Description</div>
                                 </div>
-                            }
-                            
-                            <div class="detail-item mb-3">
-                                <label class="detail-label">
-                                    <i class="fas fa-clock me-1"></i>
-                                    Süre
-                                </label>
-                                <div class="detail-value">@Model.Duration</div>
                             </div>
                         </div>
-                        
+                    }
+
+                    <div class="row g-4 mt-2">
                         <div class="col-md-6">
-                            @if (!string.IsNullOrEmpty(Model.LicenseKey))
-                            {
-                                <div class="detail-item mb-3">
-                                    <label class="detail-label">
-                                        <i class="fas fa-key me-1"></i>
-                                        Lisans Anahtarı
-                                    </label>
-                                    <div class="detail-value">
-                                        <div class="d-flex align-items-center">
-                                            <code id="licenseKey" class="license-key">@Model.LicenseKey</code>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="copyLicenseKey()" title="Kopyala">
-                                                <i class="fas fa-copy"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                            
-                            <div class="detail-item mb-3">
+                            <div class="detail-group">
                                 <label class="detail-label">
-                                    <i class="fas fa-calendar-times me-1"></i>
+                                    <i class="fas fa-clock text-muted me-1" aria-hidden="true"></i>
+                                    Lisans Süresi
+                                </label>
+                                <div class="detail-value">
+                                    <span class="badge bg-secondary fs-6 px-3 py-2">@Model.Duration</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-group">
+                                <label class="detail-label">
+                                    <i class="fas fa-calendar-times text-muted me-1" aria-hidden="true"></i>
                                     Son Kullanma Tarihi
                                 </label>
-                                <div class="detail-value">@Model.ExpiryDate.ToString("dd.MM.yyyy")</div>
+                                <div class="detail-value fw-semibold">
+                                    @Model.ExpiryDate.ToString("dd.MM.yyyy")
+                                    <small class="text-muted">(@Model.ExpiryDate.ToString("dddd"))</small>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Atama Bilgileri -->
+            <!-- License Information Card -->
+            @if (!string.IsNullOrEmpty(Model.LicenseKey))
+            {
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="fas fa-key me-2 text-warning" aria-hidden="true"></i> 
+                            Lisans Anahtarı
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="license-key-display">
+                                <code id="licenseKey" class="license-key bg-light px-3 py-2 rounded">@Model.LicenseKey</code>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="copyLicenseKey()" title="Lisans anahtarını kopyala">
+                                <i class="fas fa-copy me-1"></i>
+                                Kopyala
+                            </button>
+                        </div>
+                        <div class="form-text mt-2">
+                            <i class="fas fa-shield-alt me-1 text-success"></i>
+                            Bu lisans anahtarını güvenli bir yerde saklayın ve üçüncü kişilerle paylaşmayın.
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Assignment Information Card -->
             @if (Model.Company != null || Model.AssignedEmployee != null)
             {
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-users text-primary me-2"></i>
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="fas fa-users me-2 text-info" aria-hidden="true"></i> 
                             Atama Bilgileri
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
+                        <div class="row g-4">
                             @if (Model.Company != null)
                             {
                                 <div class="col-md-6">
-                                    <div class="detail-item">
+                                    <div class="detail-group">
                                         <label class="detail-label">
-                                            <i class="fas fa-building me-1"></i>
-                                            Şirket
+                                            <i class="fas fa-building text-muted me-1" aria-hidden="true"></i>
+                                            Bağlı Şirket
                                         </label>
                                         <div class="detail-value">
-                                            <a asp-controller="Company" asp-action="Details" asp-route-id="@Model.Company.Id" class="text-decoration-none">
+                                            <a asp-controller="Company" asp-action="Details" asp-route-id="@Model.Company.Id" 
+                                               class="text-decoration-none fw-semibold">
+                                                <i class="fas fa-external-link-alt me-1 text-primary"></i>
                                                 @Model.Company.Name
                                             </a>
                                         </div>
@@ -166,13 +225,15 @@
                             @if (Model.AssignedEmployee != null)
                             {
                                 <div class="col-md-6">
-                                    <div class="detail-item">
+                                    <div class="detail-group">
                                         <label class="detail-label">
-                                            <i class="fas fa-user me-1"></i>
+                                            <i class="fas fa-user text-muted me-1" aria-hidden="true"></i>
                                             Atanan Çalışan
                                         </label>
                                         <div class="detail-value">
-                                            <a asp-controller="Employee" asp-action="Details" asp-route-id="@Model.AssignedEmployee.Id" class="text-decoration-none">
+                                            <a asp-controller="Employee" asp-action="Details" asp-route-id="@Model.AssignedEmployee.Id" 
+                                               class="text-decoration-none fw-semibold">
+                                                <i class="fas fa-external-link-alt me-1 text-primary"></i>
                                                 @Model.AssignedEmployee.FirstName @Model.AssignedEmployee.LastName
                                             </a>
                                         </div>
@@ -185,45 +246,52 @@
             }
         </div>
 
-        <!-- Sidebar -->
+        <!-- Right Column - Status & Actions -->
         <div class="col-lg-4">
-            <!-- Durum Kartı -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-chart-line text-primary me-2"></i>
+            <!-- Status Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-chart-line me-2 text-primary" aria-hidden="true"></i> 
                         Lisans Durumu
                     </h5>
                 </div>
                 <div class="card-body text-center">
-                    <div class="status-circle @statusBadgeClass mb-3">
-                        <i class="@statusIcon fa-2x"></i>
+                    <div class="status-indicator @statusBadgeClass mb-3 mx-auto">
+                        <i class="@statusIcon fa-2x text-white"></i>
                     </div>
-                    <h4 class="mb-2">@statusText</h4>
-                    <p class="text-muted mb-0">@Model.RemainingTime</p>
+                    <h4 class="mb-2 fw-bold">@statusText</h4>
+                    <p class="text-muted mb-3 fs-5">@Model.RemainingTime</p>
                     
                     @if (Model.Status == SoftwareStatus.Approaching)
                     {
-                        <div class="alert alert-warning mt-3">
-                            <i class="fas fa-exclamation-triangle me-1"></i>
+                        <div class="alert alert-warning mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
                             <strong>Dikkat!</strong> Bu lisansın süresi yakında dolacak.
                         </div>
                     }
                     else if (Model.Status == SoftwareStatus.Expired)
                     {
-                        <div class="alert alert-danger mt-3">
-                            <i class="fas fa-times-circle me-1"></i>
+                        <div class="alert alert-danger mb-0">
+                            <i class="fas fa-times-circle me-2"></i>
                             <strong>Uyarı!</strong> Bu lisansın süresi dolmuş.
+                        </div>
+                    }
+                    else if (Model.Status == SoftwareStatus.Active)
+                    {
+                        <div class="alert alert-success mb-0">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Harika!</strong> Lisans aktif ve kullanılabilir.
                         </div>
                     }
                 </div>
             </div>
 
-            <!-- İstatistikler -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-clock text-primary me-2"></i>
+            <!-- Timeline Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-history me-2 text-secondary" aria-hidden="true"></i> 
                         Zaman Çizelgesi
                     </h5>
                 </div>
@@ -232,8 +300,10 @@
                         <div class="timeline-item">
                             <div class="timeline-marker bg-success"></div>
                             <div class="timeline-content">
-                                <h6 class="mb-1">Oluşturulma</h6>
-                                <p class="text-muted mb-0">@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</p>
+                                <h6 class="mb-1 fw-semibold">Lisans Oluşturuldu</h6>
+                                <p class="text-muted mb-0 small">
+                                    @Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                                </p>
                             </div>
                         </div>
                         
@@ -242,8 +312,10 @@
                             <div class="timeline-item">
                                 <div class="timeline-marker bg-info"></div>
                                 <div class="timeline-content">
-                                    <h6 class="mb-1">Son Güncelleme</h6>
-                                    <p class="text-muted mb-0">@Model.UpdatedDate.Value.ToString("dd.MM.yyyy HH:mm")</p>
+                                    <h6 class="mb-1 fw-semibold">Son Güncelleme</h6>
+                                    <p class="text-muted mb-0 small">
+                                        @Model.UpdatedDate.Value.ToString("dd.MM.yyyy HH:mm")
+                                    </p>
                                 </div>
                             </div>
                         }
@@ -251,40 +323,100 @@
                         <div class="timeline-item">
                             <div class="timeline-marker @(Model.Status == SoftwareStatus.Expired ? "bg-danger" : "bg-warning")"></div>
                             <div class="timeline-content">
-                                <h6 class="mb-1">Son Kullanma</h6>
-                                <p class="text-muted mb-0">@Model.ExpiryDate.ToString("dd.MM.yyyy")</p>
+                                <h6 class="mb-1 fw-semibold">Son Kullanma Tarihi</h6>
+                                <p class="text-muted mb-0 small">
+                                    @Model.ExpiryDate.ToString("dd.MM.yyyy") (@Model.ExpiryDate.ToString("dddd"))
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- İşlemler -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-cogs text-primary me-2"></i>
+            <!-- Statistics Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-chart-bar me-2 text-success" aria-hidden="true"></i> 
+                        İstatistikler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center g-3">
+                        <div class="col-6">
+                            <div class="stat-item p-2 bg-light rounded">
+                                <div class="h4 mb-1 text-primary">#@Model.Id</div>
+                                <small class="text-muted">Lisans ID</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-item p-2 bg-light rounded">
+                                <div class="h4 mb-1 text-info">@((DateTime.Now - Model.CreatedDate).Days)</div>
+                                <small class="text-muted">Sistemde (Gün)</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <div class="small text-muted">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Toplam Süre:</span>
+                            <strong>@Model.Duration</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Bitiş Tarihi:</span>
+                            <strong>@Model.ExpiryDate.ToString("dd.MM.yyyy")</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Kalan Süre:</span>
+                            <strong class="@(Model.Status == SoftwareStatus.Active ? "text-success" : Model.Status == SoftwareStatus.Approaching ? "text-warning" : "text-danger")">
+                                @Model.RemainingTime
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-cogs me-2 text-primary" aria-hidden="true"></i> 
                         İşlemler
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
-                            <i class="fas fa-edit me-1"></i>
-                            Düzenle
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                            <i class="fas fa-edit me-2" aria-hidden="true"></i>
+                            Lisansı Düzenle
                         </a>
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                            <i class="fas fa-trash me-1"></i>
-                            Sil
+                        @if (!string.IsNullOrEmpty(Model.LicenseKey))
+                        {
+                            <button type="button" class="btn btn-outline-info" onclick="copyLicenseKey()">
+                                <i class="fas fa-copy me-2" aria-hidden="true"></i>
+                                Anahtarı Kopyala
+                            </button>
+                        }
+                        <button type="button" class="btn btn-outline-secondary" onclick="printDetails()">
+                            <i class="fas fa-print me-2" aria-hidden="true"></i>
+                            Detayları Yazdır
                         </button>
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="fas fa-list me-1"></i>
-                            Tüm Lisanslar
-                        </a>
-                        <a asp-action="Create" class="btn btn-success">
-                            <i class="fas fa-plus me-1"></i>
+                        <hr class="my-2">
+                        <a asp-action="Create" class="btn btn-outline-success">
+                            <i class="fas fa-plus me-2" aria-hidden="true"></i>
                             Yeni Lisans Ekle
                         </a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-list me-2" aria-hidden="true"></i>
+                            Tüm Lisanslar
+                        </a>
+                        <hr class="my-2">
+                        <button type="button" class="btn btn-outline-danger" onclick="confirmDelete()">
+                            <i class="fas fa-trash me-2" aria-hidden="true"></i>
+                            Lisansı Sil
+                        </button>
                     </div>
                 </div>
             </div>
@@ -292,179 +424,301 @@
     </div>
 </div>
 
-<!-- Delete Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle text-warning me-1"></i>
-                    Lisansı Sil
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="mb-0">
-                    <strong>@Model.Name</strong> adlı yazılım lisansını silmek istediğinizden emin misiniz?
-                    <br><br>
-                    <span class="text-danger">Bu işlem geri alınamaz!</span>
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>
-                    İptal
-                </button>
-                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i>
-                        Evet, Sil
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function copyLicenseKey() {
+        const licenseKey = document.getElementById('licenseKey').textContent;
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(licenseKey).then(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Kopyalandı!',
+                    text: 'Lisans anahtarı panoya başarıyla kopyalandı.',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            });
+        } else {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = licenseKey;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Kopyalandı!',
+                text: 'Lisans anahtarı panoya başarıyla kopyalandı.',
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+    }
+
+    function printDetails() {
+        Swal.fire({
+            title: 'Yazdırılıyor...',
+            text: 'Lisans detayları yazdırılmak üzere hazırlanıyor.',
+            icon: 'info',
+            timer: 1500,
+            showConfirmButton: false
+        }).then(() => {
+            window.print();
+        });
+    }
+
+    function confirmDelete() {
+        Swal.fire({
+            title: 'Yazılım Lisansını Sil?',
+            html: `<div class="text-center">
+                <div class="mb-3">
+                    <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                </div>
+                <p><strong>@Model.Name</strong> yazılım lisansını silmek istediğinizden emin misiniz?</p>
+                <div class="alert alert-danger mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Uyarı:</strong> Bu işlem geri alınamaz!
+                </div>
+            </div>`,
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-trash me-2"></i>Evet, Sil!',
+            cancelButtonText: '<i class="fas fa-times me-2"></i>İptal',
+            reverseButtons: true,
+            focusCancel: true,
+            customClass: {
+                popup: 'border-0 shadow-lg',
+                confirmButton: 'btn-lg',
+                cancelButton: 'btn-lg'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Siliniyor...',
+                    text: 'Yazılım lisansı siliniyor, lütfen bekleyin.',
+                    icon: 'info',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Simulate delete request (replace with actual delete URL)
+                setTimeout(() => {
+                    // Create form and submit
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/Software/Delete/@Model.Id`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }, 1000);
+            }
+        });
+    }
+</script>
 
 <style>
-.detail-item {
-    border-bottom: 1px solid #eee;
-    padding-bottom: 8px;
-}
+    /* Custom CSS matching company page design */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --warning-color: #fd7e14;
+        --danger-color: #dc3545;
+        --info-color: #0dcaf0;
+        --secondary-color: #6c757d;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --border-radius: 0.375rem;
+        --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --transition: all 0.15s ease-in-out;
+    }
 
-.detail-label {
-    font-weight: 600;
-    color: #6c757d;
-    font-size: 0.9rem;
-    display: block;
-    margin-bottom: 4px;
-}
+    /* General improvements */
+    .card {
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+    }
 
-.detail-value {
-    font-size: 1rem;
-    color: #212529;
-}
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
 
-.license-key {
-    background: #f8f9fa;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    max-width: 200px;
-    overflow-x: auto;
-    white-space: nowrap;
-}
+    /* Detail groups */
+    .detail-group {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #f1f3f4;
+    }
 
-.status-circle {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    color: white;
-}
+    .detail-group:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
 
-.timeline {
-    position: relative;
-    padding-left: 30px;
-}
+    .detail-label {
+        font-weight: 600;
+        color: var(--secondary-color);
+        font-size: 0.875rem;
+        display: block;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
 
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 15px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: #dee2e6;
-}
+    .detail-value {
+        font-size: 1rem;
+        color: var(--dark-color);
+        line-height: 1.5;
+    }
 
-.timeline-item {
-    position: relative;
-    margin-bottom: 20px;
-}
+    /* License key styling */
+    .license-key {
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        word-break: break-all;
+        white-space: pre-wrap;
+        border: 1px solid #dee2e6;
+    }
 
-.timeline-item:last-child {
-    margin-bottom: 0;
-}
+    .license-key-display {
+        flex: 1;
+        overflow: hidden;
+    }
 
-.timeline-marker {
-    position: absolute;
-    left: -22px;
-    top: 0;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid white;
-    box-shadow: 0 0 0 1px #dee2e6;
-}
+    /* Status indicator */
+    .status-indicator {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+    }
 
-.timeline-content h6 {
-    font-size: 0.9rem;
-    font-weight: 600;
-}
+    .status-indicator:hover {
+        transform: scale(1.05);
+    }
 
-.timeline-content p {
-    font-size: 0.85rem;
-}
+    /* Timeline styling */
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
 
-.card-header h5 {
-    font-weight: 600;
-}
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -22px;
+        top: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 0 1px #dee2e6;
+    }
+
+    .timeline-content h6 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+
+    .timeline-content p {
+        font-size: 0.8rem;
+        color: var(--secondary-color);
+    }
+
+    /* Statistics item styling */
+    .stat-item {
+        transition: var(--transition);
+    }
+
+    .stat-item:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Button improvements */
+    .btn {
+        transition: var(--transition);
+        border-radius: var(--border-radius);
+        font-weight: 500;
+    }
+
+    .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+    }
+
+    /* Badge improvements */
+    .badge {
+        font-size: 0.75em;
+        font-weight: 500;
+        padding: 0.375rem 0.75rem;
+    }
+
+    /* Breadcrumb improvements */
+    .breadcrumb {
+        background: none;
+        padding: 0;
+        margin-bottom: 0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+
+    /* Alert improvements */
+    .alert {
+        border: none;
+        border-radius: var(--border-radius);
+    }
+
+    /* Link improvements */
+    a.text-decoration-none:hover {
+        text-decoration: underline !important;
+    }
+
+    /* Print styles */
+    @@media print {
+        .btn, .dropdown, .breadcrumb {
+            display: none !important;
+        }
+        
+        .card {
+            border: 1px solid #000 !important;
+            box-shadow: none !important;
+        }
+    }
 </style>
-
-<script>
-function copyLicenseKey() {
-    const licenseKey = document.getElementById('licenseKey').textContent;
-    
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(licenseKey).then(() => {
-            // Toast notification
-            showToast('Lisans anahtarı panoya kopyalandı!', 'success');
-        });
-    } else {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = licenseKey;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        showToast('Lisans anahtarı panoya kopyalandı!', 'success');
-    }
-}
-
-function showToast(message, type) {
-    // Bootstrap toast implementation
-    const toastHtml = `
-        <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="fas fa-${type === 'success' ? 'check' : 'times'} me-1"></i>
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        </div>
-    `;
-    
-    let toastContainer = document.getElementById('toast-container');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.id = 'toast-container';
-        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-        document.body.appendChild(toastContainer);
-    }
-    
-    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-    const toastElement = toastContainer.lastElementChild;
-    const toast = new bootstrap.Toast(toastElement);
-    toast.show();
-    
-    toastElement.addEventListener('hidden.bs.toast', () => {
-        toastElement.remove();
-    });
-}
-</script>

@@ -1,14 +1,49 @@
 @model List<WebApplication1.Models.Software>
-@using WebApplication1.Models
 @{
     ViewData["Title"] = "Yazılım Lisans Yönetimi";
-    Layout = "~/Views/Shared/_Layout.cshtml";
     var totalSoftware = Model.Count;
     var activeSoftware = Model.Count(s => s.Status == SoftwareStatus.Active);
     var expiringSoftware = Model.Count(s => s.Status == SoftwareStatus.Approaching);
     var expiredSoftware = Model.Count(s => s.Status == SoftwareStatus.Expired);
     var successMessage = TempData["SuccessMessage"] as string;
     var errorMessage = TempData["ErrorMessage"] as string;
+    var searchValue = ViewBag.Search as string;
+    var statusValue = ViewBag.Status as string;
+}
+
+<!-- Success/Error Messages -->
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'success',
+                title: 'Başarılı!',
+                text: '@successMessage',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    </script>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Hata!',
+                text: '@errorMessage',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    </script>
 }
 
 <div class="container-fluid mt-4">
@@ -17,129 +52,81 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-2">
-                            <li class="breadcrumb-item">
-                                <a href="#" class="text-decoration-none">
-                                    <i class="fas fa-home me-1"></i>Anasayfa
-                                </a>
-                            </li>
-                            <li class="breadcrumb-item active" aria-current="page">
-                                <i class="fas fa-compact-disc me-1"></i>Yazılım Lisansları
-                            </li>
-                        </ol>
-                    </nav>
                     <h1 class="h2 mb-1 d-flex align-items-center">
-                        <i class="fas fa-compact-disc text-purple me-2" aria-hidden="true"></i>
+                        <i class="fas fa-compact-disc text-primary me-2" aria-hidden="true"></i>
                         Yazılım Lisans Yönetimi
                     </h1>
-                    <p class="text-muted mb-0">
-                        Yazılım lisanslarınızı yönetin ve takip edin • @totalSoftware toplam lisans
-                    </p>
+                    <p class="text-muted mb-0">Yazılım lisanslarınızı yönetin ve takip edin</p>
                 </div>
                 <div class="d-flex gap-2 flex-wrap">
-                    <a asp-action="Create" class="btn btn-purple">
+                    <a asp-action="Create" class="btn btn-primary">
                         <i class="fas fa-plus me-1" aria-hidden="true"></i> Yeni Lisans Ekle
                     </a>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-download me-1"></i> İşlemler
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="exportToExcel()">
-                                <i class="fas fa-file-excel me-2 text-success"></i> Excel'e Aktar
-                            </a></li>
-                            <li><a class="dropdown-item" href="#" onclick="printReport()">
-                                <i class="fas fa-print me-2 text-secondary"></i> Rapor Yazdır
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a asp-action="Expiring" class="dropdown-item">
-                                <i class="fas fa-exclamation-triangle me-2 text-warning"></i> Süresi Yaklaşanlar
-                            </a></li>
-                            <li><a asp-action="Expired" class="dropdown-item">
-                                <i class="fas fa-times-circle me-2 text-danger"></i> Süresi Dolmuşlar
-                            </a></li>
-                        </ul>
-                    </div>
+                    <button type="button" class="btn btn-outline-secondary" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel me-1" aria-hidden="true"></i> Excel'e Aktar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card border-start border-4 border-purple">
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white h-100 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h3 class="h1 mb-0 text-purple fw-bold">@totalSoftware</h3>
-                            <p class="text-muted mb-0 fw-medium">Toplam Lisans</p>
-                            <small class="text-success">
-                                <i class="fas fa-arrow-up me-1"></i>
-                                Aktif: @activeSoftware
-                            </small>
+                            <h5 class="card-title mb-1">Toplam Lisans</h5>
+                            <h3 class="mb-0 fw-bold">@totalSoftware</h3>
                         </div>
-                        <div class="stat-icon bg-purple bg-opacity-10 text-purple">
-                            <i class="fas fa-compact-disc"></i>
+                        <div>
+                            <i class="fas fa-compact-disc fa-2x opacity-75" aria-hidden="true"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card border-start border-4 border-success">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white h-100 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h3 class="h1 mb-0 text-success fw-bold">@activeSoftware</h3>
-                            <p class="text-muted mb-0 fw-medium">Aktif Lisans</p>
-                            <small class="text-success">
-                                <i class="fas fa-check-circle me-1"></i>
-                                %@Math.Round((double)activeSoftware / totalSoftware * 100, 1) oran
-                            </small>
+                            <h5 class="card-title mb-1">Aktif Lisans</h5>
+                            <h3 class="mb-0 fw-bold">@activeSoftware</h3>
                         </div>
-                        <div class="stat-icon bg-success bg-opacity-10 text-success">
-                            <i class="fas fa-check-circle"></i>
+                        <div>
+                            <i class="fas fa-check-circle fa-2x opacity-75" aria-hidden="true"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card border-start border-4 border-warning">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white h-100 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h3 class="h1 mb-0 text-warning fw-bold">@expiringSoftware</h3>
-                            <p class="text-muted mb-0 fw-medium">Süresi Yaklaşan</p>
-                            <small class="text-warning">
-                                <i class="fas fa-clock me-1"></i>
-                                Dikkat gerekli
-                            </small>
+                            <h5 class="card-title mb-1">Süresi Yaklaşan</h5>
+                            <h3 class="mb-0 fw-bold">@expiringSoftware</h3>
                         </div>
-                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                            <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <i class="fas fa-exclamation-triangle fa-2x opacity-75" aria-hidden="true"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card stat-card border-start border-4 border-danger">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-danger text-white h-100 shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h3 class="h1 mb-0 text-danger fw-bold">@expiredSoftware</h3>
-                            <p class="text-muted mb-0 fw-medium">Süresi Dolmuş</p>
-                            <small class="text-danger">
-                                <i class="fas fa-times-circle me-1"></i>
-                                Yenileme gerekli
-                            </small>
+                            <h5 class="card-title mb-1">Süresi Dolmuş</h5>
+                            <h3 class="mb-0 fw-bold">@expiredSoftware</h3>
                         </div>
-                        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
-                            <i class="fas fa-times-circle"></i>
+                        <div>
+                            <i class="fas fa-times-circle fa-2x opacity-75" aria-hidden="true"></i>
                         </div>
                     </div>
                 </div>
@@ -147,617 +134,625 @@
         </div>
     </div>
 
-    <!-- Search and Filter Controls -->
+    <!-- Search and Filter Section -->
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-light">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 d-flex align-items-center">
-                    <i class="fas fa-search me-2 text-primary" aria-hidden="true"></i> 
-                    Arama ve Filtreleme
-                </h5>
-                <span class="badge bg-primary">@Model.Count kayıt gösteriliyor</span>
+                <h2 class="h6 mb-0 d-flex align-items-center">
+                    <i class="fas fa-search me-2" aria-hidden="true"></i> Arama ve Filtreleme
+                </h2>
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#searchFilters" aria-expanded="true" aria-controls="searchFilters">
+                    <i class="fas fa-filter me-1" aria-hidden="true"></i> Filtreler
+                </button>
             </div>
         </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-lg-4 col-md-6">
-                    <div class="form-group">
-                        <label for="searchInput" class="form-label fw-semibold">
-                            <i class="fas fa-search text-muted me-1"></i>
-                            Yazılım Ara
-                        </label>
-                        <input type="text" class="form-control form-control-lg" 
-                               id="searchInput" placeholder="Yazılım adı veya marka ara...">
-                        <div class="form-text">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Yazılım adı, marka veya açıklamada arama yapın
+        <div class="collapse show" id="searchFilters">
+            <div class="card-body">
+                <form method="get" asp-action="Index" id="searchForm" role="search">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-6 col-md-12">
+                            <label for="search" class="form-label">
+                                <i class="fas fa-compact-disc text-muted me-1" aria-hidden="true"></i>
+                                Yazılım Adı veya Marka
+                            </label>
+                            <input type="text" name="search" id="search" value="@searchValue" class="form-control"
+                                placeholder="Yazılım ara..." aria-describedby="searchHelp">
                         </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="form-group">
-                        <label for="statusFilter" class="form-label fw-semibold">
-                            <i class="fas fa-filter text-muted me-1"></i>
-                            Durum Filtresi
-                        </label>
-                        <select class="form-select form-select-lg" id="statusFilter">
-                            <option value="">Tüm Durumlar</option>
-                            @foreach (SoftwareStatus status in Enum.GetValues<SoftwareStatus>())
-                            {
-                                <option value="@status">
-                                    @switch(status)
-                                    {
-                                        case SoftwareStatus.Active:
-                                            @:✅ Aktif Lisanslar
-                                            break;
-                                        case SoftwareStatus.Approaching:
-                                            @:⚠️ Süresi Yaklaşanlar
-                                            break;
-                                        case SoftwareStatus.Expired:
-                                            @:❌ Süresi Dolmuşlar
-                                            break;
-                                    }
+                        <div class="col-lg-3 col-md-6">
+                            <label for="status" class="form-label">
+                                <i class="fas fa-circle text-muted me-1" aria-hidden="true"></i> Durum
+                            </label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">Tüm Durumlar</option>
+                                <option value="Active" selected="@(statusValue == "Active" ? "selected" : null)">Aktif
                                 </option>
-                            }
-                        </select>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="form-group">
-                        <label for="dateFilter" class="form-label fw-semibold">
-                            <i class="fas fa-calendar-alt text-muted me-1"></i>
-                            Tarih Filtresi
-                        </label>
-                        <select class="form-select form-select-lg" id="dateFilter">
-                            <option value="">Tüm Tarihler</option>
-                            <option value="this-month">Bu Ay</option>
-                            <option value="next-month">Gelecek Ay</option>
-                            <option value="this-year">Bu Yıl</option>
-                            <option value="expiring-soon">30 Gün İçinde Dolacak</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-6">
-                    <div class="form-group">
-                        <label class="form-label fw-semibold text-transparent">İşlemler</label>
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-outline-secondary" onclick="clearFilters()">
-                                <i class="fas fa-eraser me-1"></i>
-                                Temizle
-                            </button>
+                                <option value="Approaching"
+                                    selected="@(statusValue == "Approaching" ? "selected" : null)">Yaklaşan</option>
+                                <option value="Expired" selected="@(statusValue == "Expired" ? "selected" : null)">
+                                    Süresi Dolmuş</option>
+
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-fill" aria-label="Arama yap">
+                                    <i class="fas fa-search me-1" aria-hidden="true"></i> Ara
+                                </button>
+                                <a href="@Url.Action("Index")" class="btn btn-outline-secondary flex-fill"
+                                    aria-label="Filtreleri temizle">
+                                    <i class="fas fa-times me-1" aria-hidden="true"></i> Temizle
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Data Table -->
+    <!-- Software Table -->
     <div class="card shadow-sm">
-        <div class="card-header bg-light">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 d-flex align-items-center">
-                    <i class="fas fa-list me-2 text-primary" aria-hidden="true"></i> 
-                    Yazılım Lisans Listesi
-                </h5>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="badge bg-success">@Model.Count kayıt</span>
-                    <div class="btn-group" role="group" aria-label="View toggle">
-                        <input type="radio" class="btn-check" name="viewToggle" id="tableView" autocomplete="off" checked>
-                        <label class="btn btn-outline-secondary btn-sm" for="tableView">
-                            <i class="fas fa-table me-1"></i> Tablo
-                        </label>
-                        
-                        <input type="radio" class="btn-check" name="viewToggle" id="cardView" autocomplete="off">
-                        <label class="btn btn-outline-secondary btn-sm" for="cardView">
-                            <i class="fas fa-th-large me-1"></i> Kartlar
-                        </label>
-                    </div>
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h2 class="h6 mb-0 d-flex align-items-center">
+                    <i class="fas fa-table me-2" aria-hidden="true"></i> Yazılım Lisans Listesi
+                    <span class="badge bg-primary ms-2">@totalSoftware kayıt</span>
+                </h2>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Görünüm seçenekleri">
+                    <input type="radio" class="btn-check" name="viewType" id="tableViewRadio" autocomplete="off"
+                        checked>
+                    <label class="btn btn-outline-secondary" for="tableViewRadio" onclick="toggleView('table')">
+                        <i class="fas fa-table me-1" aria-hidden="true"></i> Tablo
+                    </label>
+
+                    <input type="radio" class="btn-check" name="viewType" id="cardsViewRadio" autocomplete="off">
+                    <label class="btn btn-outline-secondary" for="cardsViewRadio" onclick="toggleView('cards')">
+                        <i class="fas fa-th-large me-1" aria-hidden="true"></i> Kartlar
+                    </label>
                 </div>
             </div>
         </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <!-- Table View -->
+                <div id="tableView" class="table-responsive">
+                    <table class="table table-hover table-striped mb-0" role="table">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">
+                                    <i class="fas fa-compact-disc me-1" aria-hidden="true"></i> Yazılım Bilgileri
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-calendar-alt me-1" aria-hidden="true"></i> Satın Alma Tarihi
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-hourglass-half me-1" aria-hidden="true"></i> Süre / Bitiş
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-clock me-1" aria-hidden="true"></i> Kalan Süre
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-circle me-1" aria-hidden="true"></i> Durum
+                                </th>
+                                <th scope="col" style="width: 200px;">
+                                    <i class="fas fa-cogs me-1" aria-hidden="true"></i> İşlemler
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var software in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="software-icon me-3" aria-hidden="true">
+                                                <div class="software-avatar">
+                                                    @(software.Name.Substring(0, Math.Min(2, software.Name.Length)).ToUpper())
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-bold">@software.Name</h6>
+                                                @if (!string.IsNullOrEmpty(software.Brand))
+                                                {
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-tag me-1" aria-hidden="true"></i>
+                                                        @software.Brand
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <time datetime="@software.PurchaseDate.ToString("yyyy-MM-dd")" class="small">
+                                            @software.PurchaseDate.ToString("dd.MM.yyyy")
+                                        </time>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>@software.Duration</strong>
+                                            <br><small
+                                                class="text-muted">@software.CompletionDate.ToString("dd.MM.yyyy")</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="remaining-time @(software.Status.ToString().ToLower())">
+                                            @software.RemainingTime
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @switch (software.Status)
+                                        {
+                                            case SoftwareStatus.Active:
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1" aria-hidden="true"></i> Aktif
+                                                </span>
+                                                break;
+                                            case SoftwareStatus.Approaching:
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i> Yaklaşan
+                                                </span>
+                                                break;
+                                            case SoftwareStatus.Expired:
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times-circle me-1" aria-hidden="true"></i> Süresi Dolmuş
+                                                </span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group" aria-label="Yazılım işlemleri">
+                                            <a asp-action="Details" asp-route-id="@software.Id"
+                                                class="btn btn-sm btn-outline-info"
+                                                title="@software.Name yazılımının detaylarını görüntüle"
+                                                data-bs-toggle="tooltip">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                                <span class="visually-hidden">Detay</span>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@software.Id"
+                                                class="btn btn-sm btn-outline-warning" title="@software.Name yazılımını düzenle"
+                                                data-bs-toggle="tooltip">
+                                                <i class="fas fa-edit" aria-hidden="true"></i>
+                                                <span class="visually-hidden">Düzenle</span>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                onclick="deleteSoftware(@software.Id, '@software.Name')"
+                                                title="@software.Name yazılımını sil" data-bs-toggle="tooltip">
+                                                <i class="fas fa-trash" aria-hidden="true"></i>
+                                                <span class="visually-hidden">Sil</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
 
-        @if (Model.Any())
-        {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="softwareTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="border-0 fw-semibold text-muted">
-                                <i class="fas fa-compact-disc me-2"></i>
-                                Yazılım Bilgileri
-                            </th>
-                            <th class="border-0 fw-semibold text-muted">
-                                <i class="fas fa-calendar-alt me-2"></i>
-                                Satın Alma
-                            </th>
-                            <th class="border-0 fw-semibold text-muted">
-                                <i class="fas fa-hourglass-half me-2"></i>
-                                Süre / Bitiş
-                            </th>
-                            <th class="border-0 fw-semibold text-muted">
-                                <i class="fas fa-clock me-2"></i>
-                                Kalan Süre
-                            </th>
-                            <th class="border-0 fw-semibold text-muted">
-                                <i class="fas fa-circle me-2"></i>
-                                Durum
-                            </th>
-                            <th class="border-0 fw-semibold text-muted text-center">
-                                <i class="fas fa-cogs me-2"></i>
-                                İşlemler
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <!-- Cards View -->
+                <div id="cardsView" style="display: none;" class="p-3">
+                    <div class="row g-3">
                         @foreach (var software in Model)
                         {
-                            <tr class="software-row" data-status="@software.Status" data-search="@software.Name @software.Brand">
-                                <td class="ps-3">
-                                    <div class="d-flex align-items-center">
-                                        <div class="software-avatar me-3">
-                                            @(software.Name.Substring(0, Math.Min(2, software.Name.Length)).ToUpper())
+                            <div class="col-lg-4 col-md-6 col-12">
+                                <div class="card h-100 software-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start justify-content-between mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="software-icon-lg me-3" aria-hidden="true">
+                                                    <div class="software-avatar">
+                                                        @(software.Name.Substring(0, Math.Min(2,
+                                                                                                        software.Name.Length)).ToUpper())
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h6 class="card-title mb-1 fw-bold">@software.Name</h6>
+                                                    <small class="text-muted">
+                                                        <time datetime="@software.PurchaseDate.ToString("yyyy-MM-dd")">
+                                                            @software.PurchaseDate.ToString("dd.MM.yyyy")
+                                                        </time>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            @switch (software.Status)
+                                            {
+                                                case SoftwareStatus.Active:
+                                                    <span class="badge bg-success">Aktif</span>
+                                                    break;
+                                                case SoftwareStatus.Approaching:
+                                                    <span class="badge bg-warning">Yaklaşan</span>
+                                                    break;
+                                                case SoftwareStatus.Expired:
+                                                    <span class="badge bg-danger">Dolmuş</span>
+                                                    break;
+                                            }
                                         </div>
-                                        <div>
-                                            <h6 class="mb-0 fw-semibold">@software.Name</h6>
-                                            <small class="text-muted">
-                                                <i class="fas fa-tag me-1"></i>@software.Brand
-                                            </small>
+
+                                        <div class="mb-3">
+                                            @if (!string.IsNullOrEmpty(software.Brand))
+                                            {
+                                                <div class="small mb-1">
+                                                    <i class="fas fa-tag text-muted me-2" aria-hidden="true"></i>
+                                                    @software.Brand
+                                                </div>
+                                            }
+                                            <div class="small mb-1">
+                                                <i class="fas fa-hourglass-half text-muted me-2" aria-hidden="true"></i>
+                                                @software.Duration - @software.CompletionDate.ToString("dd.MM.yyyy")
+                                            </div>
+                                            <div class="small mb-1">
+                                                <i class="fas fa-clock text-muted me-2" aria-hidden="true"></i>
+                                                <span class="remaining-time @(software.Status.ToString().ToLower())">
+                                                    @software.RemainingTime
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                                            <div class="btn-group btn-group-sm w-100" role="group"
+                                                aria-label="Yazılım işlemleri">
+                                                <a asp-action="Details" asp-route-id="@software.Id"
+                                                    class="btn btn-outline-info flex-fill" title="Detayları görüntüle"
+                                                    data-bs-toggle="tooltip">
+                                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@software.Id"
+                                                    class="btn btn-outline-warning flex-fill" title="Düzenle"
+                                                    data-bs-toggle="tooltip">
+                                                    <i class="fas fa-edit" aria-hidden="true"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger flex-fill"
+                                                    onclick="deleteSoftware(@software.Id, '@software.Name')" title="Sil"
+                                                    data-bs-toggle="tooltip">
+                                                    <i class="fas fa-trash" aria-hidden="true"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </td>
-                                <td>
-                                    <div>
-                                        <span class="fw-medium">@software.PurchaseDate.ToString("dd.MM.yyyy")</span>
-                                        <br><small class="text-muted">@software.PurchaseDate.ToString("dddd")</small>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div>
-                                        <span class="fw-semibold badge bg-secondary">@software.Duration</span>
-                                        <br><small class="text-muted">@software.CompletionDate.ToString("dd.MM.yyyy")</small>
-                                    </div>
-                                </td>
-                                <td>
-                                    @{
-                                        var remainingClass = software.Status switch
-                                        {
-                                            SoftwareStatus.Active => "text-success fw-semibold",
-                                            SoftwareStatus.Approaching => "text-warning fw-semibold",
-                                            SoftwareStatus.Expired => "text-danger fw-semibold",
-                                            _ => "text-muted"
-                                        };
-                                    }
-                                    <span class="@remainingClass">
-                                        @software.RemainingTime
-                                    </span>
-                                </td>
-                                <td>
-                                    @switch(software.Status)
-                                    {
-                                        case SoftwareStatus.Active:
-                                            <span class="badge bg-success bg-opacity-10 text-success border border-success">
-                                                <i class="fas fa-check-circle me-1"></i>
-                                                Aktif
-                                            </span>
-                                            break;
-                                        case SoftwareStatus.Approaching:
-                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">
-                                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                                Yaklaşan
-                                            </span>
-                                            break;
-                                        case SoftwareStatus.Expired:
-                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
-                                                <i class="fas fa-times-circle me-1"></i>
-                                                Dolmuş
-                                            </span>
-                                            break;
-                                    }
-                                </td>
-                                <td>
-                                    <div class="d-flex justify-content-center gap-1">
-                                        <a asp-action="Details" asp-route-id="@software.Id" 
-                                           class="btn btn-sm btn-outline-primary" title="Detayları Görüntüle">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a asp-action="Edit" asp-route-id="@software.Id" 
-                                           class="btn btn-sm btn-outline-warning" title="Düzenle">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <button class="btn btn-sm btn-outline-danger delete-btn" 
-                                                data-id="@software.Id" data-name="@software.Name" title="Sil">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                                </div>
+                            </div>
                         }
-                    </tbody>
-                </table>
-            </div>
-        }
-        else
-        {
-            <div class="card-body text-center py-5">
-                <div class="empty-state">
-                    <i class="fas fa-compact-disc text-muted display-4 mb-3"></i>
-                    <h4 class="text-muted mb-3">Henüz yazılım lisansı yok</h4>
-                    <p class="text-muted mb-4">
-                        İlk yazılım lisansınızı eklemek için yukarıdaki "Yeni Lisans Ekle" butonunu kullanın.
-                    </p>
-                    <a asp-action="Create" class="btn btn-purple">
-                        <i class="fas fa-plus me-2"></i>
-                        İlk Lisansımı Ekle
-                    </a>
+                    </div>
                 </div>
-            </div>
-        }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-compact-disc fa-3x text-muted mb-3" aria-hidden="true"></i>
+                    <h3 class="h5 text-muted">Yazılım Bulunamadı</h3>
+                    @if (!string.IsNullOrEmpty(searchValue) || !string.IsNullOrEmpty(statusValue))
+                    {
+                        <p class="text-muted">Arama kriterlerinize uygun yazılım bulunmuyor.</p>
+                        <a href="@Url.Action("Index")" class="btn btn-outline-primary">
+                            <i class="fas fa-times me-1" aria-hidden="true"></i> Filtreleri Temizle
+                        </a>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz sisteme yazılım eklenmemiş.</p>
+                        <a asp-action="Create" class="btn btn-primary">
+                            <i class="fas fa-plus me-1" aria-hidden="true"></i> İlk Yazılımı Ekle
+                        </a>
+                    }
+                </div>
+            }
+        </div>
     </div>
 </div>
 
-<!-- Success/Error Messages -->
-@if (!string.IsNullOrEmpty(successMessage))
-{
-    <div class="position-fixed top-0 end-0 p-3" style="z-index: 11000">
-        <div class="toast align-items-center text-bg-success border-0 show" role="alert">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="fas fa-check-circle me-2"></i>@successMessage
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        </div>
-    </div>
-}
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Global variables for view management
+        let currentViewType = 'table';
 
-@if (!string.IsNullOrEmpty(errorMessage))
-{
-    <div class="position-fixed top-0 end-0 p-3" style="z-index: 11000">
-        <div class="toast align-items-center text-bg-danger border-0 show" role="alert">
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        </div>
-    </div>
-}
+        // Delete software function
+        function deleteSoftware(softwareId, softwareName) {
+            Swal.fire({
+                title: 'Yazılımı Sil?',
+                html: `<strong>${softwareName}</strong> yazılımı silinecek.<br>Bu işlem geri alınamaz!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash"></i> Evet, Sil',
+                cancelButtonText: '<i class="fas fa-times"></i> İptal',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Siliniyor...',
+                        html: 'Lütfen bekleyin...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    // Initialize filtering functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        // Search input
-        document.getElementById('searchInput').addEventListener('input', filterTable);
-        document.getElementById('statusFilter').addEventListener('change', filterTable);
-        document.getElementById('dateFilter').addEventListener('change', filterTable);
+                    // Create form and submit
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/Software/Delete/${softwareId}`;
 
-        // Delete buttons
-        document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const softwareId = this.getAttribute('data-id');
-                const softwareName = this.getAttribute('data-name');
-                confirmDelete(softwareId, softwareName);
-            });
-        });
-
-        // Auto-hide toasts
-        setTimeout(() => {
-            document.querySelectorAll('.toast').forEach(toast => {
-                const bsToast = new bootstrap.Toast(toast);
-                bsToast.hide();
-            });
-        }, 5000);
-    });
-
-    function filterTable() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const statusFilter = document.getElementById('statusFilter').value;
-        const dateFilter = document.getElementById('dateFilter').value;
-        const rows = document.querySelectorAll('.software-row');
-        
-        rows.forEach(row => {
-            const searchData = row.getAttribute('data-search').toLowerCase();
-            const status = row.getAttribute('data-status');
-            
-            const matchesSearch = searchTerm === '' || searchData.includes(searchTerm);
-            const matchesStatus = statusFilter === '' || status === statusFilter;
-            const matchesDate = true; // Implement date filtering logic as needed
-            
-            row.style.display = (matchesSearch && matchesStatus && matchesDate) ? '' : 'none';
-        });
-
-        updateRecordCount();
-    }
-
-    function updateRecordCount() {
-        const visibleRows = document.querySelectorAll('.software-row[style=""], .software-row:not([style])').length;
-        document.querySelectorAll('.badge').forEach(badge => {
-            if (badge.textContent.includes('kayıt')) {
-                badge.textContent = `${visibleRows} kayıt`;
-            }
-        });
-    }
-
-    function clearFilters() {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('statusFilter').value = '';
-        document.getElementById('dateFilter').value = '';
-        filterTable();
-        
-        // Show success message
-        Swal.fire({
-            icon: 'success',
-            title: 'Filtreler Temizlendi',
-            text: 'Tüm filtreler kaldırıldı.',
-            timer: 2000,
-            showConfirmButton: false,
-            toast: true,
-            position: 'top-end'
-        });
-    }
-
-    function confirmDelete(softwareId, softwareName) {
-        Swal.fire({
-            title: 'Yazılım Lisansını Sil?',
-            html: `<div class="text-center">
-                <div class="mb-3">
-                    <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
-                </div>
-                <p><strong>${softwareName}</strong> yazılım lisansını silmek istediğinizden emin misiniz?</p>
-                <div class="alert alert-danger mt-3">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>Uyarı:</strong> Bu işlem geri alınamaz!
-                </div>
-            </div>`,
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="fas fa-trash me-2"></i>Evet, Sil!',
-            cancelButtonText: '<i class="fas fa-times me-2"></i>İptal',
-            reverseButtons: true,
-            focusCancel: true,
-            customClass: {
-                popup: 'border-0 shadow-lg',
-                confirmButton: 'btn-lg',
-                cancelButton: 'btn-lg'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Show loading
-                Swal.fire({
-                    title: 'Siliniyor...',
-                    text: 'Yazılım lisansı siliniyor, lütfen bekleyin.',
-                    icon: 'info',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (token) {
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '__RequestVerificationToken';
+                        tokenInput.value = token.value;
+                        form.appendChild(tokenInput);
                     }
-                });
 
-                // Simulate delete request (replace with actual delete URL)
-                setTimeout(() => {
-                    window.location.href = `@Url.Action("Delete")/${softwareId}`;
-                }, 1000);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        // Toggle between table and cards view
+        function toggleView(viewType) {
+            const tableView = document.getElementById('tableView');
+            const cardsView = document.getElementById('cardsView');
+            const tableRadio = document.getElementById('tableViewRadio');
+            const cardsRadio = document.getElementById('cardsViewRadio');
+
+            if (viewType === 'table') {
+                tableView.style.display = 'block';
+                cardsView.style.display = 'none';
+                tableRadio.checked = true;
+                cardsRadio.checked = false;
+                currentViewType = 'table';
+            } else {
+                tableView.style.display = 'none';
+                cardsView.style.display = 'block';
+                tableRadio.checked = false;
+                cardsRadio.checked = true;
+                currentViewType = 'cards';
             }
-        });
-    }
-
-    function exportToExcel() {
-        Swal.fire({
-            icon: 'info',
-            title: 'Excel\'e Aktarılıyor',
-            text: 'Yazılım lisans verileri Excel dosyasına aktarılıyor...',
-            timer: 2000,
-            showConfirmButton: false
-        });
-        // Implement Excel export functionality
-    }
-
-    function printReport() {
-        window.print();
-    }
-</script>
-
-<style>
-    /* Custom styling matching the design system */
-    :root {
-        --purple-color: #9b59b6;
-        --primary-color: #0d6efd;
-        --success-color: #198754;
-        --warning-color: #fd7e14;
-        --danger-color: #dc3545;
-        --info-color: #0dcaf0;
-        --secondary-color: #6c757d;
-        --light-color: #f8f9fa;
-        --dark-color: #212529;
-        --border-radius: 0.375rem;
-        --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        --transition: all 0.15s ease-in-out;
-    }
-
-    /* Purple theme for software management */
-    .text-purple { color: var(--purple-color) !important; }
-    .bg-purple { background-color: var(--purple-color) !important; }
-    .border-purple { border-color: var(--purple-color) !important; }
-    .btn-purple {
-        background-color: var(--purple-color);
-        border-color: var(--purple-color);
-        color: white;
-        font-weight: 500;
-        transition: var(--transition);
-    }
-    .btn-purple:hover {
-        background-color: #8e44ad;
-        border-color: #8e44ad;
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 0.25rem 0.5rem rgba(155, 89, 182, 0.25);
-    }
-
-    /* Card improvements */
-    .card {
-        border: 1px solid rgba(0, 0, 0, 0.125);
-        box-shadow: var(--box-shadow);
-        transition: var(--transition);
-    }
-
-    .card:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    }
-
-    /* Statistics cards */
-    .stat-card {
-        transition: var(--transition);
-        border-radius: var(--border-radius);
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    }
-
-    .stat-icon {
-        width: 3rem;
-        height: 3rem;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-    }
-
-    /* Software avatar */
-    .software-avatar {
-        width: 3rem;
-        height: 3rem;
-        border-radius: var(--border-radius);
-        background: linear-gradient(135deg, var(--purple-color), #8e44ad);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-    }
-
-    /* Form improvements */
-    .form-control, .form-select {
-        border-radius: var(--border-radius);
-        border: 2px solid #e9ecef;
-        transition: var(--transition);
-    }
-
-    .form-control:focus, .form-select:focus {
-        border-color: var(--purple-color);
-        box-shadow: 0 0 0 0.2rem rgba(155, 89, 182, 0.25);
-    }
-
-    .form-control-lg, .form-select-lg {
-        padding: 0.875rem 1rem;
-        font-size: 1rem;
-    }
-
-    /* Button improvements */
-    .btn {
-        border-radius: var(--border-radius);
-        transition: var(--transition);
-        font-weight: 500;
-    }
-
-    .btn:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
-    }
-
-    /* Table improvements */
-    .table {
-        border: none;
-    }
-
-    .table th {
-        font-weight: 600;
-        font-size: 0.875rem;
-        color: var(--secondary-color);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 1rem 0.75rem;
-    }
-
-    .table td {
-        padding: 1rem 0.75rem;
-        vertical-align: middle;
-    }
-
-    .table tbody tr {
-        transition: var(--transition);
-    }
-
-    .table tbody tr:hover {
-        background-color: rgba(155, 89, 182, 0.05);
-    }
-
-    /* Badge improvements */
-    .badge {
-        font-size: 0.75em;
-        font-weight: 500;
-        padding: 0.5rem 0.75rem;
-        border-radius: 0.375rem;
-    }
-
-    /* Breadcrumb improvements */
-    .breadcrumb {
-        background: none;
-        padding: 0;
-        margin-bottom: 0;
-    }
-
-    .breadcrumb-item + .breadcrumb-item::before {
-        content: "›";
-        color: #6c757d;
-    }
-
-    /* Empty state styling */
-    .empty-state {
-        padding: 3rem 2rem;
-        text-align: center;
-    }
-
-    /* Toast improvements */
-    .toast {
-        border-radius: var(--border-radius);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    }
-
-    /* Responsive adjustments */
-    @@media (max-width: 768px) {
-        .stat-card {
-            margin-bottom: 1rem;
         }
-        
-        .d-flex.gap-2.flex-wrap {
-            flex-direction: column;
+
+        // Export to Excel function
+        function exportToExcel() {
+            Swal.fire({
+                title: 'Excel\'e Aktar',
+                text: 'Yazılım listesi Excel dosyası olarak indirilecek.',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-download"></i> İndir',
+                cancelButtonText: 'İptal',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Hazırlanıyor...',
+                        html: 'Excel dosyası hazırlanıyor, lütfen bekleyin...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Simulate file preparation time
+                    setTimeout(() => {
+                        window.location.href = '/Software/ExportToExcel';
+                        Swal.close();
+                    }, 1000);
+                }
+            });
         }
-        
-        .btn {
-            width: 100%;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    delay: { show: 500, hide: 100 }
+                });
+            });
+
+            // Auto-submit search form on select change
+            const statusSelect = document.getElementById('status');
+            if (statusSelect) {
+                statusSelect.addEventListener('change', function () {
+                    document.getElementById('searchForm').submit();
+                });
+            }
+
+            // Real-time search with debounce
+            const searchInput = document.getElementById('search');
+            if (searchInput) {
+                let searchTimeout;
+                searchInput.addEventListener('input', function () {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        document.getElementById('searchForm').submit();
+                    }, 1000);
+                });
+            }
+
+            // Prevent form submission on Enter key in search field to allow debounce to work
+            searchInput?.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('searchForm').submit();
+                }
+            });
+        });
+    </script>
+
+    <style>
+        /* Custom CSS for improved design - matching company page style */
+        :root {
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --warning-color: #fd7e14;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+            --secondary-color: #6c757d;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --border-radius: 0.375rem;
+            --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --transition: all 0.15s ease-in-out;
+        }
+
+        /* General improvements */
+        .card {
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        /* Statistics cards */
+        .card.bg-primary,
+        .card.bg-success,
+        .card.bg-warning,
+        .card.bg-danger {
+            border: none;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+        }
+
+        /* Software avatars */
+        .software-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #9b59b6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .software-icon {
+            width: 60px;
+            text-align: center;
+            display: flex;
+            align-items: center;
             justify-content: center;
         }
-    }
 
-    /* Loading animation */
-    @@keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
-    }
+        .software-icon-lg {
+            width: 60px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    .loading {
-        animation: pulse 1.5s ease-in-out infinite;
-    }
-</style>
+        /* Software cards */
+        .software-card {
+            transition: var(--transition);
+            border: 1px solid #e9ecef;
+            height: 100%;
+            position: relative;
+        }
+
+        .software-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .software-card .card-body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Remaining time styling */
+        .remaining-time.expired {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .remaining-time.approaching {
+            color: #fd7e14;
+            font-weight: 600;
+        }
+
+        .remaining-time.active {
+            color: #198754;
+            font-weight: 600;
+        }
+
+        /* Button improvements */
+        .btn {
+            transition: var(--transition);
+            border-radius: var(--border-radius);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-group .btn {
+            border-radius: 0;
+        }
+
+        .btn-group .btn:first-child {
+            border-top-left-radius: var(--border-radius);
+            border-bottom-left-radius: var(--border-radius);
+        }
+
+        .btn-group .btn:last-child {
+            border-top-right-radius: var(--border-radius);
+            border-bottom-right-radius: var(--border-radius);
+        }
+
+        /* Table improvements */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            background-color: var(--light-color);
+        }
+
+        .table-striped>tbody>tr:nth-of-type(odd)>td {
+            background-color: rgba(0, 0, 0, 0.025);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.075);
+        }
+
+        /* Badge improvements */
+        .badge {
+            font-size: 0.75em;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Form improvements */
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
+}
