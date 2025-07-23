@@ -1,87 +1,242 @@
 ﻿@model WebApplication1.Models.Employee
 @{
+    ViewData["Title"] = "Çalışan Düzenle";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@{
-    ViewData["Title"] = "Çalışan Düzenle";
-}
+<style>
+    /* Custom CSS for form styling */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --warning-color: #fd7e14;
+        --danger-color: #dc3545;
+        --info-color: #0dcaf0;
+        --secondary-color: #6c757d;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --border-radius: 0.375rem;
+        --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --transition: all 0.15s ease-in-out;
+    }
+
+    /* Card improvements */
+    .card {
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+    }
+
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    /* Form improvements */
+    .form-control, .form-select {
+        border-radius: var(--border-radius);
+        border: 2px solid #e9ecef;
+        transition: var(--transition);
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .form-control.is-valid, .form-select.is-valid {
+        border-color: var(--success-color);
+    }
+
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: var(--danger-color);
+    }
+
+    .form-control-lg {
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+    }
+
+    .form-select-lg {
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+    }
+
+    /* Button improvements */
+    .btn {
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        font-weight: 500;
+    }
+
+    .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-lg {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    /* Form check improvements */
+    .form-check-input-lg {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    /* Badge improvements */
+    .badge {
+        font-size: 0.75em;
+        font-weight: 500;
+        padding: 0.375rem 0.75rem;
+    }
+
+    /* Breadcrumb improvements */
+    .breadcrumb {
+        background: none;
+        padding: 0;
+        margin-bottom: 0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+
+    /* Statistics item styling */
+    .stat-item {
+        transition: var(--transition);
+    }
+
+    .stat-item:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Sticky sidebar */
+    @@media (min-width: 992px) {
+        .sticky-top {
+            position: sticky;
+            top: 20px;
+            z-index: 1020;
+        }
+    }
+
+    /* Form group spacing */
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    /* Alert improvements */
+    .alert {
+        border: none;
+        border-radius: var(--border-radius);
+    }
+
+    /* Loading state */
+    .btn:disabled {
+        opacity: 0.6;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 991.98px) {
+        .col-lg-4 .sticky-top {
+            position: static;
+        }
+    }
+</style>
 
 <div class="container-fluid mt-4">
     <!-- Header Section -->
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-action="Index">Çalışanlar</a></li>
-            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Id">@Model.FirstName @Model.LastName</a></li>
-            <li class="breadcrumb-item"><a asp-action="Edit" >Düzenleme</a></li>
-
-
-        </ol>
-    </nav>
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-body bg-gradient-warning text-white">
-                    <div class="row align-items-center">
-                        <div class="col-md-2 text-center">
-                            <div class="avatar-circle">
-                                <i class="fas fa-user-edit fa-3x"></i>
-                            </div>
-                        </div>
-                        <div class="col-md-10">
-                            <h2 class="mb-1">
-                                <i class="fas fa-edit me-2"></i>Çalışan Bilgilerini Düzenle
-                            </h2>
-                            <p class="mb-0 opacity-75">
-                                @Model.FirstName @Model.LastName - ID: #@Model.Id
-                            </p>
-                            <small class="opacity-75">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Gerekli alanları doldurun ve değişiklikleri kaydedin
-                            </small>
-                        </div>
-                    </div>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-2">
+                            <li class="breadcrumb-item">
+                                <a asp-action="Index" class="text-decoration-none">
+                                    <i class="fas fa-users me-1"></i>Çalışanlar
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a asp-action="Details" asp-route-id="@Model.Id" class="text-decoration-none">
+                                    @Model.FirstName @Model.LastName
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">Düzenle</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h2 mb-1 d-flex align-items-center">
+                        <i class="fas fa-user-edit text-warning me-2" aria-hidden="true"></i>
+                        Çalışan Bilgilerini Düzenle
+                    </h1>
+                    <p class="text-muted mb-0">
+                        @Model.FirstName @Model.LastName (#@Model.Id) bilgilerini güncelleyin
+                    </p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info">
+                        <i class="fas fa-eye me-1" aria-hidden="true"></i> Detayları Görüntüle
+                    </a>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-1" aria-hidden="true"></i> Listeye Dön
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <form asp-action="Edit" method="post" id="employeeForm">
+    <!-- Form Section -->
+    <form asp-action="Edit" method="post" id="employeeEditForm" novalidate>
         <input type="hidden" asp-for="Id" />
         <input type="hidden" asp-for="CreatedDate" />
-
+        
         <div class="row">
-            <!-- Left Column - Personal Information -->
+            <!-- Left Column - Form Fields -->
             <div class="col-lg-8">
                 <!-- Basic Information Card -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">
-                            <i class="fas fa-user text-primary me-2"></i>
-                            Temel Bilgiler
-                            <span class="badge bg-danger ms-2">Zorunlu</span>
-                        </h5>
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 d-flex align-items-center">
+                                <i class="fas fa-user me-2 text-primary" aria-hidden="true"></i> 
+                                Temel Bilgiler
+                            </h5>
+                            <span class="badge bg-danger">Zorunlu Alanlar</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="row g-3">
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input asp-for="FirstName" class="form-control"
-                                           id="firstName" placeholder="Ad" autocomplete="given-name">
-                                    <label for="firstName">
-                                        <i class="fas fa-user me-2 text-muted"></i>Ad *
+                                <div class="form-group">
+                                    <label for="firstName" class="form-label fw-semibold">
+                                        <i class="fas fa-user text-muted me-1" aria-hidden="true"></i>
+                                        Ad <span class="text-danger">*</span>
                                     </label>
-                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                    <input asp-for="FirstName" class="form-control form-control-lg"
+                                           id="firstName" placeholder="Çalışanın adını giriniz" 
+                                           autocomplete="given-name" required>
+                                    <span asp-validation-for="FirstName" class="invalid-feedback"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Çalışanın gerçek adını giriniz
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input asp-for="LastName" class="form-control"
-                                           id="lastName" placeholder="Soyad" autocomplete="family-name">
-                                    <label for="lastName">
-                                        <i class="fas fa-user me-2 text-muted"></i>Soyad *
+                                <div class="form-group">
+                                    <label for="lastName" class="form-label fw-semibold">
+                                        <i class="fas fa-user text-muted me-1" aria-hidden="true"></i>
+                                        Soyad <span class="text-danger">*</span>
                                     </label>
-                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                    <input asp-for="LastName" class="form-control form-control-lg"
+                                           id="lastName" placeholder="Çalışanın soyadını giriniz" 
+                                           autocomplete="family-name" required>
+                                    <span asp-validation-for="LastName" class="invalid-feedback"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Çalışanın gerçek soyadını giriniz
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -89,40 +244,44 @@
                 </div>
 
                 <!-- Contact Information Card -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">
-                            <i class="fas fa-address-book text-primary me-2"></i>
-                            İletişim Bilgileri
-                            <span class="badge bg-secondary ms-2">Opsiyonel</span>
-                        </h5>
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 d-flex align-items-center">
+                                <i class="fas fa-address-book me-2 text-success" aria-hidden="true"></i> 
+                                İletişim Bilgileri
+                            </h5>
+                            <span class="badge bg-secondary">İsteğe Bağlı</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="row g-3">
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input asp-for="Email" type="email" class="form-control"
-                                           id="email" placeholder="E-posta" autocomplete="email">
-                                    <label for="email">
-                                        <i class="fas fa-envelope me-2 text-muted"></i>E-posta Adresi
+                                <div class="form-group">
+                                    <label for="email" class="form-label fw-semibold">
+                                        <i class="fas fa-envelope text-muted me-1" aria-hidden="true"></i>
+                                        E-posta Adresi
                                     </label>
-                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                    <input asp-for="Email" type="email" class="form-control form-control-lg"
+                                           id="email" placeholder="ornek@sirket.com" autocomplete="email">
+                                    <span asp-validation-for="Email" class="invalid-feedback"></span>
                                     <div class="form-text">
-                                        <i class="fas fa-info-circle me-1"></i>
+                                        <i class="fas fa-shield-alt me-1 text-success"></i>
                                         Geçerli bir e-posta adresi giriniz
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input asp-for="Phone" type="tel" class="form-control"
-                                           id="phone" placeholder="Telefon" autocomplete="tel">
-                                    <label for="phone">
-                                        <i class="fas fa-phone me-2 text-muted"></i>Telefon Numarası
+                                <div class="form-group">
+                                    <label for="phone" class="form-label fw-semibold">
+                                        <i class="fas fa-phone text-muted me-1" aria-hidden="true"></i>
+                                        Telefon Numarası
                                     </label>
+                                    <input asp-for="Phone" type="tel" class="form-control form-control-lg"
+                                           id="phone" placeholder="+90 555 123 45 67" autocomplete="tel">
                                     <div class="form-text">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        Örnek: +90 555 123 45 67
+                                        Örnek: +90 555 123 45 67 veya 0555 123 45 67
                                     </div>
                                 </div>
                             </div>
@@ -130,36 +289,48 @@
                     </div>
                 </div>
 
-                <!-- Company & Security Information Card -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">
-                            <i class="fas fa-building text-primary me-2"></i>
-                            Firma ve Güvenlik
-                        </h5>
+                <!-- Company & Position Information Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 d-flex align-items-center">
+                                <i class="fas fa-building me-2 text-info" aria-hidden="true"></i> 
+                                Firma ve Pozisyon Bilgileri
+                            </h5>
+                            <span class="badge bg-danger">Zorunlu</span>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="row g-3">
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    <select asp-for="CompanyId" class="form-select"
-                                            id="companyId" asp-items="ViewBag.CompanyId">
-                                        <option value="">Firma Seçiniz</option>
-                                    </select>
-                                    <label for="companyId">
-                                        <i class="fas fa-building me-2 text-muted"></i>Firma *
+                                <div class="form-group">
+                                    <label for="companyId" class="form-label fw-semibold">
+                                        <i class="fas fa-building text-muted me-1" aria-hidden="true"></i>
+                                        Bağlı Firma <span class="text-danger">*</span>
                                     </label>
-                                    <span asp-validation-for="CompanyId" class="text-danger"></span>
+                                    <select asp-for="CompanyId" class="form-select form-select-lg"
+                                            id="companyId" asp-items="ViewBag.CompanyId" required>
+                                        <option value="">Firma seçiniz...</option>
+                                    </select>
+                                    <span asp-validation-for="CompanyId" class="invalid-feedback"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Çalışanın bağlı olduğu firmayı seçiniz
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input asp-for="Title" type="text" class="form-control"
-                                           id="Title" placeholder="Title">
-                                    <label for="Title">
-                                        <i class="fa-solid fa-book me-2 text-muted"></i>Görevi
+                                <div class="form-group">
+                                    <label for="title" class="form-label fw-semibold">
+                                        <i class="fas fa-briefcase text-muted me-1" aria-hidden="true"></i>
+                                        Pozisyon/Görevi
                                     </label>
-                                    
+                                    <input asp-for="Title" class="form-control form-control-lg"
+                                           id="title" placeholder="Yazılım Geliştirici, Müdür, vb.">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Çalışanın şirketteki pozisyon veya görevini belirtiniz
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -167,34 +338,48 @@
                 </div>
 
                 <!-- Advanced Settings Card -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">
-                            <i class="fas fa-cogs text-primary me-2"></i>
-                            Gelişmiş Ayarlar
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="fas fa-cogs me-2 text-warning" aria-hidden="true"></i> 
+                            Sistem Ayarları
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row g-3">
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input asp-for="ActiveTime" type="datetime-local" class="form-control"
-                                           id="activeTime" value="@Model.ActiveTime.ToString("yyyy-MM-ddTHH:mm")">
-                                    <label for="activeTime">
-                                        <i class="fas fa-clock me-2 text-muted"></i>Aktif Olma Zamanı
+                                <div class="form-group">
+                                    <label for="activeTime" class="form-label fw-semibold">
+                                        <i class="fas fa-clock text-muted me-1" aria-hidden="true"></i>
+                                        Aktif Olma Zamanı
                                     </label>
+                                    <input asp-for="ActiveTime" type="datetime-local" class="form-control form-control-lg"
+                                           id="activeTime" value="@Model.ActiveTime.ToString("yyyy-MM-ddTHH:mm")">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Çalışanın sisteme aktif olarak kaydedileceği tarih ve saat
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 d-flex align-items-center">
-                                <div class="form-check form-switch form-check-lg">
-                                    <input asp-for="IsActive" class="form-check-input" type="checkbox"
-                                           id="isActive" style="transform: scale(1.5);">
-                                    <label class="form-check-label ms-3" for="isActive">
-                                        <i class="fas fa-toggle-on me-2 text-success"></i>
-                                        <strong>Hesap Aktif</strong>
-                                        <br>
-                                        <small class="text-muted">Çalışanın sisteme erişim durumu</small>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-toggle-on text-muted me-1" aria-hidden="true"></i>
+                                        Hesap Durumu
                                     </label>
+                                    <div class="form-check form-switch mt-2">
+                                        <input asp-for="IsActive" class="form-check-input form-check-input-lg" 
+                                               type="checkbox" id="isActive">
+                                        <label class="form-check-label ms-2" for="isActive">
+                                            <span class="fw-semibold text-success">
+                                                <i class="fas fa-check-circle me-1"></i>
+                                                Hesap Aktif
+                                            </span>
+                                            <div class="form-text mt-1">
+                                                Aktif çalışanlar sisteme giriş yapabilir ve işlem gerçekleştirebilir
+                                            </div>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -205,101 +390,137 @@
             <!-- Right Column - Actions & Info -->
             <div class="col-lg-4">
                 <!-- Save Actions Card -->
-                <div class="card shadow-sm border-0 mb-4 sticky-top" style="top: 20px;">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">
-                            <i class="fas fa-save text-primary me-2"></i>
-                            İşlemler
+                <div class="card mb-4 shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="fas fa-save me-2 text-primary" aria-hidden="true"></i> 
+                            Kaydetme İşlemleri
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary" id="submitBtn">
-                                <i class="fas fa-save"></i> Kaydet
+                        <div class="d-grid gap-3">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <i class="fas fa-save me-2" aria-hidden="true"></i>
+                                Değişiklikleri Kaydet
                             </button>
                             <button type="button" class="btn btn-outline-warning" onclick="resetForm()">
-                                <i class="fas fa-undo me-2"></i>Formu Sıfırla
+                                <i class="fas fa-undo me-2" aria-hidden="true"></i>
+                                Formu Sıfırla
                             </button>
-                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info">
-                                <i class="fas fa-eye me-2"></i>Detayları Görüntüle
-                            </a>
-                            <a asp-action="Index" class="btn btn-outline-secondary">
-                                <i class="fas fa-list me-2"></i>Listeye Dön
-                            </a>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info w-100">
+                                        <i class="fas fa-eye me-1" aria-hidden="true"></i>
+                                        Detay
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                                        <i class="fas fa-list me-1" aria-hidden="true"></i>
+                                        Liste
+                                    </a>
+                                </div>
+                            </div>
                         </div>
 
-                        <hr class="my-3">
-
-                        <div class="text-center">
-                            <small class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Son güncelleme: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")
+                        <div class="alert alert-info mt-3 mb-0">
+                            <small class="d-flex align-items-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span>
+                                    Formu kaydetmeden önce tüm zorunlu alanların doldurulduğundan emin olun.
+                                </span>
                             </small>
                         </div>
                     </div>
                 </div>
 
-                <!-- Employee Info Card -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-white border-bottom">
-                        <h5 class="mb-0">
-                            <i class="fas fa-info-circle text-primary me-2"></i>
-                            Çalışan Bilgileri
+                <!-- Employee Statistics Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="fas fa-chart-pie me-2 text-success" aria-hidden="true"></i> 
+                            Çalışan İstatistikleri
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="info-item mb-3">
-                            <small class="text-muted d-block">Çalışan ID</small>
-                            <span class="badge bg-primary">#@Model.Id</span>
+                        <div class="row text-center g-3">
+                            <div class="col-6">
+                                <div class="stat-item p-2 bg-light rounded">
+                                    <div class="h4 mb-1 text-primary">#@Model.Id</div>
+                                    <small class="text-muted">Çalışan ID</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item p-2 bg-light rounded">
+                                    <div class="h4 mb-1 text-info">@((DateTime.Now - Model.CreatedDate).Days)</div>
+                                    <small class="text-muted">Sistemde (Gün)</small>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="stat-item p-2 bg-light rounded">
+                                    @if (Model.IsActive)
+                                    {
+                                        <div class="badge bg-success fs-6 px-3 py-2">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            Aktif Durum
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="badge bg-danger fs-6 px-3 py-2">
+                                            <i class="fas fa-times-circle me-1"></i>
+                                            Pasif Durum
+                                        </div>
+                                    }
+                                </div>
+                            </div>
                         </div>
-                        <div class="info-item mb-3">
-                            <small class="text-muted d-block">Kayıt Tarihi</small>
-                            <strong>@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</strong>
-                        </div>
-                        <div class="info-item mb-3">
-                            <small class="text-muted d-block">Mevcut Durum</small>
-                            @if (Model.IsActive)
-                            {
-                                <span class="badge bg-success">
-                                    <i class="fas fa-check-circle me-1"></i>Aktif
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger">
-                                    <i class="fas fa-times-circle me-1"></i>Pasif
-                                </span>
-                            }
-                        </div>
-                        <div class="info-item">
-                            <small class="text-muted d-block">Sistemde</small>
-                            <strong>@((DateTime.Now - Model.CreatedDate).Days) gündür</strong>
+
+                        <hr class="my-3">
+
+                        <div class="small text-muted">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Kayıt Tarihi:</span>
+                                <strong>@Model.CreatedDate.ToString("dd.MM.yyyy")</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Kayıt Saati:</span>
+                                <strong>@Model.CreatedDate.ToString("HH:mm")</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Son Güncelleme:</span>
+                                <strong>@DateTime.Now.ToString("dd.MM.yyyy HH:mm")</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Help Card -->
-                <div class="card shadow-sm border-0 border-start border-4 border-info">
+                <!-- Help & Guidelines Card -->
+                <div class="card mb-4 shadow-sm border-start border-4 border-warning">
                     <div class="card-body">
-                        <h6 class="card-title">
-                            <i class="fas fa-question-circle text-info me-2"></i>
-                            Yardım
+                        <h6 class="card-title text-warning">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Form Rehberi
                         </h6>
                         <ul class="list-unstyled mb-0 small">
                             <li class="mb-2">
-                                <i class="fas fa-asterisk text-danger me-1" style="font-size: 8px;"></i>
-                                Kırmızı yıldızlı alanlar zorunludur
+                                <i class="fas fa-asterisk text-danger me-2" style="font-size: 8px;"></i>
+                                Kırmızı yıldız (*) işareti olan alanlar zorunludur
                             </li>
                             <li class="mb-2">
-                                <i class="fas fa-envelope text-muted me-1"></i>
-                                E-posta geçerli format olmalıdır
+                                <i class="fas fa-envelope text-primary me-2"></i>
+                                E-posta adresi geçerli format olmalıdır (örnek@domain.com)
                             </li>
                             <li class="mb-2">
-                                <i class="fas fa-building text-muted me-1"></i>
-                                Firma seçimi zorunludur
+                                <i class="fas fa-phone text-success me-2"></i>
+                                Telefon numarası başında +90 veya 0 ile başlayabilir
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-building text-info me-2"></i>
+                                Firma seçimi mutlaka yapılmalıdır
                             </li>
                             <li>
-                                <i class="fas fa-save text-muted me-1"></i>
+                                <i class="fas fa-save text-warning me-2"></i>
                                 Değişiklikleri kaydetmeyi unutmayın
                             </li>
                         </ul>
@@ -312,27 +533,22 @@
     <!-- Validation Summary -->
     @if (!ViewData.ModelState.IsValid)
     {
-        <div class="row mt-3">
+        <div class="row mt-4">
             <div class="col-12">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <h6 class="alert-heading">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Lütfen aşağıdaki hataları düzeltin:
-                    </h6>
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-exclamation-triangle me-2 fs-4"></i>
+                        <h5 class="alert-heading mb-0">Form Hatası</h5>
+                    </div>
+                    <p class="mb-2">Lütfen aşağıdaki hataları düzeltin ve tekrar deneyin:</p>
                     <div asp-validation-summary="ModelOnly" class="mb-0"></div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             </div>
         </div>
     }
 </div>
 
-<style>
-    .bg-gradient-warning {
-        background: linear-gradient(135deg, #4A90E2 0%, #FF5623 100%);
-    }
-
-    .avatar-circle {
-        width: 80px;
-        height: 80px;
-        background: rgba(255, 255, 255,
+@section Scripts {
+    <script src="/wwwroot/js/employee-edit.js"></script>
+}

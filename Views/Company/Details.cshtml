@@ -1,183 +1,335 @@
 ﻿@model WebApplication1.ViewModels.CompanyDetailsViewModel
+
 @{
     ViewData["Title"] = "Firma Detayları";
+    ViewBag.Title = "Firma";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container-fluid mt-4">
     <!-- Header Section -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2>
-                <i class="fas fa-building text-primary"></i>
-                @Model.Company.Name
-                @if (Model.Company.IsActive)
-                {
-                    <span class="badge bg-success ms-2">Aktif</span>
-                }
-                else
-                {
-                    <span class="badge bg-secondary ms-2">Pasif</span>
-                }
-                @if (Model.Company.IsVerified)
-                {
-                    <span class="badge bg-info ms-1">Onaylı</span>
-                }
-            </h2>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a asp-action="Index">Firmalar</a></li>
-                    <li class="breadcrumb-item active">@Model.Company.Name</li>
-                </ol>
-            </nav>
-        </div>
-        <div class="btn-group" role="group">
-            <a asp-action="Edit" asp-route-id="@Model.Company.Id" class="btn btn-warning">
-                <i class="fas fa-edit"></i> Düzenle
-            </a>
-            <a asp-action="Index" class="btn btn-secondary">
-                <i class="fas fa-list"></i> Liste
-            </a>
-            <button type="button" class="btn btn-outline-info" onclick="window.print()">
-                <i class="fas fa-print"></i> Yazdır
-            </button>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Firmalar</a></li>
+            <li class="breadcrumb-item active">@Model.Company.Name</li>
+        </ol>
+    </nav>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body bg-gradient-primary text-white">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center">
+                            <div class="avatar-circle">
+                                @if (!string.IsNullOrEmpty(Model.Company.LogoUrl))
+                                {
+                                    <img src="@Model.Company.LogoUrl" alt="@Model.Company.Name Logo" class="company-logo-small"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <i class="fas fa-building fa-3x" style="display: none;"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-building fa-3x"></i>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h2 class="mb-1">@Model.Company.Name</h2>
+                            <p class="mb-0 opacity-75">
+                                <i class="fas fa-users me-2"></i>@Model.Employees.Count Çalışan • @Model.Computers.Count Bilgisayar
+                            </p>
+                            <small class="opacity-75">
+                                <i class="fas fa-calendar me-1"></i>
+                                Kayıt Tarihi: @Model.Company.CreatedDate.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("tr-TR"))
+                            </small>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            @if (Model.Company.IsActive)
+                            {
+                                <span class="badge bg-success fs-6 px-3 py-2">
+                                    <i class="fas fa-check-circle me-1"></i>Aktif
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary fs-6 px-3 py-2">
+                                    <i class="fas fa-pause-circle me-1"></i>Pasif
+                                </span>
+                            }
+                            @if (Model.Company.IsVerified)
+                            {
+                                <span class="badge bg-info fs-6 px-3 py-2 mt-1 d-block">
+                                    <i class="fas fa-certificate me-1"></i>Onaylı
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Main Content -->
     <div class="row">
-        <!-- Ana Bilgiler -->
+        <!-- Left Column - Company Information -->
         <div class="col-lg-8">
-            <!-- Firma Bilgileri Card -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Firma Bilgileri</h5>
+            <!-- Basic Company Information -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Firma Bilgileri
+                    </h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row g-3">
                         <div class="col-md-6">
-                            <dl class="row">
-                                <dt class="col-sm-5"><i class="fas fa-building text-muted"></i> Şirket Adı</dt>
-                                <dd class="col-sm-7"><strong>@Model.Company.Name</strong></dd>
-
-                                <dt class="col-sm-5"><i class="fas fa-envelope text-muted"></i> E-posta</dt>
-                                <dd class="col-sm-7">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-envelope text-muted me-2"></i>E-posta Adresi
+                                </label>
+                                <div class="info-value">
                                     @if (!string.IsNullOrEmpty(Model.Company.Email))
                                     {
-                                        <a href="mailto:@Model.Company.Email">@Model.Company.Email</a>
+                                        <a href="mailto:@Model.Company.Email" class="text-decoration-none">@Model.Company.Email</a>
                                     }
                                     else
                                     {
                                         <span class="text-muted">Belirtilmemiş</span>
                                     }
-                                </dd>
-
-                                <dt class="col-sm-5"><i class="fas fa-phone text-muted"></i> Telefon</dt>
-                                <dd class="col-sm-7">
-                                    @if (!string.IsNullOrEmpty(Model.Company.Phone))
-                                    {
-                                        <a href="tel:@Model.Company.Phone">@Model.Company.Phone</a>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">Belirtilmemiş</span>
-                                    }
-                                </dd>
-
-                                <dt class="col-sm-5"><i class="fas fa-globe text-muted"></i> Website</dt>
-                                <dd class="col-sm-7">
-                                    @if (!string.IsNullOrEmpty(Model.Company.Website))
-                                    {
-                                        <a href="@Model.Company.Website" target="_blank">@Model.Company.Website</a>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">Belirtilmemiş</span>
-                                    }
-                                </dd>
-                            </dl>
-                        </div>
-                        <div class="col-md-6">
-                            <dl class="row">
-                                <dt class="col-sm-5"><i class="fas fa-users text-muted"></i> Çalışan Sayısı</dt>
-                                <dd class="col-sm-7">
-                                    @if (Model.Company.EmployeeCount.HasValue)
-                                    {
-                                        <span class="badge bg-info">@Model.Company.EmployeeCount kişi</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">Belirtilmemiş</span>
-                                    }
-                                </dd>
-
-                                <dt class="col-sm-5"><i class="fas fa-calendar text-muted"></i> Oluşturulma</dt>
-                                <dd class="col-sm-7">@Model.Company.CreatedDate.ToString("dd.MM.yyyy HH:mm")</dd>
-
-                                <dt class="col-sm-5"><i class="fas fa-user text-muted"></i> Oluşturan</dt>
-                                <dd class="col-sm-7">@(Model.Company.CreatedBy ?? "Sistem")</dd>
-
-                                <dt class="col-sm-5"><i class="fas fa-toggle-on text-muted"></i> Durum</dt>
-                                <dd class="col-sm-7">
-                                    @if (Model.Company.IsActive)
-                                    {
-                                        <span class="badge bg-success"><i class="fas fa-check"></i> Aktif</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary"><i class="fas fa-pause"></i> Pasif</span>
-                                    }
-                                    @if (Model.Company.IsVerified)
-                                    {
-                                        <span class="badge bg-info ms-1"><i class="fas fa-certificate"></i> Onaylı</span>
-                                    }
-                                </dd>
-                            </dl>
-                        </div>
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(Model.Company.Description))
-                    {
-                        <hr>
-                        <div class="row">
-                            <div class="col-12">
-                                <h6><i class="fas fa-comment text-muted"></i> Açıklama</h6>
-                                <p class="text-muted">@Model.Company.Description</p>
+                                </div>
                             </div>
                         </div>
-                    }
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-phone text-muted me-2"></i>Telefon Numarası
+                                </label>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.Company.Phone))
+                                    {
+                                        <a href="tel:@Model.Company.Phone" class="text-decoration-none">@Model.Company.Phone</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Belirtilmemiş</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-globe text-muted me-2"></i>Website
+                                </label>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.Company.Website))
+                                    {
+                                        <a href="@Model.Company.Website" target="_blank" class="text-decoration-none">@Model.Company.Website</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Belirtilmemiş</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-users text-muted me-2"></i>Çalışan Sayısı
+                                </label>
+                                <div class="info-value">
+                                    @if (Model.Company.EmployeeCount.HasValue)
+                                    {
+                                        <span class="badge bg-light text-dark">@Model.Company.EmployeeCount kişi</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Belirtilmemiş</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Adres Bilgileri Card -->
+            <!-- Address Information -->
             @if (!string.IsNullOrEmpty(Model.Company.Address) || !string.IsNullOrEmpty(Model.Company.City))
             {
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Adres Bilgileri</h5>
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">
+                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                            Adres Bilgileri
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-12">
-                                @if (!string.IsNullOrEmpty(Model.Company.Address))
-                                {
-                                    <p><i class="fas fa-home text-muted"></i> <strong>Adres:</strong> @Model.Company.Address</p>
-                                }
-                                <div class="d-flex flex-wrap gap-3">
-                                    @if (!string.IsNullOrEmpty(Model.Company.City))
-                                    {
-                                        <span><i class="fas fa-city text-muted"></i> @Model.Company.City</span>
-                                    }
-                                    @if (!string.IsNullOrEmpty(Model.Company.District))
-                                    {
-                                        <span><i class="fas fa-map text-muted"></i> @Model.Company.District</span>
-                                    }
-                                    @if (!string.IsNullOrEmpty(Model.Company.PostalCode))
-                                    {
-                                        <span><i class="fas fa-mailbox text-muted"></i> @Model.Company.PostalCode</span>
-                                    }
-                                    @if (!string.IsNullOrEmpty(Model.Company.Country))
-                                    {
-                                        <span><i class="fas fa-flag text-muted"></i> @Model.Company.Country</span>
-                                    }
+                        <div class="row g-3">
+                            @if (!string.IsNullOrEmpty(Model.Company.Address))
+                            {
+                                <div class="col-md-12">
+                                    <div class="info-item">
+                                        <label class="info-label">
+                                            <i class="fas fa-home text-muted me-2"></i>Adres
+                                        </label>
+                                        <div class="info-value">@Model.Company.Address</div>
+                                    </div>
+                                </div>
+                            }
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-city text-muted me-2"></i>Şehir
+                                    </label>
+                                    <div class="info-value">
+                                        @if (!string.IsNullOrEmpty(Model.Company.City))
+                                        {
+                                            <span>@Model.Company.City</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-map text-muted me-2"></i>İlçe
+                                    </label>
+                                    <div class="info-value">
+                                        @if (!string.IsNullOrEmpty(Model.Company.District))
+                                        {
+                                            <span>@Model.Company.District</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.Company.PostalCode) || !string.IsNullOrEmpty(Model.Company.Country))
+                            {
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <label class="info-label">
+                                            <i class="fas fa-mail-bulk text-muted me-2"></i>Posta Kodu
+                                        </label>
+                                        <div class="info-value">
+                                            @if (!string.IsNullOrEmpty(Model.Company.PostalCode))
+                                            {
+                                                <span>@Model.Company.PostalCode</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Belirtilmemiş</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <label class="info-label">
+                                            <i class="fas fa-flag text-muted me-2"></i>Ülke
+                                        </label>
+                                        <div class="info-value">
+                                            @if (!string.IsNullOrEmpty(Model.Company.Country))
+                                            {
+                                                <span>@Model.Company.Country</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Belirtilmemiş</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Contact Person Information -->
+            @if (!string.IsNullOrEmpty(Model.Company.ContactPerson))
+            {
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-tie text-primary me-2"></i>
+                            İletişim Kişisi
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-user text-muted me-2"></i>Yetkili Kişi
+                                    </label>
+                                    <div class="info-value">
+                                        <div class="d-flex align-items-center">
+                                            <div class="employee-avatar me-3">
+                                                @(Model.Company.ContactPerson?.Substring(0, 1).ToUpper())
+                                            </div>
+                                            <span>@Model.Company.ContactPerson</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-id-badge text-muted me-2"></i>Unvan
+                                    </label>
+                                    <div class="info-value">
+                                        @if (!string.IsNullOrEmpty(Model.Company.ContactTitle))
+                                        {
+                                            <span>@Model.Company.ContactTitle</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-envelope text-muted me-2"></i>E-posta
+                                    </label>
+                                    <div class="info-value">
+                                        @if (!string.IsNullOrEmpty(Model.Company.ContactEmail))
+                                        {
+                                            <a href="mailto:@Model.Company.ContactEmail" class="text-decoration-none">@Model.Company.ContactEmail</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-phone text-muted me-2"></i>Telefon
+                                    </label>
+                                    <div class="info-value">
+                                        @if (!string.IsNullOrEmpty(Model.Company.ContactPhone))
+                                        {
+                                            <a href="tel:@Model.Company.ContactPhone" class="text-decoration-none">@Model.Company.ContactPhone</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Belirtilmemiş</span>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -185,104 +337,58 @@
                 </div>
             }
 
-            <!-- İletişim Kişisi Card -->
-            @if (!string.IsNullOrEmpty(Model.Company.ContactPerson))
-            {
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0"><i class="fas fa-user-tie"></i> İletişim Kişisi</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <dl class="row">
-                                    <dt class="col-sm-6"><i class="fas fa-user text-muted"></i> Yetkili Kişi</dt>
-                                    <dd class="col-sm-6"><strong>@Model.Company.ContactPerson</strong></dd>
-
-                                    @if (!string.IsNullOrEmpty(Model.Company.ContactTitle))
-                                    {
-                                        <dt class="col-sm-6"><i class="fas fa-id-badge text-muted"></i> Unvan</dt>
-                                        <dd class="col-sm-6">@Model.Company.ContactTitle</dd>
-                                    }
-                                </dl>
-                            </div>
-                            <div class="col-md-6">
-                                <dl class="row">
-                                    @if (!string.IsNullOrEmpty(Model.Company.ContactEmail))
-                                    {
-                                        <dt class="col-sm-6"><i class="fas fa-envelope text-muted"></i> E-posta</dt>
-                                        <dd class="col-sm-6"><a
-                                                href="mailto:@Model.Company.ContactEmail">@Model.Company.ContactEmail</a></dd>
-                                    }
-
-                                    @if (!string.IsNullOrEmpty(Model.Company.ContactPhone))
-                                    {
-                                        <dt class="col-sm-6"><i class="fas fa-phone text-muted"></i> Telefon</dt>
-                                        <dd class="col-sm-6"><a
-                                                href="tel:@Model.Company.ContactPhone">@Model.Company.ContactPhone</a></dd>
-                                    }
-                                </dl>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <!-- Notlar Card -->
-            @if (!string.IsNullOrEmpty(Model.Company.Notes))
-            {
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0"><i class="fas fa-sticky-note"></i> Notlar</h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="mb-0">@Model.Company.Notes</p>
-                    </div>
-                </div>
-            }
-
-            <!-- Firmaya Ait Varlıklar -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="fas fa-box"></i> Firmaya Ait Varlıklar</h5>
+            <!-- Company Assets -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-box text-primary me-2"></i>
+                        Firmaya Ait Varlıklar
+                    </h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="accordion" id="companyAssetsAccordion">
-                        <!-- Çalışanlar -->
-                        <div class="accordion-item">
+                        <!-- Employees -->
+                        <div class="accordion-item border-0">
                             <h2 class="accordion-header" id="headingEmployees">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse"
                                     data-bs-target="#collapseEmployees">
                                     <i class="fas fa-users me-2 text-primary"></i>
                                     <strong>Çalışanlar</strong>
-                                    <span class="badge bg-primary rounded-pill ms-2">@Model.Employees.Count</span>
+                                    <span class="badge bg-primary rounded-pill ms-auto me-2">@Model.Employees.Count</span>
                                 </button>
                             </h2>
-                            <div id="collapseEmployees" class="accordion-collapse collapse"
+                            <div id="collapseEmployees" class="accordion-collapse collapse show"
                                 data-bs-parent="#companyAssetsAccordion">
                                 <div class="accordion-body">
                                     @if (Model.Employees.Any())
                                     {
                                         <div class="table-responsive">
-                                            <table class="table table-sm table-hover">
+                                            <table class="table table-hover">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th><i class="fas fa-user"></i> Ad Soyad</th>
-                                                        <th><i class="fas fa-envelope"></i> E-posta</th>
-                                                        <th><i class="fas fa-phone"></i> Telefon</th>
-                                                        <th><i class="fas fa-briefcase"></i> Departman</th>
-                                                        <th><i class="fas fa-toggle-on"></i> Durum</th>
+                                                        <th>Ad Soyad</th>
+                                                        <th>E-posta</th>
+                                                        <th>Telefon</th>
+                                                        <th>Durum</th>
+                                                        <th>İşlemler</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach (var employee in Model.Employees)
+                                                    @foreach (var employee in Model.Employees.Take(5))
                                                     {
                                                         <tr>
-                                                            <td><strong>@employee.FirstName @employee.LastName</strong></td>
+                                                            <td>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="employee-avatar-small me-2">
+                                                                        @(employee.FirstName?.Substring(0, 1).ToUpper())
+                                                                    </div>
+                                                                    <strong>@employee.FirstName @employee.LastName</strong>
+                                                                </div>
+                                                            </td>
                                                             <td>
                                                                 @if (!string.IsNullOrEmpty(employee.Email))
                                                                 {
-                                                                    <a href="mailto:@employee.Email">@employee.Email</a>
+                                                                    <a href="mailto:@employee.Email" class="text-decoration-none">@employee.Email</a>
                                                                 }
                                                                 else
                                                                 {
@@ -292,14 +398,13 @@
                                                             <td>
                                                                 @if (!string.IsNullOrEmpty(employee.Phone))
                                                                 {
-                                                                    <a href="tel:@employee.Phone">@employee.Phone</a>
+                                                                    <a href="tel:@employee.Phone" class="text-decoration-none">@employee.Phone</a>
                                                                 }
                                                                 else
                                                                 {
                                                                     <span class="text-muted">-</span>
                                                                 }
                                                             </td>
-
                                                             <td>
                                                                 @if (employee.IsActive)
                                                                 {
@@ -310,31 +415,46 @@
                                                                     <span class="badge bg-secondary">Pasif</span>
                                                                 }
                                                             </td>
+                                                            <td>
+                                                                <a asp-controller="Employee" asp-action="Details" asp-route-id="@employee.Id" 
+                                                                   class="btn btn-sm btn-outline-primary">
+                                                                    <i class="fas fa-eye"></i>
+                                                                </a>
+                                                            </td>
                                                         </tr>
                                                     }
                                                 </tbody>
                                             </table>
+                                            @if (Model.Employees.Count > 5)
+                                            {
+                                                <div class="text-center py-2">
+                                                    <a asp-controller="Employee" asp-action="Index" asp-route-companyId="@Model.Company.Id" 
+                                                       class="btn btn-outline-primary">
+                                                        Tüm Çalışanları Gör (@Model.Employees.Count)
+                                                    </a>
+                                                </div>
+                                            }
                                         </div>
                                     }
                                     else
                                     {
                                         <div class="text-center py-4 text-muted">
                                             <i class="fas fa-users fa-2x mb-2"></i>
-                                            <p><em>Bu firmada kayıtlı çalışan bulunmuyor.</em></p>
+                                            <p>Bu firmada kayıtlı çalışan bulunmuyor.</p>
                                         </div>
                                     }
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Bilgisayarlar -->
-                        <div class="accordion-item">
+                        <!-- Computers -->
+                        <div class="accordion-item border-0">
                             <h2 class="accordion-header" id="headingComputers">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse"
                                     data-bs-target="#collapseComputers">
                                     <i class="fas fa-laptop me-2 text-success"></i>
                                     <strong>Bilgisayarlar</strong>
-                                    <span class="badge bg-success rounded-pill ms-2">@Model.Computers.Count</span>
+                                    <span class="badge bg-success rounded-pill ms-auto me-2">@Model.Computers.Count</span>
                                 </button>
                             </h2>
                             <div id="collapseComputers" class="accordion-collapse collapse"
@@ -343,197 +463,59 @@
                                     @if (Model.Computers.Any())
                                     {
                                         <div class="table-responsive">
-                                            <table class="table table-sm table-hover">
+                                            <table class="table table-hover">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th><i class="fas fa-desktop"></i> Bilgisayar Adı</th>
-                                                        <th><i class="fas fa-tag"></i> Varlık Etiketi</th>
-                                                        <th><i class="fas fa-barcode"></i> Seri No</th>
-                                                        <th><i class="fas fa-user"></i> Atanan</th>
-                                                        <th><i class="fas fa-info-circle"></i> Durum</th>
+                                                        <th>Bilgisayar</th>
+                                                        <th>Varlık Etiketi</th>
+                                                        <th>Atanan</th>
+                                                        <th>Durum</th>
+                                                        <th>İşlemler</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach (var computer in Model.Computers)
+                                                    @foreach (var computer in Model.Computers.Take(5))
                                                     {
                                                         <tr>
                                                             <td><strong>@computer.Name</strong></td>
                                                             <td><code>@computer.AssetTag</code></td>
-                                                            <td><code>@computer.SerialNumber</code></td>
                                                             <td>
                                                                 @if (computer.AssignedEmployeeId.HasValue)
                                                                 {
-                                                                    <span>Atanmış</span>
+                                                                    <span class="badge bg-info">Atanmış</span>
                                                                 }
                                                                 else
                                                                 {
                                                                     <span class="text-muted">Atanmamış</span>
                                                                 }
                                                             </td>
-                                                            <td><span class="badge bg-info">@computer.Status</span></td>
+                                                            <td><span class="badge bg-primary">@computer.Status</span></td>
+                                                            <td>
+                                                                <a asp-controller="Computer" asp-action="Details" asp-route-id="@computer.Id" 
+                                                                   class="btn btn-sm btn-outline-primary">
+                                                                    <i class="fas fa-eye"></i>
+                                                                </a>
+                                                            </td>
                                                         </tr>
                                                     }
                                                 </tbody>
                                             </table>
+                                            @if (Model.Computers.Count > 5)
+                                            {
+                                                <div class="text-center py-2">
+                                                    <a asp-controller="Computer" asp-action="Index" asp-route-companyId="@Model.Company.Id" 
+                                                       class="btn btn-outline-primary">
+                                                        Tüm Bilgisayarları Gör (@Model.Computers.Count)
+                                                    </a>
+                                                </div>
+                                            }
                                         </div>
                                     }
                                     else
                                     {
                                         <div class="text-center py-4 text-muted">
                                             <i class="fas fa-laptop fa-2x mb-2"></i>
-                                            <p><em>Bu firmada kayıtlı bilgisayar bulunmuyor.</em></p>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Yazılımlar -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingSoftwares">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#collapseSoftwares">
-                                    <i class="fas fa-compact-disc me-2 text-warning"></i>
-                                    <strong>Yazılımlar</strong>
-                                    <span class="badge bg-warning rounded-pill ms-2">@Model.Software.Count</span>
-                                </button>
-                            </h2>
-                            <div id="collapseSoftwares" class="accordion-collapse collapse"
-                                data-bs-parent="#companyAssetsAccordion">
-                                <div class="accordion-body">
-                                    @if (Model.Software.Any())
-                                    {
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-hover">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th><i class="fas fa-code"></i> Yazılım Adı</th>
-                                                        <th><i class="fas fa-tag"></i> Marka</th>
-                                                        <th><i class="fas fa-user"></i> Atanan</th>
-                                                        <th><i class="fas fa-calendar"></i> Bitiş Tarihi</th>
-                                                        <th><i class="fas fa-info-circle"></i> Durum</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach (var software in Model.Software)
-                                                    {
-                                                        <tr>
-                                                            <td><strong>@software.Name</strong></td>
-                                                            <td><span class="badge bg-secondary">@software.Brand</span></td>
-                                                            <td>
-                                                                @if (software.AssignedEmployeeId.HasValue)
-                                                                {
-                                                                    <span>Atanmış</span>
-                                                                }
-                                                                else
-                                                                {
-                                                                    <span class="text-muted">Atanmamış</span>
-                                                                }
-                                                            </td>
-                                                            <td>
-                                                                @if (software.ExpiryDate.HasValue)
-                                                                {
-                                                                    <span>@software.ExpiryDate.Value.ToString("dd.MM.yyyy")</span>
-                                                                    @if (software.ExpiryDate < DateTime.Now)
-                                                                    {
-                                                                        <br>
-                                                        
-                                                                        <span class="badge bg-danger">Süresi Dolmuş</span>
-                                                                    }
-                                                                    else if (software.ExpiryDate <= DateTime.Now.AddDays(30))
-                                                                    {
-                                                                        <br>
-                                                        
-                                                                        <span class="badge bg-warning">Yakında Dolacak</span>
-                                                                    }
-                                                                }
-                                                                else
-                                                                {
-                                                                    <span class="text-muted">Belirtilmemiş</span>
-                                                                }
-                                                            </td>
-                                                            <td><span class="badge bg-warning">@software.Status</span></td>
-                                                        </tr>
-                                                    }
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="text-center py-4 text-muted">
-                                            <i class="fas fa-compact-disc fa-2x mb-2"></i>
-                                            <p><em>Bu firmada kayıtlı yazılım bulunmuyor.</em></p>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Sarf Malzemeleri -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingSupplies">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#collapseSupplies">
-                                    <i class="fas fa-mouse me-2 text-info"></i>
-                                    <strong>Sarf Malzemeleri</strong>
-                                    <span class="badge bg-info rounded-pill ms-2">@Model.Supplies.Count</span>
-                                </button>
-                            </h2>
-                            <div id="collapseSupplies" class="accordion-collapse collapse"
-                                data-bs-parent="#companyAssetsAccordion">
-                                <div class="accordion-body">
-                                    @if (Model.Supplies.Any())
-                                    {
-                                        <div class="table-responsive">
-                                            <table class="table table-sm table-hover">
-                                                <thead class="table-light">
-                                                    <tr>
-                                                        <th><i class="fas fa-box"></i> Malzeme Adı</th>
-                                                        <th><i class="fas fa-barcode"></i> Barkod</th>
-                                                        <th><i class="fas fa-layer-group"></i> Miktar</th>
-                                                        <th><i class="fas fa-user"></i> Atanan</th>
-                                                        <th><i class="fas fa-info-circle"></i> Durum</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach (var supply in Model.Supplies)
-                                                    {
-                                                        <tr>
-                                                            <td><strong>@supply.Name</strong></td>
-                                                            <td>
-                                                                @if (!string.IsNullOrEmpty(supply.SystemBarcode))
-                                                                {
-                                                                    <code>@supply.SystemBarcode</code>
-                                                                }
-                                                                else
-                                                                {
-                                                                    <span class="text-muted">Yok</span>
-                                                                }
-                                                            </td>
-                                                            <td><span class="badge bg-primary">1 adet</span></td>
-                                                            <td>
-                                                                @if (supply.AssignedEmployeeId.HasValue)
-                                                                {
-                                                                    <span>Atanmış</span>
-                                                                }
-                                                                else
-                                                                {
-                                                                    <span class="text-muted">Atanmamış</span>
-                                                                }
-                                                            </td>
-                                                            <td><span class="badge bg-info">@supply.Status</span></td>
-                                                        </tr>
-                                                    }
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="text-center py-4 text-muted">
-                                            <i class="fas fa-mouse fa-2x mb-2"></i>
-                                            <p><em>Bu firmada kayıtlı sarf malzemesi bulunmuyor.</em></p>
+                                            <p>Bu firmada kayıtlı bilgisayar bulunmuyor.</p>
                                         </div>
                                     }
                                 </div>
@@ -542,120 +524,282 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Description/Notes -->
+            @if (!string.IsNullOrEmpty(Model.Company.Description) || !string.IsNullOrEmpty(Model.Company.Notes))
+            {
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">
+                            <i class="fas fa-sticky-note text-primary me-2"></i>
+                            Notlar ve Açıklamalar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(Model.Company.Description))
+                        {
+                            <div class="info-item mb-3">
+                                <label class="info-label">
+                                    <i class="fas fa-info-circle text-muted me-2"></i>Açıklama
+                                </label>
+                                <div class="info-value">@Model.Company.Description</div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Company.Notes))
+                        {
+                            <div class="info-item">
+                                <label class="info-label">
+                                    <i class="fas fa-sticky-note text-muted me-2"></i>Notlar
+                                </label>
+                                <div class="info-value">@Model.Company.Notes</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
         </div>
 
-        <!-- Sidebar -->
+        <!-- Right Column - Quick Actions & Statistics -->
         <div class="col-lg-4">
-            <!-- Logo Card -->
+            <!-- Company Logo -->
             @if (!string.IsNullOrEmpty(Model.Company.LogoUrl))
             {
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0"><i class="fas fa-image"></i> Firma Logosu</h5>
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0">
+                            <i class="fas fa-image text-primary me-2"></i>
+                            Firma Logosu
+                        </h5>
                     </div>
                     <div class="card-body text-center">
-                        <img src="@Model.Company.LogoUrl" alt="@Model.Company.Name Logo" class="img-fluid"
-                            style="max-height: 150px;"
-                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <div style="display: none;">
-                            <i class="fas fa-building fa-4x text-muted"></i>
-                            <p class="text-muted mt-2">Logo yüklenemedi</p>
+                        <img src="@Model.Company.LogoUrl" alt="@Model.Company.Name Logo" class="img-fluid company-logo-large"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div style="display: none;" class="logo-fallback">
+                            <i class="fas fa-building fa-4x text-primary mb-2"></i>
+                            <p class="text-muted">Logo yüklenemedi</p>
                         </div>
                     </div>
                 </div>
             }
 
-            <!-- İstatistikler Card -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Varlık İstatistikleri</h5>
+            <!-- Quick Actions -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt text-primary me-2"></i>
+                        Hızlı İşlemler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.Company.Id" class="btn btn-warning btn-lg">
+                            <i class="fas fa-edit me-2"></i>Firmayı Düzenle
+                        </a>
+
+                        @if (!string.IsNullOrEmpty(Model.Company.Email))
+                        {
+                            <a href="mailto:@Model.Company.Email" class="btn btn-outline-primary">
+                                <i class="fas fa-envelope me-2"></i>E-posta Gönder
+                            </a>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.Company.Phone))
+                        {
+                            <a href="tel:@Model.Company.Phone" class="btn btn-outline-success">
+                                <i class="fas fa-phone me-2"></i>Ara
+                            </a>
+                        }
+
+                        <a asp-controller="Employee" asp-action="Create" asp-route-companyId="@Model.Company.Id"
+                           class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus me-2"></i>Çalışan Ekle
+                        </a>
+
+                        <a asp-controller="Computer" asp-action="Create" asp-route-companyId="@Model.Company.Id"
+                           class="btn btn-outline-success">
+                            <i class="fas fa-laptop me-2"></i>Bilgisayar Ekle
+                        </a>
+
+                        <button type="button" class="btn btn-outline-info" onclick="generateReport()">
+                            <i class="fas fa-file-alt me-2"></i>Rapor Oluştur
+                        </button>
+
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash me-2"></i>Sil
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar text-primary me-2"></i>
+                        Varlık İstatistikleri
+                    </h5>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
-                        <div class="col-6 mb-3">
-                            <div class="p-3 bg-primary bg-opacity-10 rounded">
-                                <h4 class="text-primary mb-1">@Model.Employees.Count</h4>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h4 class="text-primary mb-0">@Model.Employees.Count</h4>
                                 <small class="text-muted">Çalışan</small>
                             </div>
                         </div>
-                        <div class="col-6 mb-3">
-                            <div class="p-3 bg-success bg-opacity-10 rounded">
-                                <h4 class="text-success mb-1">@Model.Computers.Count</h4>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h4 class="text-success mb-0">@Model.Computers.Count</h4>
                                 <small class="text-muted">Bilgisayar</small>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="p-3 bg-warning bg-opacity-10 rounded">
-                                <h4 class="text-warning mb-1">@Model.Software.Count</h4>
+                            <div class="stat-item">
+                                <h4 class="text-warning mb-0">@Model.Software.Count</h4>
                                 <small class="text-muted">Yazılım</small>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="p-3 bg-info bg-opacity-10 rounded">
-                                <h4 class="text-info mb-1">@Model.Supplies.Count</h4>
+                            <div class="stat-item">
+                                <h4 class="text-info mb-0">@Model.Supplies.Count</h4>
                                 <small class="text-muted">Sarf Malzeme</small>
                             </div>
                         </div>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h4 class="text-secondary mb-0">@((DateTime.Now - Model.Company.CreatedDate).Days)</h4>
+                                <small class="text-muted">Gün Önce Eklendi</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h4 class="text-primary mb-0">
+                                    @(Model.Company.IsActive ? "✓" : "✗")
+                                </h4>
+                                <small class="text-muted">Durum</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Hızlı İşlemler</h5>
+            <!-- Activity Timeline -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history text-primary me-2"></i>
+                        Firma Aktiviteleri
+                    </h5>
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a asp-action="Edit" asp-route-id="@Model.Company.Id" class="btn btn-warning">
-                            <i class="fas fa-edit"></i> Firmayı Düzenle
-                        </a>
-                        <a asp-controller="Employee" asp-action="Create" asp-route-companyId="@Model.Company.Id"
-                            class="btn btn-primary">
-                            <i class="fas fa-user-plus"></i> Çalışan Ekle
-                        </a>
-                        <a asp-controller="Computer" asp-action="Create" asp-route-companyId="@Model.Company.Id"
-                            class="btn btn-success">
-                            <i class="fas fa-laptop"></i> Bilgisayar Ekle
-                        </a>
-                        <button type="button" class="btn btn-outline-info" onclick="generateReport()">
-                            <i class="fas fa-file-alt"></i> Rapor Oluştur
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="exportData()">
-                            <i class="fas fa-download"></i> Verileri İndir
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sistem Bilgileri -->
-            <div class="card mt-4 shadow-sm border-0 bg-light">
-                <div class="card-body">
-                    <h6 class="text-muted mb-3"><i class="fas fa-info-circle"></i> Sistem Bilgileri</h6>
-                    <div class="small">
-                        <div class="mb-2">
-                            <strong>Oluşturulma:</strong> @Model.Company.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                <div class="card-body p-0">
+                    <div class="timeline-logs px-3 py-2">
+                        <div class="log-entry border-bottom pb-2 mb-2">
+                            <div class="fw-bold">Firma kaydı oluşturuldu</div>
+                            <div class="text-muted small">@Model.Company.CreatedDate.ToString("dd.MM.yyyy HH:mm")</div>
                         </div>
                         @if (Model.Company.UpdatedDate != default(DateTime))
                         {
-                            <div class="mb-2">
-                                <strong>Son Güncelleme:</strong> @Model.Company.UpdatedDate.ToString("dd.MM.yyyy HH:mm")
+                            <div class="log-entry border-bottom pb-2 mb-2">
+                                <div class="fw-bold">Firma bilgileri güncellendi</div>
+                                <div class="text-muted small">@Model.Company.UpdatedDate.ToString("dd.MM.yyyy HH:mm")</div>
                             </div>
                         }
-                        @if (!string.IsNullOrEmpty(Model.Company.CreatedBy))
+                        @if (Model.Employees.Any())
                         {
-                            <div class="mb-2">
-                                <strong>Oluşturan:</strong> @Model.Company.CreatedBy
+                            <div class="log-entry border-bottom pb-2 mb-2">
+                                <div class="fw-bold">@Model.Employees.Count çalışan eklendi</div>
+                                <div class="text-muted small">Toplam personel sayısı</div>
                             </div>
                         }
-                        @if (!string.IsNullOrEmpty(Model.Company.UpdatedBy))
+                        @if (Model.Computers.Any())
                         {
-                            <div class="mb-2">
-                                <strong>Güncelleyen:</strong> @Model.Company.UpdatedBy
+                            <div class="log-entry border-bottom pb-2 mb-2">
+                                <div class="fw-bold">@Model.Computers.Count bilgisayar kayıtlandı</div>
+                                <div class="text-muted small">Donanım envanteri</div>
                             </div>
                         }
+                        <div class="log-entry pb-2 mb-2">
+                            <div class="fw-bold">Durum: @(Model.Company.IsActive ? "Aktif" : "Pasif")</div>
+                            <div class="text-muted small">Mevcut durum</div>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- System Information -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog text-primary me-2"></i>
+                        Sistem Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="info-item">
+                        <label class="info-label">
+                            <i class="fas fa-plus-circle text-muted me-2"></i>Oluşturan
+                        </label>
+                        <div class="info-value">@(Model.Company.CreatedBy ?? "Sistem")</div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Company.UpdatedBy))
+                    {
+                        <div class="info-item mt-3">
+                            <label class="info-label">
+                                <i class="fas fa-edit text-muted me-2"></i>Son Güncelleyen
+                            </label>
+                            <div class="info-value">@Model.Company.UpdatedBy</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>Firma Listesi
+                </a>
+                <div>
+                    <a asp-action="Edit" asp-route-id="@Model.Company.Id" class="btn btn-primary btn-lg me-2">
+                        <i class="fas fa-edit me-2"></i>Düzenle
+                    </a>
+                    <button type="button" class="btn btn-outline-info btn-lg me-2" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>Yazdır
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-lg" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="fas fa-trash me-2"></i>Sil
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Firmayı Sil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>@Model.Company.Name</strong> adlı firmayı silmek istediğinizden emin misiniz?</p>
+                <p class="text-muted">Bu işlem firmaya ait tüm çalışan ve varlık kayıtlarını da silecektir ve geri alınamaz.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form asp-action="Delete" asp-route-id="@Model.Company.Id" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Evet, Sil
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -687,46 +831,10 @@
             });
         }
 
-        // Export data function
-        function exportData() {
-            Swal.fire({
-                title: 'Veri Formatı Seçin',
-                text: 'Verileri hangi formatta indirmek istiyorsunuz?',
-                icon: 'info',
-                showCancelButton: true,
-                showDenyButton: true,
-                confirmButtonText: 'Excel (.xlsx)',
-                denyButtonText: 'PDF',
-                cancelButtonText: 'İptal',
-                confirmButtonColor: '#28a745',
-                denyButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '/Company/ExportToExcel/@Model.Company.Id';
-                } else if (result.isDenied) {
-                    window.location.href = '/Company/ExportToPdf/@Model.Company.Id';
-                }
-            });
-        }
-
         // Auto expand first accordion if there are items
         document.addEventListener('DOMContentLoaded', function () {
-            // Çalışanlar accordion'u varsayılan olarak açık
-            $('#collapseEmployees').addClass('show');
-
-            // Eğer başka varlıklar varsa onları da göster
-            @if (Model.Computers.Any())
-                {
-                    <text>
-                        setTimeout(() => {
-                            $('#collapseComputers').addClass('show');
-                        }, 100);
-                    </text>
-            }
-
-                // Logo error handling
-                const logoImg = document.querySelector('img[alt*="Logo"]');
+            // Logo error handling
+            const logoImg = document.querySelector('.company-logo-large');
             if (logoImg) {
                 logoImg.addEventListener('error', function () {
                     this.style.display = 'none';
@@ -736,110 +844,158 @@
                     }
                 });
             }
-
-            // Telefon linklerine click tracking
-            document.querySelectorAll('a[href^="tel:"]').forEach(link => {
-                link.addEventListener('click', function () {
-                    console.log('Telefon numarası arandı:', this.href);
-                });
-            });
-
-            // Email linklerine click tracking
-            document.querySelectorAll('a[href^="mailto:"]').forEach(link => {
-                link.addEventListener('click', function () {
-                    console.log('Email gönderildi:', this.href);
-                });
-            });
         });
-
-        // Smooth scroll to sections
-        function scrollToSection(sectionId) {
-            document.getElementById(sectionId).scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-
-        // Copy company info to clipboard
-        function copyCompanyInfo() {
-            const companyInfo = `
-    Firma: @Model.Company.Name
-    Email: @Model.Company.Email
-    Telefon: @Model.Company.Phone
-    Website: @Model.Company.Website
-    Adres: @Model.Company.Address, @Model.Company.District/@Model.Company.City
-                `.trim();
-
-            navigator.clipboard.writeText(companyInfo).then(() => {
-                Swal.fire({
-                    title: 'Kopyalandı!',
-                    text: 'Firma bilgileri panoya kopyalandı.',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-            });
-        }
     </script>
 }
 
 <style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .avatar-circle {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .company-logo-small {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 5px;
+    }
+
+    .company-logo-large {
+        max-height: 150px;
+        max-width: 100%;
+        object-fit: contain;
+    }
+
+    .logo-fallback {
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .info-item {
+        padding: 15px;
+        border-radius: 8px;
+        background: #f8f9fa;
+        height: 100%;
+    }
+
+    .info-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #212529;
+    }
+
+    .timeline-logs {
+        max-height: 208px;
+        overflow-y: auto;
+        background: #f7fafc;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .timeline-logs::-webkit-scrollbar {
+        width: 10px;
+        background: #e2e8f0;
+        border-radius: 10px;
+    }
+
+    .timeline-logs::-webkit-scrollbar-thumb {
+        background: linear-gradient(160deg, #007bff 30%, #54a0ff 100%);
+        border-radius: 10px;
+    }
+
+    .timeline-logs::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #0056b3, #007bff);
+    }
+
+    .log-entry:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .log-entry {
+        transition: background 0.2s;
+    }
+
+    .log-entry:hover {
+        background: #e3ebf6;
+    }
+
+    .stat-item {
+        padding: 10px;
+    }
+
+    .employee-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: white;
+        font-size: 0.875rem;
+    }
+
+    .employee-avatar-small {
+        width: 30px;
+        height: 30px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: white;
+        font-size: 0.75rem;
+    }
+
+    .accordion-button {
+        border: none;
+        border-radius: 8px !important;
+        margin-bottom: 5px;
+    }
+
     .accordion-button:not(.collapsed) {
         background-color: #f8f9fa;
         border-color: #dee2e6;
+        color: #212529;
+    }
+
+    .accordion-item {
+        border: none;
     }
 
     .table th {
         border-top: none;
         font-weight: 600;
         font-size: 0.875rem;
+        background-color: #f8f9fa !important;
     }
 
-    .breadcrumb {
-        background: none;
-        padding: 0;
-    }
-
-    .breadcrumb-item+.breadcrumb-item::before {
-        content: "›";
-        color: #6c757d;
-    }
-
-    .bg-opacity-10 {
-        background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
-    }
-
-    .card {
-        border: none;
-        border-radius: 10px;
-    }
-
-    .badge {
-        font-size: 0.75em;
-    }
-
-    .btn {
-        border-radius: 8px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    .btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    dl dt {
-        font-weight: 600;
-        color: #495057;
-    }
-
-    .logo-fallback {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 10px;
-        padding: 20px;
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
     }
 </style>

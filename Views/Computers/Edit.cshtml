@@ -1,916 +1,920 @@
 @model WebApplication1.Models.Computer
 @{
     ViewData["Title"] = "Bilgisayar Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     var companies = ViewBag.Companies as List<SelectListItem> ?? new List<SelectListItem>();
     var employees = ViewBag.Employees as List<SelectListItem> ?? new List<SelectListItem>();
 }
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.3/sweetalert2.min.css" rel="stylesheet">
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-2">
+                            <li class="breadcrumb-item">
+                                <a asp-action="Index" class="text-decoration-none">
+                                    <i class="fas fa-desktop me-1"></i>Bilgisayarlar
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a asp-action="Details" asp-route-id="@Model.Id" class="text-decoration-none">
+                                    @Model.Name
+                                </a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">Düzenle</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h2 mb-1 d-flex align-items-center">
+                        <i class="fas fa-desktop-edit text-success me-2" aria-hidden="true"></i>
+                        Bilgisayar Bilgilerini Düzenle
+                    </h1>
+                    <p class="text-muted mb-0">
+                        @Model.Name (#@Model.Id) bilgilerini güncelleyin
+                    </p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info">
+                        <i class="fas fa-eye me-1" aria-hidden="true"></i> Detayları Görüntüle
+                    </a>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-1" aria-hidden="true"></i> Listeye Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<style>
-    body {
-        background-color: #ffffff;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        color: #2c3e50;
-    }
-
-    .page-header {
-        padding: 2rem 0 1rem 0;
-        border-bottom: none;
-        background: transparent;
-    }
-
-    .page-title {
-        font-size: 2rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .page-title i {
-        color: #f39c12;
-        font-size: 1.8rem;
-    }
-
-    .page-subtitle {
-        color: #7f8c8d;
-        font-size: 1rem;
-        margin-top: 0.5rem;
-    }
-
-    .form-section {
-        background: white;
-        border-radius: 12px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        border: 1px solid #ecf0f1;
-    }
-
-    .section-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #ecf0f1;
-    }
-
-    .section-icon {
-        width: 40px;
-        height: 40px;
-        background: #f39c12;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        margin-right: 1rem;
-        font-size: 1.1rem;
-    }
-
-    .section-title {
-        margin: 0;
-        color: #2c3e50;
-        font-weight: 600;
-        font-size: 1.25rem;
-    }
-
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .form-label {
-        font-weight: 500;
-        color: #2c3e50;
-        margin-bottom: 0.5rem;
-        display: block;
-        font-size: 0.95rem;
-    }
-
-    .required {
-        color: #e74c3c;
-    }
-
-    .form-control, .form-select {
-        border: 2px solid #ecf0f1;
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
-        background-color: white;
-        width: 100%;
-    }
-
-    .form-control:focus, .form-select:focus {
-        outline: none;
-        border-color: #f39c12;
-        box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
-    }
-
-    .form-control::placeholder {
-        color: #bdc3c7;
-    }
-
-    .text-danger {
-        color: #e74c3c !important;
-        font-size: 0.85rem;
-        margin-top: 0.25rem;
-        display: block;
-    }
-
-    .help-text {
-        font-size: 0.8rem;
-        color: #7f8c8d;
-        margin-top: 0.25rem;
-    }
-
-    .info-badge {
-        background: #e8f4fd;
-        color: #2980b9;
-        padding: 0.75rem 1rem;
-        border-radius: 8px;
-        border-left: 4px solid #3498db;
-        margin-bottom: 1.5rem;
-        font-size: 0.9rem;
-    }
-
-    .info-badge i {
-        margin-right: 0.5rem;
-    }
-
-    .system-info {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .system-info-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #ecf0f1;
-    }
-
-    .system-info-item:last-child {
-        border-bottom: none;
-    }
-
-    .system-info-label {
-        font-weight: 500;
-        color: #7f8c8d;
-        font-size: 0.9rem;
-    }
-
-    .system-info-value {
-        color: #2c3e50;
-        font-size: 0.9rem;
-    }
-
-    .collapsible-section {
-        background: white;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        border: 1px solid #ecf0f1;
-        overflow: hidden;
-    }
-
-    .section-toggle {
-        width: 100%;
-        background: #f8f9fa;
-        border: none;
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .section-toggle:hover {
-        background: #ecf0f1;
-    }
-
-    .section-toggle.active {
-        background: #fff3cd;
-        color: #856404;
-    }
-
-    .toggle-content {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .toggle-icon-bg {
-        width: 32px;
-        height: 32px;
-        background: #f39c12;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 0.9rem;
-    }
-
-    .toggle-text h4 {
-        margin: 0;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #2c3e50;
-    }
-
-    .toggle-text small {
-        color: #7f8c8d;
-    }
-
-    .toggle-icon {
-        transition: transform 0.2s ease;
-        color: #7f8c8d;
-    }
-
-    .toggle-icon.rotated {
-        transform: rotate(180deg);
-    }
-
-    .section-content {
-        padding: 2rem;
-        border-top: 1px solid #ecf0f1;
-        background: white;
-    }
-
-    .sub-section-title {
-        color: #2c3e50;
-        font-weight: 600;
-        font-size: 1.1rem;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .action-buttons {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        border: 1px solid #ecf0f1;
-        display: flex;
-        gap: 1rem;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .btn {
-        border-radius: 8px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 500;
-        font-size: 0.95rem;
-        border: none;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: all 0.2s ease;
-    }
-
-    .btn-primary {
-        background: #f39c12;
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background: #e67e22;
-        color: white;
-        transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-        background: #ecf0f1;
-        color: #7f8c8d;
-    }
-
-    .btn-secondary:hover {
-        background: #d5dbdb;
-        color: #2c3e50;
-        transform: translateY(-1px);
-    }
-
-    .btn-info {
-        background: #3498db;
-        color: white;
-    }
-
-    .btn-info:hover {
-        background: #2980b9;
-        color: white;
-        transform: translateY(-1px);
-    }
-
-    .btn-danger {
-        background: #e74c3c;
-        color: white;
-    }
-
-    .btn-danger:hover {
-        background: #c0392b;
-        color: white;
-        transform: translateY(-1px);
-    }
-
-    .changed-field {
-        border-color: #f39c12 !important;
-        background-color: #fff8e1;
-    }
-
-    @@media (max-width: 768px) {
-        .action-buttons {
-            flex-direction: column;
-            gap: 0.75rem;
-        }
+    <!-- Form Section -->
+    <form asp-action="Edit" method="post" id="computerEditForm" novalidate>
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="CreatedDate" type="hidden" />
         
-        .btn {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-</style>
+        <div class="row">
+            <!-- Left Column - Form Fields -->
+            <div class="col-lg-8">
+                <!-- Basic Information Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 d-flex align-items-center">
+                                <i class="fas fa-desktop me-2 text-primary" aria-hidden="true"></i> 
+                                Temel Bilgiler
+                            </h5>
+                            <span class="badge bg-danger">Zorunlu Alanlar</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name" class="form-label fw-semibold">
+                                        <i class="fas fa-desktop text-muted me-1" aria-hidden="true"></i>
+                                        Bilgisayar Adı <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Name" class="form-control form-control-lg"
+                                           id="name" placeholder="DELL-PC-001" required>
+                                    <span asp-validation-for="Name" class="invalid-feedback"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Bilgisayarın sistem adını giriniz
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="assetTag" class="form-label fw-semibold">
+                                        <i class="fas fa-tag text-muted me-1" aria-hidden="true"></i>
+                                        Varlık Etiketi <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="AssetTag" class="form-control form-control-lg"
+                                           id="assetTag" placeholder="AST-2024-001" required>
+                                    <span asp-validation-for="AssetTag" class="invalid-feedback"></span>
+                                    <div class="form-text">
+                                        <i class="fas-shield-alt me-1 text-success"></i>
+                                        Benzersiz varlık etiketi kodu
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-<div class="container-fluid px-4">
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <h1 class="page-title">
-                    <i class="fas fa-edit"></i>
-                    Bilgisayar Düzenle
-                </h1>
-                <p class="page-subtitle">@Model.Name kaydını düzenleyin</p>
+                        <div class="row g-4 mt-2">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="serialNumber" class="form-label fw-semibold">
+                                        <i class="fas fa-barcode text-muted me-1" aria-hidden="true"></i>
+                                        Seri Numarası <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="SerialNumber" class="form-control form-control-lg"
+                                           id="serialNumber" placeholder="Üreticinin seri numarası" required>
+                                    <span asp-validation-for="SerialNumber" class="invalid-feedback"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Üretici tarafından verilen seri numarası
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="status" class="form-label fw-semibold">
+                                        <i class="fas fa-circle text-muted me-1" aria-hidden="true"></i>
+                                        Durum <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="Status" asp-items="Html.GetEnumSelectList<ComputerStatus>()" 
+                                            class="form-select form-select-lg" id="status" required>
+                                        <option value="">Durum seçiniz...</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="invalid-feedback"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Bilgisayarın mevcut çalışma durumu
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mt-2">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="brand" class="form-label fw-semibold">
+                                        <i class="fas fa-trademark text-muted me-1" aria-hidden="true"></i>
+                                        Marka
+                                    </label>
+                                    <input asp-for="Brand" class="form-control form-control-lg"
+                                           id="brand" placeholder="Dell, HP, Lenovo">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Bilgisayarın üretici markası
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="model" class="form-label fw-semibold">
+                                        <i class="fas fa-laptop text-muted me-1" aria-hidden="true"></i>
+                                        Model
+                                    </label>
+                                    <input asp-for="Model" class="form-control form-control-lg"
+                                           id="model" placeholder="OptiPlex 7090">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Bilgisayarın model adı
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="operatingSystem" class="form-label fw-semibold">
+                                        <i class="fab fa-windows text-muted me-1" aria-hidden="true"></i>
+                                        İşletim Sistemi
+                                    </label>
+                                    <input asp-for="OperatingSystem" class="form-control form-control-lg"
+                                           id="operatingSystem" placeholder="Windows 11 Pro">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Yüklü işletim sistemi
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Company & Employee Assignment Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 d-flex align-items-center">
+                                <i class="fas fa-users me-2 text-info" aria-hidden="true"></i> 
+                                Firma ve Zimmet Bilgileri
+                            </h5>
+                            <span class="badge bg-danger">Firma Zorunlu</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="companyId" class="form-label fw-semibold">
+                                        <i class="fas fa-building text-muted me-1" aria-hidden="true"></i>
+                                        Bağlı Firma <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="CompanyId" asp-items="companies" 
+                                            class="form-select form-select-lg" id="companyId" required>
+                                        <option value="">Firma seçiniz...</option>
+                                    </select>
+                                    <span asp-validation-for="CompanyId" class="invalid-feedback"></span>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Bilgisayarın ait olduğu firmayı seçiniz
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="assignedEmployeeId" class="form-label fw-semibold">
+                                        <i class="fas fa-user text-muted me-1" aria-hidden="true"></i>
+                                        Zimmetli Çalışan
+                                    </label>
+                                    <select asp-for="AssignedEmployeeId" asp-items="employees" 
+                                            class="form-select form-select-lg" id="assignedEmployeeId">
+                                        <option value="">Çalışan seçiniz...</option>
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Bilgisayarı kullanan çalışanı seçiniz (isteğe bağlı)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hardware Specifications Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 d-flex align-items-center">
+                                <i class="fas fa-microchip me-2 text-success" aria-hidden="true"></i> 
+                                Donanım Özellikleri
+                            </h5>
+                            <span class="badge bg-secondary">İsteğe Bağlı</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Processor Information -->
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="processorName" class="form-label fw-semibold">
+                                        <i class="fas fa-microchip text-muted me-1" aria-hidden="true"></i>
+                                        İşlemci Adı
+                                    </label>
+                                    <input asp-for="ProcessorName" class="form-control form-control-lg"
+                                           id="processorName" placeholder="Intel Core i7-12700">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Bilgisayarın işlemci model adı
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="processorSpeed" class="form-label fw-semibold">
+                                        <i class="fas fa-tachometer-alt text-muted me-1" aria-hidden="true"></i>
+                                        İşlemci Hızı
+                                    </label>
+                                    <input asp-for="ProcessorSpeed" class="form-control form-control-lg"
+                                           id="processorSpeed" placeholder="2.1 GHz">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Base clock hızı
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="processorCores" class="form-label fw-semibold">
+                                        <i class="fas fa-sitemap text-muted me-1" aria-hidden="true"></i>
+                                        Çekirdek Sayısı
+                                    </label>
+                                    <input asp-for="ProcessorCores" type="number" class="form-control form-control-lg"
+                                           id="processorCores" placeholder="8" min="1" max="128">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Fiziksel çekirdek sayısı
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Memory Information -->
+                        <div class="row g-4 mt-2">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="ramAmount" class="form-label fw-semibold">
+                                        <i class="fas fa-memory text-muted me-1" aria-hidden="true"></i>
+                                        RAM Miktarı (GB)
+                                    </label>
+                                    <input asp-for="RamAmount" type="number" class="form-control form-control-lg"
+                                           id="ramAmount" placeholder="16" min="1" max="1024">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Toplam sistem belleği
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="ramType" class="form-label fw-semibold">
+                                        <i class="fas fa-memory text-muted me-1" aria-hidden="true"></i>
+                                        RAM Tipi
+                                    </label>
+                                    <input asp-for="RamType" class="form-control form-control-lg"
+                                           id="ramType" placeholder="DDR4, DDR5">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Bellek teknolojisi
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="ramSpeed" class="form-label fw-semibold">
+                                        <i class="fas fa-bolt text-muted me-1" aria-hidden="true"></i>
+                                        RAM Hızı (MHz)
+                                    </label>
+                                    <input asp-for="RamSpeed" type="number" class="form-control form-control-lg"
+                                           id="ramSpeed" placeholder="3200" min="800" max="8000">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Bellek çalışma frekansı
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Storage & Graphics -->
+                        <div class="row g-4 mt-2">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="storageType" class="form-label fw-semibold">
+                                        <i class="fas fa-hdd text-muted me-1" aria-hidden="true"></i>
+                                        Depolama Tipi
+                                    </label>
+                                    <select asp-for="StorageType" asp-items="Html.GetEnumSelectList<StorageType>()" 
+                                            class="form-select form-select-lg" id="storageType">
+                                        <option value="">Tip seçiniz...</option>
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Depolama teknolojisi
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="storageSize" class="form-label fw-semibold">
+                                        <i class="fas fa-database text-muted me-1" aria-hidden="true"></i>
+                                        Depolama Boyutu (GB)
+                                    </label>
+                                    <input asp-for="StorageSize" type="number" class="form-control form-control-lg"
+                                           id="storageSize" placeholder="512" min="1" max="10000">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Toplam depolama kapasitesi
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="graphicsCard" class="form-label fw-semibold">
+                                        <i class="fas fa-display text-muted me-1" aria-hidden="true"></i>
+                                        Ekran Kartı
+                                    </label>
+                                    <input asp-for="GraphicsCard" class="form-control form-control-lg"
+                                           id="graphicsCard" placeholder="NVIDIA GeForce RTX 3060">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Grafik işlemci model adı
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Purchase & Warranty Information Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="fas fa-calendar-alt me-2 text-warning" aria-hidden="true"></i> 
+                            Satın Alma ve Garanti Bilgileri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="purchaseDate" class="form-label fw-semibold">
+                                        <i class="fas fa-shopping-cart text-muted me-1" aria-hidden="true"></i>
+                                        Satın Alma Tarihi
+                                    </label>
+                                    <input asp-for="PurchaseDate" type="date" class="form-control form-control-lg"
+                                           id="purchaseDate">
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Bilgisayarın satın alındığı tarih
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="warrantyEndDate" class="form-label fw-semibold">
+                                        <i class="fas fa-shield-alt text-muted me-1" aria-hidden="true"></i>
+                                        Garanti Bitiş Tarihi
+                                    </label>
+                                    <input asp-for="WarrantyEndDate" type="date" class="form-control form-control-lg"
+                                           id="warrantyEndDate">
+                                    @if (Model.WarrantyEndDate.HasValue)
+                                    {
+                                        @if (Model.IsWarrantyExpired)
+                                        {
+                                            <div class="form-text text-danger">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                Garanti süresi dolmuş
+                                            </div>
+                                        }
+                                        else if (Model.WarrantyDaysRemaining <= 30)
+                                        {
+                                            <div class="form-text text-warning">
+                                                <i class="fas fa-clock me-1"></i>
+                                                Garanti @Model.WarrantyDaysRemaining gün içinde dolacak
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="form-text text-success">
+                                                <i class="fas fa-check me-1"></i>
+                                                Garanti geçerli
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Garanti bitiş tarihi
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="fas fa-sticky-note me-2 text-secondary" aria-hidden="true"></i> 
+                            Notlar ve Açıklamalar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="description" class="form-label fw-semibold">
+                                <i class="fas fa-clipboard text-muted me-1" aria-hidden="true"></i>
+                                Açıklama ve Notlar
+                            </label>
+                            <textarea asp-for="Description" class="form-control form-control-lg" rows="4"
+                                      id="description" placeholder="Bilgisayar hakkında ek bilgiler, özel durumlar, notlar..."></textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Bilgisayar hakkında önemli notları ve özel durumları belirtiniz
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="d-flex gap-2">
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
-                    <i class="fas fa-eye"></i>
-                    Detayları Görüntüle
-                </a>
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i>
-                    Geri Dön
-                </a>
-            </div>
-        </div>
-    </div>
 
-    <!-- Info Badge -->
-    <div class="info-badge">
-        <i class="fas fa-info-circle"></i>
-        <strong>Bilgi:</strong> Bu sayfada mevcut bilgisayar kaydını düzenleyebilirsiniz. Değiştirmek istediğiniz alanları güncelleyin ve kaydedin.
-    </div>
-
-    <form asp-action="Edit" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="CreatedDate" />
-
-        <!-- Sistem Bilgileri -->
-        <div class="form-section">
-            <div class="section-header">
-                <div class="section-icon">
-                    <i class="fas fa-info-circle"></i>
-                </div>
-                <h3 class="section-title">Sistem Bilgileri</h3>
-            </div>
-
-            <div class="system-info">
-                <div class="system-info-item">
-                    <span class="system-info-label">Bilgisayar ID:</span>
-                    <span class="system-info-value">#@Model.Id</span>
-                </div>
-                <div class="system-info-item">
-                    <span class="system-info-label">Kayıt Tarihi:</span>
-                    <span class="system-info-value">@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</span>
-                </div>
-                @if (Model.LastUpdatedDate.HasValue)
-                {
-                    <div class="system-info-item">
-                        <span class="system-info-label">Son Güncelleme:</span>
-                        <span class="system-info-value">@Model.LastUpdatedDate?.ToString("dd.MM.yyyy HH:mm")</span>
+            <!-- Right Column - Actions & Info -->
+            <div class="col-lg-4">
+                <!-- Save Actions Card -->
+                <div class="card mb-4 shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="fas fa-save me-2 text-primary" aria-hidden="true"></i> 
+                            Kaydetme İşlemleri
+                        </h5>
                     </div>
-                }
-            </div>
-        </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-3">
+                            <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                                <i class="fas fa-save me-2" aria-hidden="true"></i>
+                                Değişiklikleri Kaydet
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                <i class="fas fa-undo me-2" aria-hidden="true"></i>
+                                Formu Sıfırla
+                            </button>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info w-100">
+                                        <i class="fas fa-eye me-1" aria-hidden="true"></i>
+                                        Detay
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                                        <i class="fas fa-list me-1" aria-hidden="true"></i>
+                                        Liste
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
 
-        <!-- Temel Bilgiler -->
-        <div class="form-section">
-            <div class="section-header">
-                <div class="section-icon">
-                    <i class="fas fa-desktop"></i>
-                </div>
-                <h3 class="section-title">Temel Bilgiler</h3>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label asp-for="Name" class="form-label">Bilgisayar Adı <span class="required">*</span></label>
-                        <input asp-for="Name" class="form-control" placeholder="Örn: DELL-PC-001" />
-                        <span asp-validation-for="Name" class="text-danger"></span>
+                        <div class="alert alert-info mt-3 mb-0">
+                            <small class="d-flex align-items-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span>
+                                    Formu kaydetmeden önce tüm zorunlu alanların doldurulduğundan emin olun.
+                                </span>
+                            </small>
+                        </div>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label asp-for="AssetTag" class="form-label">Varlık Etiketi <span class="required">*</span></label>
-                        <input asp-for="AssetTag" class="form-control" placeholder="Örn: AST-2024-001" />
-                        <span asp-validation-for="AssetTag" class="text-danger"></span>
+                <!-- Computer Statistics Card -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="fas fa-chart-pie me-2 text-success" aria-hidden="true"></i> 
+                            Bilgisayar İstatistikleri
+                        </h5>
                     </div>
-                </div>
-            </div>
+                    <div class="card-body">
+                        <div class="row text-center g-3">
+                            <div class="col-6">
+                                <div class="stat-item p-2 bg-light rounded">
+                                    <div class="h4 mb-1 text-primary">#@Model.Id</div>
+                                    <small class="text-muted">Bilgisayar ID</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item p-2 bg-light rounded">
+                                    <div class="h4 mb-1 text-info">@((DateTime.Now - Model.CreatedDate).Days)</div>
+                                    <small class="text-muted">Sistemde (Gün)</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item p-2 bg-light rounded">
+                                    @if (Model.Status == ComputerStatus.Aktif)
+                                    {
+                                        <div class="badge bg-success fs-6 px-3 py-2">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            Aktif
+                                        </div>
+                                    }
+                                    else if (Model.Status == ComputerStatus.Bakim)
+                                    {
+                                        <div class="badge bg-warning fs-6 px-3 py-2">
+                                            <i class="fas fa-tools me-1"></i>
+                                            Bakımda
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="badge bg-danger fs-6 px-3 py-2">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            @Model.Status
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item p-2 bg-light rounded">
+                                    @if (Model.WarrantyEndDate.HasValue)
+                                    {
+                                        @if (Model.IsWarrantyExpired)
+                                        {
+                                            <div class="badge bg-danger fs-6 px-3 py-2">
+                                                <i class="fas fa-times me-1"></i>
+                                                Dolmuş
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="badge bg-success fs-6 px-3 py-2">
+                                                <i class="fas fa-shield-alt me-1"></i>
+                                                Garanti
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="badge bg-secondary fs-6 px-3 py-2">
+                                            <i class="fas fa-question me-1"></i>
+                                            Belirsiz
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
 
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label asp-for="SerialNumber" class="form-label">Seri Numarası <span class="required">*</span></label>
-                        <input asp-for="SerialNumber" class="form-control" placeholder="Üreticinin seri numarası" />
-                        <span asp-validation-for="SerialNumber" class="text-danger"></span>
-                    </div>
-                </div>
+                        <hr class="my-3">
 
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label asp-for="Status" class="form-label">Durum <span class="required">*</span></label>
-                        <select asp-for="Status" asp-items="Html.GetEnumSelectList<ComputerStatus>()" class="form-select">
-                            <option value="">Durum seçin...</option>
-                        </select>
-                        <span asp-validation-for="Status" class="text-danger"></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label asp-for="Brand" class="form-label">Marka</label>
-                        <input asp-for="Brand" class="form-control" placeholder="Örn: Dell, HP, Lenovo" />
-                        <span asp-validation-for="Brand" class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label asp-for="Model" class="form-label">Model</label>
-                        <input asp-for="Model" class="form-control" placeholder="Örn: OptiPlex 7090" />
-                        <span asp-validation-for="Model" class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label asp-for="OperatingSystem" class="form-label">İşletim Sistemi</label>
-                        <input asp-for="OperatingSystem" class="form-control" placeholder="Örn: Windows 11 Pro" />
-                        <span asp-validation-for="OperatingSystem" class="text-danger"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Firma & Çalışan -->
-        <div class="form-section">
-            <div class="section-header">
-                <div class="section-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <h3 class="section-title">Firma & Çalışan Bilgileri</h3>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label asp-for="CompanyId" class="form-label">Firma <span class="required">*</span></label>
-                        <select asp-for="CompanyId" asp-items="companies" class="form-select">
-                            <option value="">Firma seçin...</option>
-                        </select>
-                        <span asp-validation-for="CompanyId" class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label asp-for="AssignedEmployeeId" class="form-label">Atanan Çalışan</label>
-                        <select asp-for="AssignedEmployeeId" asp-items="employees" class="form-select">
-                            <option value="">Çalışan seçin...</option>
-                        </select>
-                        <span asp-validation-for="AssignedEmployeeId" class="text-danger"></span>
-                        <div class="help-text">Bilgisayar bir çalışana atanmamışsa boş bırakabilirsiniz</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label asp-for="PurchaseDate" class="form-label">Satın Alma Tarihi</label>
-                        <input asp-for="PurchaseDate" type="date" class="form-control" />
-                        <span asp-validation-for="PurchaseDate" class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label asp-for="WarrantyEndDate" class="form-label">Garanti Bitiş Tarihi</label>
-                        <input asp-for="WarrantyEndDate" type="date" class="form-control" />
-                        <span asp-validation-for="WarrantyEndDate" class="text-danger"></span>
-                        @if (Model.WarrantyEndDate.HasValue)
-                        {
-                            @if (Model.IsWarrantyExpired)
+                        <div class="small text-muted">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Kayıt Tarihi:</span>
+                                <strong>@Model.CreatedDate.ToString("dd.MM.yyyy")</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Kayıt Saati:</span>
+                                <strong>@Model.CreatedDate.ToString("HH:mm")</strong>
+                            </div>
+                            @if (Model.LastUpdatedDate.HasValue)
                             {
-                                <div class="help-text text-danger">⚠️ Garanti süresi dolmuş</div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Son Güncelleme:</span>
+                                    <strong>@Model.LastUpdatedDate?.ToString("dd.MM.yyyy HH:mm")</strong>
+                                </div>
                             }
-                            else if (Model.WarrantyDaysRemaining <= 30)
-                            {
-                                <div class="help-text text-warning">⚠️ Garanti @Model.WarrantyDaysRemaining gün içinde dolacak</div>
-                            }
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Donanım Özellikleri (Collapsible) -->
-        <div class="collapsible-section">
-            <button type="button" class="section-toggle" onclick="toggleSection('hardware-section')">
-                <div class="toggle-content">
-                    <div class="toggle-icon-bg">
-                        <i class="fas fa-microchip"></i>
-                    </div>
-                    <div class="toggle-text">
-                        <h4>Donanım Özellikleri</h4>
-                        <small>Teknik detayları güncelleyin</small>
-                    </div>
-                </div>
-                <i class="fas fa-chevron-down toggle-icon"></i>
-            </button>
-            <div class="section-content" id="hardware-section" style="display: none;">
-                <!-- İşlemci Bilgileri -->
-                <h5 class="sub-section-title">
-                    <i class="fas fa-microchip"></i>
-                    İşlemci Bilgileri
-                </h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label asp-for="ProcessorName" class="form-label">İşlemci Adı</label>
-                            <input asp-for="ProcessorName" class="form-control" placeholder="Örn: Intel Core i7-12700" />
-                            <span asp-validation-for="ProcessorName" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label asp-for="ProcessorSpeed" class="form-label">İşlemci Hızı</label>
-                            <input asp-for="ProcessorSpeed" class="form-control" placeholder="Örn: 2.1 GHz" />
-                            <span asp-validation-for="ProcessorSpeed" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label asp-for="ProcessorCores" class="form-label">Çekirdek Sayısı</label>
-                            <input asp-for="ProcessorCores" type="number" class="form-control" min="1" max="128" placeholder="8" />
-                            <span asp-validation-for="ProcessorCores" class="text-danger"></span>
+                            <div class="d-flex justify-content-between">
+                                <span>Şu Anki Güncelleme:</span>
+                                <strong>@DateTime.Now.ToString("dd.MM.yyyy HH:mm")</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- RAM Bilgileri -->
-                <h5 class="sub-section-title">
-                    <i class="fas fa-memory"></i>
-                    Bellek (RAM) Bilgileri
-                </h5>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label asp-for="RamAmount" class="form-label">RAM Miktarı (GB)</label>
-                            <input asp-for="RamAmount" type="number" class="form-control" min="1" max="1024" placeholder="16" />
-                            <span asp-validation-for="RamAmount" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label asp-for="RamType" class="form-label">RAM Tipi</label>
-                            <input asp-for="RamType" class="form-control" placeholder="Örn: DDR4, DDR5" />
-                            <span asp-validation-for="RamType" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label asp-for="RamSpeed" class="form-label">RAM Hızı (MHz)</label>
-                            <input asp-for="RamSpeed" type="number" class="form-control" min="800" max="8000" placeholder="3200" />
-                            <span asp-validation-for="RamSpeed" class="text-danger"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Depolama Bilgileri -->
-                <h5 class="sub-section-title">
-                    <i class="fas fa-hdd"></i>
-                    Depolama Bilgileri
-                </h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label asp-for="StorageType" class="form-label">Depolama Tipi</label>
-                            <select asp-for="StorageType" asp-items="Html.GetEnumSelectList<StorageType>()" class="form-select">
-                                <option value="">Depolama tipi seçin...</option>
-                            </select>
-                            <span asp-validation-for="StorageType" class="text-danger"></span>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label asp-for="StorageSize" class="form-label">Depolama Boyutu (GB)</label>
-                            <input asp-for="StorageSize" type="number" class="form-control" min="1" max="10000" placeholder="512" />
-                            <span asp-validation-for="StorageSize" class="text-danger"></span>
-                        </div>
+                <!-- Help & Guidelines Card -->
+                <div class="card mb-4 shadow-sm border-start border-4 border-success">
+                    <div class="card-body">
+                        <h6 class="card-title text-success">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Form Rehberi
+                        </h6>
+                        <ul class="list-unstyled mb-0 small">
+                            <li class="mb-2">
+                                <i class="fas fa-asterisk text-danger me-2" style="font-size: 8px;"></i>
+                                Kırmızı yıldız (*) işareti olan alanlar zorunludur
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-desktop text-primary me-2"></i>
+                                Bilgisayar adı sistem içinde benzersiz olmalıdır
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-tag text-success me-2"></i>
+                                Varlık etiketi benzersiz bir kod olmalıdır
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-building text-info me-2"></i>
+                                Firma seçimi mutlaka yapılmalıdır
+                            </li>
+                            <li>
+                                <i class="fas fa-save text-warning me-2"></i>
+                                Değişiklikleri kaydetmeyi unutmayın
+                            </li>
+                        </ul>
                     </div>
                 </div>
-
-                <!-- Ekran Kartı -->
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label asp-for="GraphicsCard" class="form-label">Ekran Kartı</label>
-                            <input asp-for="GraphicsCard" class="form-control" placeholder="Örn: NVIDIA GeForce RTX 3060" />
-                            <span asp-validation-for="GraphicsCard" class="text-danger"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Açıklama -->
-        <div class="form-section">
-            <div class="section-header">
-                <div class="section-icon">
-                    <i class="fas fa-sticky-note"></i>
-                </div>
-                <h3 class="section-title">Açıklama</h3>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Description" class="form-label">Notlar ve Açıklamalar</label>
-                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Bilgisayar hakkında ek bilgiler, özel durumlar, notlar..."></textarea>
-                <span asp-validation-for="Description" class="text-danger"></span>
-                <div class="help-text">Bu alan isteğe bağlıdır. Bilgisayar hakkında önemli notları buraya yazabilirsiniz.</div>
-            </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <div class="d-flex gap-2">
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="fas fa-times"></i>
-                    İptal
-                </a>
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
-                    <i class="fas fa-eye"></i>
-                    Detaylar
-                </a>
-            </div>
-            <div class="d-flex gap-2">
-                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
-                    <i class="fas fa-trash"></i>
-                    Sil
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i>
-                    Değişiklikleri Kaydet
-                </button>
             </div>
         </div>
     </form>
+
+    <!-- Validation Summary -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-exclamation-triangle me-2 fs-4"></i>
+                        <h5 class="alert-heading mb-0">Form Hatası</h5>
+                    </div>
+                    <p class="mb-2">Lütfen aşağıdaki hataları düzeltin ve tekrar deneyin:</p>
+                    <div asp-validation-summary="ModelOnly" class="mb-0"></div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.3/sweetalert2.min.js"></script>
-    <script>
-        // Orijinal form verilerini sakla
-        const originalData = {};
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // Form yüklendiğinde orijinal değerleri sakla
-            document.querySelectorAll('.form-control, .form-select').forEach(input => {
-                originalData[input.name] = input.value;
-            });
-        });
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function initializeForm() {
+        var form = document.getElementById('computerEditForm');
+        var submitBtn = document.getElementById('submitBtn');
 
-        function toggleSection(sectionId) {
-            const section = document.getElementById(sectionId);
-            const toggle = section.previousElementSibling;
-            const icon = toggle.querySelector('.toggle-icon');
-            
-            if (section.style.display === 'none' || section.style.display === '') {
-                section.style.display = 'block';
-                toggle.classList.add('active');
-                icon.classList.add('rotated');
-            } else {
-                section.style.display = 'none';
-                toggle.classList.remove('active');
-                icon.classList.remove('rotated');
-            }
-        }
-
-        // Değişiklik takibi
-        document.querySelectorAll('.form-control, .form-select').forEach(input => {
-            input.addEventListener('input', function() {
-                if (originalData[this.name] !== this.value) {
-                    this.classList.add('changed-field');
-                } else {
-                    this.classList.remove('changed-field');
-                }
-            });
-        });
-
-        // Form validation enhancement
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const requiredFields = document.querySelectorAll('[required]');
-            let hasErrors = false;
-            
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    hasErrors = true;
-                    field.classList.add('is-invalid');
-                } else {
-                    field.classList.remove('is-invalid');
-                }
-            });
-            
-            if (hasErrors) {
+        if (form && submitBtn) {
+            form.addEventListener('submit', function(e) {
                 e.preventDefault();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Eksik Bilgiler',
-                    text: 'Lütfen zorunlu alanları doldurun.',
-                    confirmButtonColor: '#f39c12'
-                });
-                return;
-            }
-
-            // Değişiklik kontrolü
-            const hasChanges = document.querySelectorAll('.changed-field').length > 0;
-            
-            if (!hasChanges) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Değişiklik Yok',
-                    text: 'Henüz herhangi bir değişiklik yapmadınız.',
-                    confirmButtonColor: '#3498db'
-                });
-                return;
-            }
-
-            // Başarılı güncelleme için onay
-            Swal.fire({
-                icon: 'question',
-                title: 'Değişiklikleri Kaydet?',
-                text: 'Yaptığınız değişiklikleri kaydetmek istediğinizden emin misiniz?',
-                showCancelButton: true,
-                confirmButtonColor: '#f39c12',
-                cancelButtonColor: '#95a5a6',
-                confirmButtonText: 'Evet, Kaydet!',
-                cancelButtonText: 'İptal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Form submit edilecek
-                    this.submit();
-                } else {
-                    e.preventDefault();
-                }
-            });
-            
-            e.preventDefault(); // İlk submit'i engelle, SweetAlert sonrasında manuel submit
-        });
-
-        // Sayfa ayrılırken değişiklik uyarısı
-        let formChanged = false;
-        
-        document.querySelectorAll('.form-control, .form-select').forEach(input => {
-            input.addEventListener('change', function() {
-                formChanged = true;
-            });
-        });
-
-        window.addEventListener('beforeunload', function(e) {
-            if (formChanged && document.querySelectorAll('.changed-field').length > 0) {
-                e.preventDefault();
-                e.returnValue = 'Kaydedilmemiş değişiklikleriniz var. Sayfadan ayrılmak istediğinizden emin misiniz?';
-            }
-        });
-
-        // Silme butonu için onay
-        document.querySelector('.btn-danger').addEventListener('click', function(e) {
-            e.preventDefault();
-            const deleteUrl = this.href;
-            
-            Swal.fire({
-                title: 'Bilgisayarı Sil?',
-                text: "Bu bilgisayar kaydını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#e74c3c',
-                cancelButtonColor: '#95a5a6',
-                confirmButtonText: 'Evet, Sil!',
-                cancelButtonText: 'İptal',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = deleteUrl;
-                }
-            });
-        });
-
-        // Otomatik kaydetme özelliği (draft)
-        let autoSaveTimeout;
-        
-        document.querySelectorAll('.form-control, .form-select').forEach(input => {
-            input.addEventListener('input', function() {
-                clearTimeout(autoSaveTimeout);
-                autoSaveTimeout = setTimeout(saveDraft, 2000); // 2 saniye sonra kaydet
-            });
-        });
-
-        function saveDraft() {
-            const formData = {};
-            document.querySelectorAll('.form-control, .form-select').forEach(input => {
-                if (input.name) {
-                    formData[input.name] = input.value;
-                }
-            });
-            
-            localStorage.setItem('computerEditDraft_@Model.Id', JSON.stringify(formData));
-            
-            // Küçük bildirim göster
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #2ecc71;
-                color: white;
-                padding: 10px 20px;
-                border-radius: 5px;
-                font-size: 14px;
-                z-index: 9999;
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            `;
-            notification.textContent = '✓ Taslak kaydedildi';
-            document.body.appendChild(notification);
-            
-            setTimeout(() => notification.style.opacity = '1', 100);
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => document.body.removeChild(notification), 300);
-            }, 2000);
-        }
-
-        // Sayfa yüklendiğinde taslağı geri yükle
-        window.addEventListener('load', function() {
-            const draft = localStorage.getItem('computerEditDraft_@Model.Id');
-            if (draft) {
-                const data = JSON.parse(draft);
-                let hasLoadedData = false;
                 
-                Object.keys(data).forEach(key => {
-                    const input = document.querySelector(`[name="${key}"]`);
-                    if (input && data[key] && data[key] !== input.value) {
-                        input.value = data[key];
-                        input.classList.add('changed-field');
-                        hasLoadedData = true;
+                var name = document.getElementById('name').value.trim();
+                var assetTag = document.getElementById('assetTag').value.trim();
+                var serialNumber = document.getElementById('serialNumber').value.trim();
+                var status = document.getElementById('status').value;
+                var companyId = document.getElementById('companyId').value;
+
+                var isValid = true;
+                var errors = [];
+
+                if (!name) {
+                    errors.push('Bilgisayar adı zorunludur');
+                    isValid = false;
+                }
+
+                if (!assetTag) {
+                    errors.push('Varlık etiketi zorunludur');
+                    isValid = false;
+                }
+
+                if (!serialNumber) {
+                    errors.push('Seri numarası zorunludur');
+                    isValid = false;
+                }
+
+                if (!status) {
+                    errors.push('Durum seçimi zorunludur');
+                    isValid = false;
+                }
+
+                if (!companyId) {
+                    errors.push('Firma seçimi zorunludur');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Form Hatası',
+                        html: errors.join('<br>'),
+                        confirmButtonText: 'Tamam'
+                    });
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Değişiklikleri Kaydet?',
+                    text: 'Bilgisayar bilgileri güncellenecek.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Evet, Kaydet',
+                    cancelButtonText: 'İptal'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        submitBtn.innerHTML = 'Kaydediliyor...';
+                        submitBtn.disabled = true;
+                        form.submit();
                     }
                 });
-                
-                if (hasLoadedData) {
+            });
+        }
+    }
+
+    function resetForm() {
+        var form = document.getElementById('computerEditForm');
+        if (form) {
+            Swal.fire({
+                title: 'Formu Sıfırla?',
+                text: 'Tüm değişiklikler kaybolacak.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#fd7e14',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Evet, Sıfırla',
+                cancelButtonText: 'İptal'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    form.reset();
                     Swal.fire({
-                        icon: 'info',
-                        title: 'Taslak Bulundu',
-                        text: 'Daha önce kaydedilmiş bir taslak bulundu ve form alanları güncellendi.',
-                        confirmButtonColor: '#3498db',
-                        timer: 3000
+                        icon: 'success',
+                        title: 'Form Sıfırlandı',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
                     });
                 }
-            }
-        });
+            });
+        }
+    }
 
-        // Form başarıyla gönderildiğinde taslağı temizle
-        document.querySelector('form').addEventListener('submit', function() {
-            localStorage.removeItem('computerEditDraft_@Model.Id');
-        });
-    </script>
-}
+    document.addEventListener('DOMContentLoaded', initializeForm);
+</script>
+
+<style>
+    /* Custom CSS matching employee/company edit form design */
+    :root {
+        --primary-color: #0d6efd;
+        --success-color: #198754;
+        --warning-color: #fd7e14;
+        --danger-color: #dc3545;
+        --info-color: #0dcaf0;
+        --secondary-color: #6c757d;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --border-radius: 0.375rem;
+        --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        --transition: all 0.15s ease-in-out;
+    }
+
+    /* Card improvements */
+    .card {
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        box-shadow: var(--box-shadow);
+        transition: var(--transition);
+    }
+
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    /* Form improvements */
+    .form-control, .form-select {
+        border-radius: var(--border-radius);
+        border: 2px solid #e9ecef;
+        transition: var(--transition);
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+    }
+
+    .form-control.is-valid, .form-select.is-valid {
+        border-color: var(--success-color);
+    }
+
+    .form-control.is-invalid, .form-select.is-invalid {
+        border-color: var(--danger-color);
+    }
+
+    .form-control-lg, .form-select-lg {
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+    }
+
+    /* Button improvements */
+    .btn {
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        font-weight: 500;
+    }
+
+    .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-lg {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    /* Badge improvements */
+    .badge {
+        font-size: 0.75em;
+        font-weight: 500;
+        padding: 0.375rem 0.75rem;
+    }
+
+    /* Breadcrumb improvements */
+    .breadcrumb {
+        background: none;
+        padding: 0;
+        margin-bottom: 0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #6c757d;
+    }
+
+    /* Statistics item styling */
+    .stat-item {
+        transition: var(--transition);
+    }
+
+    .stat-item:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Sticky sidebar */
+    @@media (min-width: 992px) {
+        .sticky-top {
+            position: sticky;
+            top: 20px;
+            z-index: 1020;
+        }
+    }
+
+    /* Form group spacing */
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    /* Alert improvements */
+    .alert {
+        border: none;
+        border-radius: var(--border-radius);
+    }
+
+    /* Loading state */
+    .btn:disabled {
+        opacity: 0.6;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 991.98px) {
+        .col-lg-4 .sticky-top {
+            position: static;
+        }
+    }
+</style>

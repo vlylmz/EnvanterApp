@@ -1,381 +1,18 @@
 @model List<WebApplication1.Models.Computer>
 @{
     ViewData["Title"] = "Bilgisayar Yönetimi";
-    var totalComputers = Model.Count;
-    var activeComputers = Model.Count(c => c.Status == ComputerStatus.Aktif);
-    var passiveComputers = totalComputers - activeComputers;
     var successMessage = TempData["Success"] as string;
     var errorMessage = TempData["Error"] as string;
+    var searchValue = ViewBag.Search as string;
+    var statusValue = ViewBag.Status as string;
+    var companyIdValue = ViewBag.CompanyId as string;
+    var totalComputers = Model.Count;
+    var activeComputers = Model.Count(c => c.Status == ComputerStatus.Aktif);
+    var maintenanceComputers = Model.Count(c => c.Status == ComputerStatus.Bakim);
+    var thisMonthComputers = Model.Count(c => c.CreatedDate.Month == DateTime.Now.Month && c.CreatedDate.Year == DateTime.Now.Year);
 }
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.3/sweetalert2.min.css" rel="stylesheet">
-
-<style>
-    body {
-        background-color: #ffffff;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        color: #2c3e50;
-    }
-
-    .page-header {
-        padding: 2rem 0 1rem 0;
-        border-bottom: none;
-        background: transparent;
-    }
-
-    .page-title {
-        font-size: 2rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .page-title i {
-        color: #3498db;
-        font-size: 1.8rem;
-    }
-
-    .page-subtitle {
-        color: #7f8c8d;
-        font-size: 1rem;
-        margin-top: 0.5rem;
-    }
-
-    .stats-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background: white;
-        border-radius: 12px;
-        padding: 2rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        border: 1px solid #ecf0f1;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-    }
-
-    .stat-card.blue::before { background: #3498db; }
-    .stat-card.green::before { background: #2ecc71; }
-    .stat-card.gray::before { background: #95a5a6; }
-    .stat-card.teal::before { background: #1abc9c; }
-
-    .stat-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .stat-info h3 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin: 0;
-        color: #2c3e50;
-    }
-
-    .stat-info p {
-        margin: 0.5rem 0 0 0;
-        font-size: 1rem;
-        color: #7f8c8d;
-        font-weight: 500;
-    }
-
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-    }
-
-    .stat-icon.blue { background: #3498db; }
-    .stat-icon.green { background: #2ecc71; }
-    .stat-icon.gray { background: #95a5a6; }
-    .stat-icon.teal { background: #1abc9c; }
-
-    .controls-section {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        border: 1px solid #ecf0f1;
-    }
-
-    .search-section {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
-        align-items: center;
-    }
-
-    .search-input {
-        flex: 1;
-        padding: 0.75rem 1rem;
-        border: 2px solid #ecf0f1;
-        border-radius: 8px;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
-    }
-
-    .search-input:focus {
-        outline: none;
-        border-color: #3498db;
-        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-    }
-
-    .search-input::placeholder {
-        color: #bdc3c7;
-    }
-
-    .status-toggle {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .status-dropdown {
-        padding: 0.75rem 1rem;
-        border: 2px solid #ecf0f1;
-        border-radius: 8px;
-        background: white;
-        min-width: 180px;
-    }
-
-    .btn {
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 500;
-        font-size: 0.95rem;
-        border: none;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: all 0.2s ease;
-    }
-
-    .btn-primary {
-        background: #3498db;
-        color: white;
-    }
-
-    .btn-primary:hover {
-        background: #2980b9;
-        color: white;
-        transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-        background: #ecf0f1;
-        color: #7f8c8d;
-    }
-
-    .btn-secondary:hover {
-        background: #d5dbdb;
-        color: #2c3e50;
-    }
-
-    .btn-secondary.active {
-        background: #34495e;
-        color: white;
-    }
-
-    .filter-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .view-toggle {
-        display: flex;
-        background: #ecf0f1;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-
-    .data-section {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        border: 1px solid #ecf0f1;
-        overflow: hidden;
-    }
-
-    .data-header {
-        background: #f8f9fa;
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid #ecf0f1;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .data-title {
-        font-weight: 600;
-        color: #2c3e50;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .record-count {
-        background: #3498db;
-        color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-
-    .table {
-        margin: 0;
-        border: none;
-    }
-
-    .table th {
-        background: #f8f9fa;
-        color: #2c3e50;
-        font-weight: 600;
-        font-size: 0.9rem;
-        padding: 1rem 1.5rem;
-        border: none;
-        border-bottom: 1px solid #ecf0f1;
-    }
-
-    .table td {
-        padding: 1rem 1.5rem;
-        border: none;
-        border-bottom: 1px solid #f8f9fa;
-        vertical-align: middle;
-    }
-
-    .table tbody tr:hover {
-        background: #f8f9fa;
-    }
-
-    .status-badge {
-        padding: 0.4rem 0.8rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-    }
-
-    .status-badge.active {
-        background: #d5f4e6;
-        color: #2ecc71;
-    }
-
-    .status-badge.inactive {
-        background: #f5f6fa;
-        color: #95a5a6;
-    }
-
-    .employee-info {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .employee-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: #3498db;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        font-size: 0.8rem;
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .action-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: 6px;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-    }
-
-    .action-btn.view { background: #3498db; color: white; }
-    .action-btn.edit { background: #f39c12; color: white; }
-    .action-btn.delete { background: #e74c3c; color: white; }
-
-    .action-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-        color: #7f8c8d;
-    }
-
-    .empty-state i {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        color: #bdc3c7;
-    }
-
-    .empty-state h3 {
-        color: #2c3e50;
-        margin-bottom: 1rem;
-    }
-
-    @@media (max-width: 768px) {
-        .stats-container {
-            grid-template-columns: 1fr;
-        }
-        
-        .search-section {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        
-        .filter-actions {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-        }
-    }
-</style>
-
-<!-- Sweet Alert Messages -->
+<!-- Success/Error Messages -->
 @if (!string.IsNullOrEmpty(successMessage))
 {
     <script>
@@ -410,291 +47,886 @@
     </script>
 }
 
-<div class="container-fluid px-4">
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <h1 class="page-title">
-                    <i class="fas fa-desktop"></i>
-                    Bilgisayar Yönetimi
-                </h1>
-                <p class="page-subtitle">Sisteme kayıtlı bilgisayarları yönetin</p>
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="h2 mb-1 d-flex align-items-center">
+                        <i class="fas fa-desktop text-primary me-2" aria-hidden="true"></i>
+                        Bilgisayar Yönetimi
+                    </h1>
+                    <p class="text-muted mb-0">Sisteme kayıtlı bilgisayarları yönetin</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus me-1" aria-hidden="true"></i> Yeni Bilgisayar Ekle
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel me-1" aria-hidden="true"></i> Excel'e Aktar
+                    </button>
+                </div>
             </div>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="fas fa-plus"></i>
-                Yeni Bilgisayar Ekle
-            </a>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="stats-container">
-        <div class="stat-card blue">
-            <div class="stat-content">
-                <div class="stat-info">
-                    <h3>@totalComputers</h3>
-                    <p>Toplam Bilgisayar</p>
-                </div>
-                <div class="stat-icon blue">
-                    <i class="fas fa-desktop"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="stat-card green">
-            <div class="stat-content">
-                <div class="stat-info">
-                    <h3>@activeComputers</h3>
-                    <p>Aktif Bilgisayar</p>
-                </div>
-                <div class="stat-icon green">
-                    <i class="fas fa-check-circle"></i>
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Toplam Bilgisayar</h5>
+                            <h3 class="mb-0 fw-bold">@totalComputers</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-desktop fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="stat-card gray">
-            <div class="stat-content">
-                <div class="stat-info">
-                    <h3>@passiveComputers</h3>
-                    <p>Pasif Bilgisayar</p>
-                </div>
-                <div class="stat-icon gray">
-                    <i class="fas fa-pause-circle"></i>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Aktif Bilgisayar</h5>
+                            <h3 class="mb-0 fw-bold">@activeComputers</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-check-circle fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
-    </div>
-
-    <!-- Search and Filter Controls -->
-    <div class="controls-section">
-        <div class="search-section">
-            <input type="text" class="search-input" placeholder="🔍 Bilgisayar Adı veya Açıklama" id="searchInput">
-            
-            <div class="status-toggle">
-                <label>Durum</label>
-                <select class="status-dropdown" id="statusFilter">
-                    <option value="">Tüm Durumlar</option>
-                    @foreach (ComputerStatus status in Enum.GetValues<ComputerStatus>())
-                    {
-                        <option value="@status">@status</option>
-                    }
-                </select>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Bakımda</h5>
+                            <h3 class="mb-0 fw-bold">@maintenanceComputers</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-tools fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="filter-actions">
-            <div class="d-flex gap-2">
-                <button class="btn btn-primary" id="searchBtn">
-                    <i class="fas fa-search"></i>
-                    Ara
-                </button>
-                <button class="btn btn-secondary" id="clearBtn">
-                    <i class="fas fa-times"></i>
-                    Temizle
-                </button>
-            </div>
-
-            <div class="view-toggle">
-                <button class="btn btn-secondary active" data-view="table">
-                    <i class="fas fa-table"></i>
-                    Tablo
-                </button>
-                <button class="btn btn-secondary" data-view="cards">
-                    <i class="fas fa-th-large"></i>
-                    Kartlar
-                </button>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Bu Ay Eklenen</h5>
+                            <h3 class="mb-0 fw-bold">@thisMonthComputers</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-calendar-plus fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Data Section -->
-    <div class="data-section">
-        <div class="data-header">
-            <div class="data-title">
-                <i class="fas fa-list"></i>
-                Bilgisayar Listesi
-                <span class="record-count">@Model.Count kayıt</span>
+    <!-- Search and Filter Section -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0 d-flex align-items-center">
+                    <i class="fas fa-search me-2" aria-hidden="true"></i> Arama ve Filtreleme
+                </h2>
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#searchFilters" aria-expanded="true" aria-controls="searchFilters">
+                    <i class="fas fa-filter me-1" aria-hidden="true"></i> Filtreler
+                </button>
             </div>
         </div>
+        <div class="collapse show" id="searchFilters">
+            <div class="card-body">
+                <form method="get" asp-action="Index" id="searchForm" role="search">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-4 col-md-6">
+                            <label for="search" class="form-label">
+                                <i class="fas fa-desktop text-muted me-1" aria-hidden="true"></i>
+                                Bilgisayar Adı veya Varlık Etiketi
+                            </label>
+                            <input type="text" name="search" id="search" value="@searchValue" class="form-control"
+                                placeholder="Bilgisayar ara..." aria-describedby="searchHelp">
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label for="status" class="form-label">
+                                <i class="fas fa-circle text-muted me-1" aria-hidden="true"></i> Durum
+                            </label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">Tüm Durumlar</option>
+                                @foreach (ComputerStatus status in Enum.GetValues<ComputerStatus>())
+                                {
+                                    <option value="@status" selected="@(statusValue == status.ToString())">@status</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="companyId" class="form-label">
+                                <i class="fas fa-building text-muted me-1" aria-hidden="true"></i> Firma
+                            </label>
+                            <select name="companyId" id="companyId" class="form-select">
+                                <option value="">Tüm Firmalar</option>
+                                @if (ViewBag.Companies != null)
+                                {
+                                    @foreach (var company in ViewBag.Companies)
+                                    {
+                                        <option value="@company.Id" selected="@(companyIdValue == company.Id.ToString())">@company.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-fill" aria-label="Arama yap">
+                                    <i class="fas fa-search me-1" aria-hidden="true"></i> Ara
+                                </button>
+                                <a href="@Url.Action("Index")" class="btn btn-outline-secondary flex-fill"
+                                    aria-label="Filtreleri temizle">
+                                    <i class="fas fa-times me-1" aria-hidden="true"></i> Temizle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-        @if (Model.Any())
-        {
-            <div class="table-responsive">
-                <table class="table" id="computerTable">
-                    <thead>
-                        <tr>
-                            <th>
-                                <i class="fas fa-desktop me-2"></i>
-                                Bilgisayar Bilgileri
-                            </th>
-                            <th>
-                                <i class="fas fa-building me-2"></i>
-                                Firma
-                            </th>
-                            <th>
-                                <i class="fas fa-user me-2"></i>
-                                Zimmetli Çalışan
-                            </th>
-                            <th>
-                                <i class="fas fa-circle me-2"></i>
-                                Durum
-                            </th>
-                            <th>
-                                <i class="fas fa-calendar me-2"></i>
-                                Kayıt Tarihi
-                            </th>
-                            <th>
-                                <i class="fas fa-cog me-2"></i>
-                                İşlemler
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
+    <!-- Computers Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h2 class="h6 mb-0 d-flex align-items-center">
+                    <i class="fas fa-table me-2" aria-hidden="true"></i> Bilgisayar Listesi
+                    <span class="badge bg-primary ms-2">@totalComputers kayıt</span>
+                </h2>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Görünüm seçenekleri">
+                    <input type="radio" class="btn-check" name="viewType" id="tableViewRadio" autocomplete="off"
+                        checked>
+                    <label class="btn btn-outline-secondary" for="tableViewRadio" onclick="toggleView('table')">
+                        <i class="fas fa-table me-1" aria-hidden="true"></i> Tablo
+                    </label>
+
+                    <input type="radio" class="btn-check" name="viewType" id="cardsViewRadio" autocomplete="off">
+                    <label class="btn btn-outline-secondary" for="cardsViewRadio" onclick="toggleView('cards')">
+                        <i class="fas fa-th-large me-1" aria-hidden="true"></i> Kartlar
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <!-- Table View -->
+                <div id="tableView" class="table-responsive">
+                    <table class="table table-hover table-striped mb-0" role="table">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col">
+                                    <i class="fas fa-desktop me-1" aria-hidden="true"></i> Bilgisayar Bilgileri
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-building me-1" aria-hidden="true"></i> Firma
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-user me-1" aria-hidden="true"></i> Zimmetli Çalışan
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-circle me-1" aria-hidden="true"></i> Durum
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-calendar me-1" aria-hidden="true"></i> Kayıt Tarihi
+                                </th>
+                                <th scope="col" style="width: 200px;">
+                                    <i class="fas fa-cogs me-1" aria-hidden="true"></i> İşlemler
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var computer in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="computer-icon me-3" aria-hidden="true">
+                                                <i class="fas fa-desktop fa-2x text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-bold">@computer.Name</h6>
+                                                @if (!string.IsNullOrEmpty(computer.AssetTag))
+                                                {
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-tag me-1" aria-hidden="true"></i>
+                                                        @computer.AssetTag
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(computer.SerialNumber))
+                                                {
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-barcode me-1" aria-hidden="true"></i>
+                                                        @computer.SerialNumber
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (computer.Company != null)
+                                        {
+                                            <span class="badge bg-info">@computer.Company.Name</span>
+                                        }
+                                        else
+                                        {
+                                            <em class="text-muted">Firma atanmamış</em>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (computer.AssignedEmployee != null)
+                                        {
+                                            <div class="d-flex align-items-center">
+                                                <div class="employee-avatar me-2">
+                                                    @(computer.AssignedEmployee.FirstName?.Substring(0, 1).ToUpper())@(computer.AssignedEmployee.LastName?.Substring(0, 1).ToUpper())
+                                                </div>
+                                                <div>
+                                                    <div class="small fw-bold">@computer.AssignedEmployee.FirstName @computer.AssignedEmployee.LastName</div>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <em class="text-muted">Atanmamış</em>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (computer.Status == ComputerStatus.Aktif)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-circle me-1" aria-hidden="true"></i> Aktif
+                                            </span>
+                                        }
+                                        else if (computer.Status == ComputerStatus.Bakim)
+                                        {
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-tools me-1" aria-hidden="true"></i> Bakımda
+                                            </span>
+                                        }
+                                        else if (computer.Status == ComputerStatus.Arızalı)
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i> Arızalı
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-pause me-1" aria-hidden="true"></i> @computer.Status
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <time datetime="@computer.CreatedDate.ToString("yyyy-MM-dd")" class="small text-muted">
+                                            @computer.CreatedDate.ToString("dd.MM.yyyy")
+                                        </time>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group" aria-label="Bilgisayar işlemleri">
+                                            <a asp-action="Details" asp-route-id="@computer.Id"
+                                                class="btn btn-sm btn-outline-info"
+                                                title="@computer.Name detaylarını görüntüle" data-bs-toggle="tooltip">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                                <span class="visually-hidden">Detay</span>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@computer.Id"
+                                                class="btn btn-sm btn-outline-warning" title="@computer.Name bilgilerini düzenle"
+                                                data-bs-toggle="tooltip">
+                                                <i class="fas fa-edit" aria-hidden="true"></i>
+                                                <span class="visually-hidden">Düzenle</span>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                onclick="deleteComputer(@computer.Id, '@computer.Name')"
+                                                title="@computer.Name kaydını sil" data-bs-toggle="tooltip">
+                                                <i class="fas fa-trash" aria-hidden="true"></i>
+                                                <span class="visually-hidden">Sil</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Cards View -->
+                <div id="cardsView" style="display: none;" class="p-3">
+                    <div class="row g-3">
                         @foreach (var computer in Model)
                         {
-                            <tr>
-                                <td>
-                                    <div>
-                                        <strong>@computer.Name</strong>
-                                        @if (!string.IsNullOrEmpty(computer.AssetTag))
-                                        {
-                                            <br><small class="text-muted">@computer.AssetTag</small>
-                                        }
-                                    </div>
-                                </td>
-                                <td>@(computer.Company?.Name ?? "-")</td>
-                                <td>
-                                    @if (computer.AssignedEmployee != null)
-                                    {
-                                        <div class="employee-info">
-                                            <div class="employee-avatar">
-                                                @(computer.AssignedEmployee.FirstName?.Substring(0, 1).ToUpper())@(computer.AssignedEmployee.LastName?.Substring(0, 1).ToUpper())
+                            <div class="col-lg-4 col-md-6 col-12">
+                                <div class="card h-100 computer-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start justify-content-between mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="computer-icon-lg me-3" aria-hidden="true">
+                                                    <i class="fas fa-desktop fa-2x text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="card-title mb-1 fw-bold">@computer.Name</h6>
+                                                    <small class="text-muted">
+                                                        <time datetime="@computer.CreatedDate.ToString("yyyy-MM-dd")">
+                                                            @computer.CreatedDate.ToString("dd.MM.yyyy")
+                                                        </time>
+                                                    </small>
+                                                </div>
                                             </div>
-                                            <span>@computer.AssignedEmployee.FirstName @computer.AssignedEmployee.LastName</span>
+                                            @if (computer.Status == ComputerStatus.Aktif)
+                                            {
+                                                <span class="badge bg-success">Aktif</span>
+                                            }
+                                            else if (computer.Status == ComputerStatus.Bakim)
+                                            {
+                                                <span class="badge bg-warning">Bakımda</span>
+                                            }
+                                            else if (computer.Status == ComputerStatus.Arızalı)
+                                            {
+                                                <span class="badge bg-danger">Arızalı</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@computer.Status</span>
+                                            }
                                         </div>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">Atanmamış</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (computer.Status == ComputerStatus.Aktif)
-                                    {
-                                        <span class="status-badge active">
-                                            <i class="fas fa-circle"></i>
-                                            Aktif
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="status-badge inactive">
-                                            <i class="fas fa-circle"></i>
-                                            @computer.Status
-                                        </span>
-                                    }
-                                </td>
-                                <td>@computer.CreatedDate.ToString("dd.MM.yyyy")</td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a asp-action="Details" asp-route-id="@computer.Id" class="action-btn view" title="Detaylar">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a asp-action="Edit" asp-route-id="@computer.Id" class="action-btn edit" title="Düzenle">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a asp-action="Delete" asp-route-id="@computer.Id" class="action-btn delete delete-btn" title="Sil">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
+
+                                        <div class="mb-3">
+                                            @if (!string.IsNullOrEmpty(computer.AssetTag))
+                                            {
+                                                <div class="small mb-1">
+                                                    <i class="fas fa-tag text-muted me-2" aria-hidden="true"></i>
+                                                    <code>@computer.AssetTag</code>
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(computer.SerialNumber))
+                                            {
+                                                <div class="small mb-1">
+                                                    <i class="fas fa-barcode text-muted me-2" aria-hidden="true"></i>
+                                                    <code>@computer.SerialNumber</code>
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <div class="mb-3">
+                                            @if (computer.Company != null)
+                                            {
+                                                <div class="small mb-2">
+                                                    <i class="fas fa-building text-muted me-2" aria-hidden="true"></i>
+                                                    <span class="badge bg-info">@computer.Company.Name</span>
+                                                </div>
+                                            }
+                                            @if (computer.AssignedEmployee != null)
+                                            {
+                                                <div class="small mb-1">
+                                                    <i class="fas fa-user text-muted me-2" aria-hidden="true"></i>
+                                                    <div class="d-inline-flex align-items-center">
+                                                        <div class="employee-avatar-small me-2">
+                                                            @(computer.AssignedEmployee.FirstName?.Substring(0, 1).ToUpper())@(computer.AssignedEmployee.LastName?.Substring(0, 1).ToUpper())
+                                                        </div>
+                                                        <span>@computer.AssignedEmployee.FirstName @computer.AssignedEmployee.LastName</span>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                                            <div class="btn-group btn-group-sm w-100" role="group" aria-label="Bilgisayar işlemleri">
+                                                <a asp-action="Details" asp-route-id="@computer.Id"
+                                                    class="btn btn-outline-info flex-fill" title="Detayları görüntüle"
+                                                    data-bs-toggle="tooltip">
+                                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@computer.Id"
+                                                    class="btn btn-outline-warning flex-fill" title="Düzenle"
+                                                    data-bs-toggle="tooltip">
+                                                    <i class="fas fa-edit" aria-hidden="true"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger flex-fill"
+                                                    onclick="deleteComputer(@computer.Id, '@computer.Name')" title="Sil"
+                                                    data-bs-toggle="tooltip">
+                                                    <i class="fas fa-trash" aria-hidden="true"></i>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                </td>
-                            </tr>
+                                </div>
+                            </div>
                         }
-                    </tbody>
-                </table>
-            </div>
-        }
-        else
-        {
-            <div class="empty-state">
-                <i class="fas fa-desktop"></i>
-                <h3>Henüz bilgisayar kaydı yok</h3>
-                <p>İlk bilgisayarınızı eklemek için yukarıdaki "Yeni Bilgisayar Ekle" butonunu kullanın.</p>
-            </div>
-        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-desktop fa-3x text-muted mb-3" aria-hidden="true"></i>
+                    <h3 class="h5 text-muted">Bilgisayar Bulunamadı</h3>
+                    @if (!string.IsNullOrEmpty(searchValue) || !string.IsNullOrEmpty(statusValue) || !string.IsNullOrEmpty(companyIdValue))
+                    {
+                        <p class="text-muted">Arama kriterlerinize uygun bilgisayar bulunmuyor.</p>
+                        <a href="@Url.Action("Index")" class="btn btn-outline-primary">
+                            <i class="fas fa-times me-1" aria-hidden="true"></i> Filtreleri Temizle
+                        </a>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Henüz sisteme bilgisayar eklenmemiş.</p>
+                        <a asp-action="Create" class="btn btn-primary">
+                            <i class="fas fa-plus me-1" aria-hidden="true"></i> İlk Bilgisayarı Ekle
+                        </a>
+                    }
+                </div>
+            }
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.3/sweetalert2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Arama fonksiyonu
-        document.getElementById('searchInput').addEventListener('input', function() {
-            filterTable();
-        });
+        // Global variables for view management
+        let currentViewType = 'table';
 
-        document.getElementById('statusFilter').addEventListener('change', function() {
-            filterTable();
-        });
+        // Delete computer function
+        function deleteComputer(computerId, computerName) {
+            Swal.fire({
+                title: 'Bilgisayarı Sil?',
+                html: `<strong>${computerName}</strong> bilgisayarı silinecek.<br>Bu işlem geri alınamaz!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash"></i> Evet, Sil',
+                cancelButtonText: '<i class="fas fa-times"></i> İptal',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Siliniyor...',
+                        html: 'Lütfen bekleyin...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
 
-        function filterTable() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
-            const tableRows = document.querySelectorAll('#computerTable tbody tr');
-            
-            tableRows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                const matchesSearch = text.includes(searchTerm);
-                const matchesStatus = !statusFilter || text.includes(statusFilter);
-                
-                row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+                    // Create form and submit
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/Computer/Delete/${computerId}`;
+
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (token) {
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '__RequestVerificationToken';
+                        tokenInput.value = token.value;
+                        form.appendChild(tokenInput);
+                    }
+
+                    document.body.appendChild(form);
+                    form.submit();
+                }
             });
         }
 
-        // Temizle butonu
-        document.getElementById('clearBtn').addEventListener('click', function() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('statusFilter').value = '';
-            filterTable();
-        });
+        // Toggle between table and cards view
+        function toggleView(viewType) {
+            const tableView = document.getElementById('tableView');
+            const cardsView = document.getElementById('cardsView');
+            const tableRadio = document.getElementById('tableViewRadio');
+            const cardsRadio = document.getElementById('cardsViewRadio');
 
-        // Silme işlemi için SweetAlert
-        document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                const deleteUrl = this.href;
-                
-                Swal.fire({
-                    title: 'Emin misiniz?',
-                    text: "Bu bilgisayarı silmek istediğinizden emin misiniz?",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#e74c3c',
-                    cancelButtonColor: '#95a5a6',
-                    confirmButtonText: 'Evet, Sil!',
-                    cancelButtonText: 'İptal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = deleteUrl;
-                    }
+            if (viewType === 'table') {
+                tableView.style.display = 'block';
+                cardsView.style.display = 'none';
+                tableRadio.checked = true;
+                cardsRadio.checked = false;
+                currentViewType = 'table';
+            } else {
+                tableView.style.display = 'none';
+                cardsView.style.display = 'block';
+                tableRadio.checked = false;
+                cardsRadio.checked = true;
+                currentViewType = 'cards';
+            }
+
+            // Save preference to session storage
+            try {
+                sessionStorage.setItem('computerViewType', viewType);
+            } catch (e) {
+                // Silently handle storage errors
+            }
+        }
+
+        // Export to Excel function
+        function exportToExcel() {
+            Swal.fire({
+                title: 'Excel\'e Aktar',
+                text: 'Bilgisayar listesi Excel dosyası olarak indirilecek.',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-download"></i> İndir',
+                cancelButtonText: 'İptal',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Hazırlanıyor...',
+                        html: 'Excel dosyası hazırlanıyor, lütfen bekleyin...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Simulate file preparation time
+                    setTimeout(() => {
+                        window.location.href = '/Computer/ExportToExcel';
+                        Swal.close();
+                    }, 1000);
+                }
+            });
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    delay: { show: 500, hide: 100 }
                 });
             });
-        });
 
-        // View toggle
-        document.querySelectorAll('[data-view]').forEach(button => {
-            button.addEventListener('click', function() {
-                document.querySelectorAll('[data-view]').forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Kart görünümü için gelecekte kullanılabilir
-                if (this.dataset.view === 'cards') {
-                    console.log('Kart görünümü aktif');
+            // Load saved view type
+            try {
+                const savedViewType = sessionStorage.getItem('computerViewType') || 'table';
+                toggleView(savedViewType);
+            } catch (e) {
+                toggleView('table');
+            }
+
+            // Auto-submit search form on select change
+            const statusSelect = document.getElementById('status');
+            const companySelect = document.getElementById('companyId');
+            
+            if (statusSelect) {
+                statusSelect.addEventListener('change', function () {
+                    document.getElementById('searchForm').submit();
+                });
+            }
+
+            if (companySelect) {
+                companySelect.addEventListener('change', function () {
+                    document.getElementById('searchForm').submit();
+                });
+            }
+
+            // Real-time search with debounce
+            const searchInput = document.getElementById('search');
+            if (searchInput) {
+                let searchTimeout;
+                searchInput.addEventListener('input', function () {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        document.getElementById('searchForm').submit();
+                    }, 1000);
+                });
+            }
+
+            // Prevent form submission on Enter key in search field to allow debounce to work
+            searchInput?.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('searchForm').submit();
+                }
+            });
+
+            // Focus management for accessibility
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('search') || urlParams.has('status') || urlParams.has('companyId')) {
+                const firstResult = document.querySelector('#tableView tbody tr:first-child a, #cardsView .card:first-child a');
+                if (firstResult) {
+                    setTimeout(() => firstResult.focus(), 100);
+                }
+            }
+
+            // Handle keyboard navigation for accessibility
+            document.addEventListener('keydown', function (e) {
+                // Alt + T for table view
+                if (e.altKey && e.key === 't') {
+                    e.preventDefault();
+                    toggleView('table');
+                }
+                // Alt + C for cards view
+                if (e.altKey && e.key === 'c') {
+                    e.preventDefault();
+                    toggleView('cards');
+                }
+                // Alt + N for new computer
+                if (e.altKey && e.key === 'n') {
+                    e.preventDefault();
+                    const newComputerBtn = document.querySelector('a[asp-action="Create"]');
+                    if (newComputerBtn) {
+                        newComputerBtn.click();
+                    }
                 }
             });
         });
+
+        // Handle responsive behavior
+        function handleResponsiveChanges() {
+            const isMobile = window.innerWidth < 768;
+
+            if (isMobile && currentViewType === 'table') {
+                // Auto-switch to cards view on mobile for better UX
+                toggleView('cards');
+            }
+        }
+
+        // Listen for window resize
+        window.addEventListener('resize', debounce(handleResponsiveChanges, 250));
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Loading state management
+        function showLoading(message = 'İşlem gerçekleştiriliyor...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+
+        function hideLoading() {
+            Swal.close();
+        }
+
+        // Error handling
+        window.addEventListener('error', function (e) {
+            console.error('JavaScript error:', e.error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Bir hata oluştu',
+                text: 'Sayfa yenilendiğinde sorun devam ederse sistem yöneticisine başvurun.',
+                confirmButtonText: 'Tamam'
+            });
+        });
     </script>
+
+    <style>
+        /* Custom CSS matching company management design */
+        :root {
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --warning-color: #fd7e14;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+            --secondary-color: #6c757d;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --border-radius: 0.375rem;
+            --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --box-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+            --transition: all 0.15s ease-in-out;
+        }
+
+        /* General improvements */
+        .card {
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        /* Statistics cards */
+        .card.bg-primary,
+        .card.bg-success,
+        .card.bg-warning,
+        .card.bg-info {
+            border: none;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+        }
+
+        /* Computer icons */
+        .computer-icon {
+            width: 60px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .computer-icon-lg {
+            width: 60px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Employee avatars */
+        .employee-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-align: center;
+        }
+
+        .employee-avatar-small {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.65rem;
+            text-align: center;
+        }
+
+        /* Computer cards */
+        .computer-card {
+            transition: var(--transition);
+            border: 1px solid #e9ecef;
+            height: 100%;
+            position: relative;
+        }
+
+        .computer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .computer-card .card-body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Button improvements */
+        .btn {
+            transition: var(--transition);
+            border-radius: var(--border-radius);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-group .btn {
+            border-radius: 0;
+        }
+
+        .btn-group .btn:first-child {
+            border-top-left-radius: var(--border-radius);
+            border-bottom-left-radius: var(--border-radius);
+        }
+
+        .btn-group .btn:last-child {
+            border-top-right-radius: var(--border-radius);
+            border-bottom-right-radius: var(--border-radius);
+        }
+
+        /* Table improvements */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            background-color: var(--light-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .table-striped>tbody>tr:nth-of-type(odd)>td {
+            background-color: rgba(0, 0, 0, 0.025);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.075);
+        }
+
+        /* Badge improvements */
+        .badge {
+            font-size: 0.75em;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Search and filter section */
+        .collapse {
+            transition: var(--transition);
+        }
+
+        /* Form improvements */
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
 }
