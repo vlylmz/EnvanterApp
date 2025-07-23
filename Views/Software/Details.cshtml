@@ -1,0 +1,470 @@
+@model WebApplication1.Models.Software
+
+@{
+    ViewData["Title"] = "Yazılım Lisansı Detayları";
+    
+    string statusBadgeClass = Model.Status switch
+    {
+        SoftwareStatus.Active => "bg-success",
+        SoftwareStatus.Approaching => "bg-warning text-dark",
+        SoftwareStatus.Expired => "bg-danger",
+        _ => "bg-secondary"
+    };
+    
+    string statusIcon = Model.Status switch
+    {
+        SoftwareStatus.Active => "fas fa-check-circle",
+        SoftwareStatus.Approaching => "fas fa-exclamation-triangle",
+        SoftwareStatus.Expired => "fas fa-times-circle",
+        _ => "fas fa-question-circle"
+    };
+    
+    string statusText = Model.Status switch
+    {
+        SoftwareStatus.Active => "Aktif",
+        SoftwareStatus.Approaching => "Süresi Yaklaşıyor",
+        SoftwareStatus.Expired => "Süresi Dolmuş",
+        _ => "Bilinmiyor"
+    };
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-desktop text-primary me-2"></i>
+                        @Model.Name
+                    </h2>
+                    <p class="text-muted mb-0">@Model.Brand</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                        <i class="fas fa-edit me-1"></i>
+                        Düzenle
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Geri Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Ana Bilgiler -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Yazılım Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-item mb-3">
+                                <label class="detail-label">
+                                    <i class="fas fa-desktop me-1"></i>
+                                    Yazılım Adı
+                                </label>
+                                <div class="detail-value">@Model.Name</div>
+                            </div>
+                            
+                            <div class="detail-item mb-3">
+                                <label class="detail-label">
+                                    <i class="fas fa-tag me-1"></i>
+                                    Marka
+                                </label>
+                                <div class="detail-value">@Model.Brand</div>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                <div class="detail-item mb-3">
+                                    <label class="detail-label">
+                                        <i class="fas fa-info me-1"></i>
+                                        Açıklama
+                                    </label>
+                                    <div class="detail-value">@Model.Description</div>
+                                </div>
+                            }
+                            
+                            <div class="detail-item mb-3">
+                                <label class="detail-label">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Süre
+                                </label>
+                                <div class="detail-value">@Model.Duration</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            @if (!string.IsNullOrEmpty(Model.LicenseKey))
+                            {
+                                <div class="detail-item mb-3">
+                                    <label class="detail-label">
+                                        <i class="fas fa-key me-1"></i>
+                                        Lisans Anahtarı
+                                    </label>
+                                    <div class="detail-value">
+                                        <div class="d-flex align-items-center">
+                                            <code id="licenseKey" class="license-key">@Model.LicenseKey</code>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="copyLicenseKey()" title="Kopyala">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            
+                            <div class="detail-item mb-3">
+                                <label class="detail-label">
+                                    <i class="fas fa-calendar-times me-1"></i>
+                                    Son Kullanma Tarihi
+                                </label>
+                                <div class="detail-value">@Model.ExpiryDate.ToString("dd.MM.yyyy")</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Atama Bilgileri -->
+            @if (Model.Company != null || Model.AssignedEmployee != null)
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            Atama Bilgileri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @if (Model.Company != null)
+                            {
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <label class="detail-label">
+                                            <i class="fas fa-building me-1"></i>
+                                            Şirket
+                                        </label>
+                                        <div class="detail-value">
+                                            <a asp-controller="Company" asp-action="Details" asp-route-id="@Model.Company.Id" class="text-decoration-none">
+                                                @Model.Company.Name
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            
+                            @if (Model.AssignedEmployee != null)
+                            {
+                                <div class="col-md-6">
+                                    <div class="detail-item">
+                                        <label class="detail-label">
+                                            <i class="fas fa-user me-1"></i>
+                                            Atanan Çalışan
+                                        </label>
+                                        <div class="detail-value">
+                                            <a asp-controller="Employee" asp-action="Details" asp-route-id="@Model.AssignedEmployee.Id" class="text-decoration-none">
+                                                @Model.AssignedEmployee.FirstName @Model.AssignedEmployee.LastName
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Durum Kartı -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line text-primary me-2"></i>
+                        Lisans Durumu
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="status-circle @statusBadgeClass mb-3">
+                        <i class="@statusIcon fa-2x"></i>
+                    </div>
+                    <h4 class="mb-2">@statusText</h4>
+                    <p class="text-muted mb-0">@Model.RemainingTime</p>
+                    
+                    @if (Model.Status == SoftwareStatus.Approaching)
+                    {
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Dikkat!</strong> Bu lisansın süresi yakında dolacak.
+                        </div>
+                    }
+                    else if (Model.Status == SoftwareStatus.Expired)
+                    {
+                        <div class="alert alert-danger mt-3">
+                            <i class="fas fa-times-circle me-1"></i>
+                            <strong>Uyarı!</strong> Bu lisansın süresi dolmuş.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- İstatistikler -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock text-primary me-2"></i>
+                        Zaman Çizelgesi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Oluşturulma</h6>
+                                <p class="text-muted mb-0">@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</p>
+                            </div>
+                        </div>
+                        
+                        @if (Model.UpdatedDate.HasValue)
+                        {
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-info"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">Son Güncelleme</h6>
+                                    <p class="text-muted mb-0">@Model.UpdatedDate.Value.ToString("dd.MM.yyyy HH:mm")</p>
+                                </div>
+                            </div>
+                        }
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-marker @(Model.Status == SoftwareStatus.Expired ? "bg-danger" : "bg-warning")"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Son Kullanma</h6>
+                                <p class="text-muted mb-0">@Model.ExpiryDate.ToString("dd.MM.yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İşlemler -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cogs text-primary me-2"></i>
+                        İşlemler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                            <i class="fas fa-edit me-1"></i>
+                            Düzenle
+                        </a>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash me-1"></i>
+                            Sil
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-list me-1"></i>
+                            Tüm Lisanslar
+                        </a>
+                        <a asp-action="Create" class="btn btn-success">
+                            <i class="fas fa-plus me-1"></i>
+                            Yeni Lisans Ekle
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                    Lisansı Sil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    <strong>@Model.Name</strong> adlı yazılım lisansını silmek istediğinizden emin misiniz?
+                    <br><br>
+                    <span class="text-danger">Bu işlem geri alınamaz!</span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    İptal
+                </button>
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>
+                        Evet, Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.detail-item {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    font-size: 1rem;
+    color: #212529;
+}
+
+.license-key {
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    max-width: 200px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.status-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    color: white;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px #dee2e6;
+}
+
+.timeline-content h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.timeline-content p {
+    font-size: 0.85rem;
+}
+
+.card-header h5 {
+    font-weight: 600;
+}
+</style>
+
+<script>
+function copyLicenseKey() {
+    const licenseKey = document.getElementById('licenseKey').textContent;
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(licenseKey).then(() => {
+            // Toast notification
+            showToast('Lisans anahtarı panoya kopyalandı!', 'success');
+        });
+    } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = licenseKey;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showToast('Lisans anahtarı panoya kopyalandı!', 'success');
+    }
+}
+
+function showToast(message, type) {
+    // Bootstrap toast implementation
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check' : 'times'} me-1"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+    }
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    const toastElement = toastContainer.lastElementChild;
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+    });
+}
+</script>

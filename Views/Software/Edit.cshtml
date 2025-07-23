@@ -1,0 +1,417 @@
+@model WebApplication1.Models.Software
+
+
+@{
+    ViewData["Title"] = "Yazılım Lisansını Düzenle";
+    
+    string statusBadgeClass = Model.Status switch
+    {
+        SoftwareStatus.Active => "text-success",
+        SoftwareStatus.Approaching => "text-warning",
+        SoftwareStatus.Expired => "text-danger",
+        _ => "text-secondary"
+    };
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="card-title mb-0">
+                            <i class="fas fa-edit text-warning me-2"></i>
+                            Yazılım Lisansını Düzenle
+                        </h4>
+                        <small class="text-muted">@Model.Name - @Model.Brand</small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info btn-sm">
+                            <i class="fas fa-eye me-1"></i>
+                            Detaylar
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Geri Dön
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Current Status Alert -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-info-circle fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <strong>Mevcut Durum:</strong>
+                                        <span class="@statusBadgeClass fw-bold">@Model.RemainingTime</span>
+                                        <br>
+                                        <small class="text-muted">Son güncelleme: @(Model.UpdatedDate?.ToString("dd.MM.yyyy HH:mm") ?? "Hiç güncellenmemiş")</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-action="Edit" method="post" class="needs-validation" novalidate>
+                        <input asp-for="Id" type="hidden" />
+                        
+                        <div class="row">
+                            <!-- Sol Kolon -->
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label fw-bold">
+                                        <i class="fas fa-desktop me-1"></i>
+                                        Yazılım Adı *
+                                    </label>
+                                    <input asp-for="Name" class="form-control" placeholder="Örn: Microsoft Office 365" required>
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Brand" class="form-label fw-bold">
+                                        <i class="fas fa-tag me-1"></i>
+                                        Marka *
+                                    </label>
+                                    <input asp-for="Brand" class="form-control" placeholder="Örn: Microsoft" required>
+                                    <span asp-validation-for="Brand" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Description" class="form-label fw-bold">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Açıklama
+                                    </label>
+                                    <input asp-for="Description" class="form-control" placeholder="Yazılım açıklaması">
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="LicenseKey" class="form-label fw-bold">
+                                        <i class="fas fa-key me-1"></i>
+                                        Lisans Anahtarı
+                                    </label>
+                                    <div class="input-group">
+                                        <input asp-for="LicenseKey" class="form-control" placeholder="Lisans anahtarını girin">
+                                        @if (!string.IsNullOrEmpty(Model.LicenseKey))
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary" onclick="copyLicenseKey()" title="Mevcut anahtarı kopyala">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                    <span asp-validation-for="LicenseKey" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Duration" class="form-label fw-bold">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Süre *
+                                    </label>
+                                    <select asp-for="Duration" class="form-select" required>
+                                        <option value="">Süre seçin</option>
+                                        <option value="1 Ay">1 Ay</option>
+                                        <option value="3 Ay">3 Ay</option>
+                                        <option value="6 Ay">6 Ay</option>
+                                        <option value="1 Yıl">1 Yıl</option>
+                                        <option value="2 Yıl">2 Yıl</option>
+                                        <option value="3 Yıl">3 Yıl</option>
+                                        <option value="5 Yıl">5 Yıl</option>
+                                        <option value="Süresiz">Süresiz</option>
+                                    </select>
+                                    <span asp-validation-for="Duration" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Sağ Kolon -->
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label asp-for="ExpiryDate" class="form-label fw-bold">
+                                        <i class="fas fa-calendar-times me-1"></i>
+                                        Son Kullanma Tarihi
+                                    </label>
+                                    <input asp-for="ExpiryDate" type="date" class="form-control">
+                                    <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                                    <div class="form-text">
+                                        Mevcut tarih: @Model.ExpiryDate.ToString("dd.MM.yyyy")
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="CompanyId" class="form-label fw-bold">
+                                        <i class="fas fa-building me-1"></i>
+                                        Şirket
+                                    </label>
+                                    <select asp-for="CompanyId" class="form-select">
+                                        <option value="">Şirket seçin (opsiyonel)</option>
+                                        @if (ViewBag.Companies != null)
+                                        {
+                                            @foreach (var company in ViewBag.Companies)
+                                            {
+                                                <option value="@company.Id" selected="@(company.Id == Model.CompanyId)">@company.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                    @if (Model.Company != null)
+                                    {
+                                        <div class="form-text">
+                                            Mevcut: @Model.Company.Name
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="AssignedEmployeeId" class="form-label fw-bold">
+                                        <i class="fas fa-user me-1"></i>
+                                        Atanan Çalışan
+                                    </label>
+                                    <select asp-for="AssignedEmployeeId" class="form-select">
+                                        <option value="">Çalışan seçin (opsiyonel)</option>
+                                        @if (ViewBag.Employees != null)
+                                        {
+                                            @foreach (var employee in ViewBag.Employees)
+                                            {
+                                                <option value="@employee.Id" selected="@(employee.Id == Model.AssignedEmployeeId)">@employee.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                    @if (Model.AssignedEmployee != null)
+                                    {
+                                        <div class="form-text">
+                                            Mevcut: @Model.AssignedEmployee.FirstName @Model.AssignedEmployee.LastName
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Değişiklik Özeti Kartı -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            <i class="fas fa-history me-1"></i>
+                                            Lisans Geçmişi
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <small class="text-muted d-block">Oluşturulma Tarihi</small>
+                                                <strong>@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</strong>
+                                            </div>
+                                            @if (Model.UpdatedDate.HasValue)
+                                            {
+                                                <div class="col-md-4">
+                                                    <small class="text-muted d-block">Son Güncelleme</small>
+                                                    <strong>@Model.UpdatedDate.Value.ToString("dd.MM.yyyy HH:mm")</strong>
+                                                </div>
+                                            }
+                                            <div class="col-md-4">
+                                                <small class="text-muted d-block">Durum</small>
+                                                <strong class="@statusBadgeClass">
+                                                    @(Model.Status switch
+                                                    {
+                                                        SoftwareStatus.Active => "Aktif",
+                                                        SoftwareStatus.Approaching => "Süresi Yaklaşıyor",
+                                                        SoftwareStatus.Expired => "Süresi Dolmuş",
+                                                        _ => "Bilinmiyor"
+                                                    })
+                                                </strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Butonlar -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                            <i class="fas fa-trash me-1"></i>
+                                            Sil
+                                        </button>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Detaylar
+                                        </a>
+                                        <a asp-action="Index" class="btn btn-secondary">
+                                            <i class="fas fa-times me-1"></i>
+                                            İptal
+                                        </a>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-save me-1"></i>
+                                            Güncelle
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                    Lisansı Sil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    <strong>@Model.Name</strong> adlı yazılım lisansını silmek istediğinizden emin misiniz?
+                    <br><br>
+                    <span class="text-danger">Bu işlem geri alınamaz!</span>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    İptal
+                </button>
+                <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>
+                        Evet, Sil
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Validation Scripts -->
+<script>
+// Bootstrap form validation
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Lisans anahtarını kopyala
+function copyLicenseKey() {
+    const licenseKeyInput = document.querySelector('input[name="LicenseKey"]');
+    const licenseKey = licenseKeyInput.value;
+    
+    if (licenseKey && navigator.clipboard) {
+        navigator.clipboard.writeText(licenseKey).then(() => {
+            showToast('Lisans anahtarı panoya kopyalandı!', 'success');
+        });
+    } else if (licenseKey) {
+        // Fallback for older browsers
+        licenseKeyInput.select();
+        document.execCommand('copy');
+        showToast('Lisans anahtarı panoya kopyalandı!', 'success');
+    } else {
+        showToast('Lisans anahtarı bulunamadı!', 'error');
+    }
+}
+
+// Form değişiklik takibi
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const originalData = new FormData(form);
+    let hasChanges = false;
+
+    // Form alanlarındaki değişiklikleri takip et
+    form.addEventListener('change', function() {
+        const currentData = new FormData(form);
+        hasChanges = false;
+        
+        for (let [key, value] of currentData.entries()) {
+            if (originalData.get(key) !== value) {
+                hasChanges = true;
+                break;
+            }
+        }
+        
+        // Update button rengini değiştir
+        const updateBtn = document.querySelector('button[type="submit"]');
+        if (hasChanges) {
+            updateBtn.classList.remove('btn-success');
+            updateBtn.classList.add('btn-warning');
+            updateBtn.innerHTML = '<i class="fas fa-save me-1"></i>Değişiklikleri Kaydet';
+        } else {
+            updateBtn.classList.remove('btn-warning');
+            updateBtn.classList.add('btn-success');
+            updateBtn.innerHTML = '<i class="fas fa-save me-1"></i>Güncelle';
+        }
+    });
+
+    // Sayfa kapatılırken uyar
+    window.addEventListener('beforeunload', function(e) {
+        if (hasChanges) {
+            e.preventDefault();
+            e.returnValue = 'Kaydedilmemiş değişiklikleriniz var. Sayfayı kapatmak istediğinizden emin misiniz?';
+        }
+    });
+
+    // Form submit edildiğinde uyarıyı kapat
+    form.addEventListener('submit', function() {
+        hasChanges = false;
+    });
+});
+
+function showToast(message, type) {
+    // Bootstrap toast implementation
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${type === 'success' ? 'check' : 'times'} me-1"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+    }
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    const toastElement = toastContainer.lastElementChild;
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+    });
+}
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
