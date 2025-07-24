@@ -555,22 +555,28 @@
 
         // Toggle between table and cards view
         function toggleView(viewType) {
+
             const tableView = document.getElementById('tableView');
             const cardsView = document.getElementById('cardsView');
             const tableRadio = document.getElementById('tableViewRadio');
             const cardsRadio = document.getElementById('cardsViewRadio');
 
+            // Check if the view elements exist (they won't when no companies are listed)
+            if (!tableView || !cardsView) {
+                return;
+            }
+
             if (viewType === 'table') {
                 tableView.style.display = 'block';
                 cardsView.style.display = 'none';
-                tableRadio.checked = true;
-                cardsRadio.checked = false;
+                if (tableRadio) tableRadio.checked = true;
+                if (cardsRadio) cardsRadio.checked = false;
                 currentViewType = 'table';
             } else {
                 tableView.style.display = 'none';
                 cardsView.style.display = 'block';
-                tableRadio.checked = false;
-                cardsRadio.checked = true;
+                if (tableRadio) tableRadio.checked = false;
+                if (cardsRadio) cardsRadio.checked = true;
                 currentViewType = 'cards';
             }
 

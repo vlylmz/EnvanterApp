@@ -26,7 +26,7 @@ namespace WebApplication1.Controllers
             {
                 search = search.ToLower();
                 query = query.Where(c =>
-                    c.Name.ToLower().Contains(search) ||
+                    c.Name!.ToLower().Contains(search) ||
                     (c.Description != null && c.Description.ToLower().Contains(search))
                 );
             }
@@ -90,7 +90,8 @@ namespace WebApplication1.Controllers
                 // Eğer result 0 ise kayıt olmamış demektir
                 if (result > 0)
                 {
-                    TempData["Success"] = "Şirket başarıyla eklendi.";
+                    //TempData["Success"] = System.Net.WebUtility.UrlEncode("Şirket başarıyla eklendi.");
+                    HttpContext.Session.SetString("successMessage", "Sirket basariyla eklendi.");
                     return RedirectToAction(nameof(Index));
                 }
                 else
@@ -143,7 +144,7 @@ namespace WebApplication1.Controllers
                     model.UpdatedDate = DateTime.Now;
                     _context.Update(model);
                     await _context.SaveChangesAsync();
-                    TempData["Success"] = "Şirket başarıyla güncellendi.";
+                    TempData["Success"] = "Sirket basariyla guncellendi.";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -177,7 +178,9 @@ namespace WebApplication1.Controllers
             {
                 _context.Companies.Remove(company);
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "Şirket başarıyla silindi.";
+//                TempData["Success"] = System.Net.WebUtility.UrlEncode("Şirket başarıyla silindi.");
+                HttpContext.Session.SetString("successMessage", "Sirket basariyla silindi.");
+                //TempData["Success"] = "Şirket başarıyla silindi.";
             }
 
             return RedirectToAction(nameof(Index));

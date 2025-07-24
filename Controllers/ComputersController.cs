@@ -69,7 +69,7 @@ namespace WebApplication1.Controllers
                 // Boş model döndür
                 return View(new Computer());
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Hata durumunda boş listeler ile devam et
                 ViewBag.Companies = new List<SelectListItem>();
@@ -91,7 +91,7 @@ namespace WebApplication1.Controllers
                     _context.Computers.Add(computer);
                     await _context.SaveChangesAsync();
                     
-                    TempData["Success"] = "Bilgisayar başarıyla eklendi.";
+                    TempData["Success"] = "Bilgisayar basariyla eklendi.";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -174,7 +174,7 @@ namespace WebApplication1.Controllers
                     _context.Update(computer);
                     await _context.SaveChangesAsync();
                     
-                    TempData["Success"] = "Bilgisayar başarıyla güncellendi.";
+                    TempData["Success"] = "Bilgisayar basariyla guncellendi.";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
@@ -233,7 +233,7 @@ namespace WebApplication1.Controllers
             {
                 _context.Computers.Remove(computer);
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "Bilgisayar başarıyla silindi.";
+                TempData["Success"] = "Bilgisayar basariyla silindi.";
             }
 
             return RedirectToAction(nameof(Index));

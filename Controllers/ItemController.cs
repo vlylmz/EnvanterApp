@@ -28,9 +28,9 @@ namespace WebApplication1.Controllers
 
             if (!string.IsNullOrEmpty(searchString))
             {
-                items = items.Where(s => s.Name.Contains(searchString) || 
-                                        s.Description.Contains(searchString) ||
-                                        s.SystemBarcode.Contains(searchString));
+                items = items.Where(s => s.Name!.Contains(searchString) || 
+                                        s.Description!.Contains(searchString) ||
+                                        s.SystemBarcode!.Contains(searchString));
                 ViewBag.SearchString = searchString;
             }
 
@@ -97,7 +97,7 @@ namespace WebApplication1.Controllers
                     }
 
                     // Set audit fields
-                    item.CreatedBy = User.Identity.Name ?? "System";
+                    item.CreatedBy = User.Identity!.Name ?? "System";
                     item.CreatedDate = DateTime.Now;
                     
                     // Check critical level
@@ -106,7 +106,7 @@ namespace WebApplication1.Controllers
                     _context.Items.Add(item);
                     await _context.SaveChangesAsync();
 
-                    TempData["Success"] = "Ürün başarıyla oluşturuldu!";
+                    TempData["Success"] = "Urun basariyla olusturuldu!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -177,8 +177,8 @@ namespace WebApplication1.Controllers
                     
                     // Preserve original values
                     item.UpdatedDate = DateTime.Now;
-                    item.UpdatedBy = User.Identity.Name ?? "System";
-                    item.CreatedDate = originalItem.CreatedDate;
+                    item.UpdatedBy = User.Identity!.Name ?? "System";
+                    item.CreatedDate = originalItem!.CreatedDate;
                     item.CreatedBy = originalItem.CreatedBy;
                     
                     // Check critical level
@@ -187,7 +187,7 @@ namespace WebApplication1.Controllers
                     _context.Update(item);
                     await _context.SaveChangesAsync();
                     
-                    TempData["Success"] = "Ürün başarıyla güncellendi!";
+                    TempData["Success"] = "Urun basariyla guncellendi!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
@@ -245,7 +245,7 @@ namespace WebApplication1.Controllers
                     _context.Items.Remove(item);
                     await _context.SaveChangesAsync();
                     
-                    TempData["Success"] = "Ürün başarıyla silindi!";
+                    TempData["Success"] = "Urun basariyla silindi!";
                 }
             }
             catch (Exception ex)
@@ -267,7 +267,7 @@ namespace WebApplication1.Controllers
                 var item = await _context.Items.FindAsync(id);
                 if (item != null && !string.IsNullOrEmpty(personnel))
                 {
-                    item.AssignToPersonnel(personnel, User.Identity.Name ?? "System");
+                    item.AssignToPersonnel(personnel, User.Identity!.Name ?? "System");
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Ürün {personnel} adlı personele zimmet verildi!";
                 }
@@ -292,7 +292,7 @@ namespace WebApplication1.Controllers
                 if (item != null)
                 {
                     var previousPersonnel = item.AssignedPersonnel;
-                    item.ReturnFromAssignment(User.Identity.Name ?? "System");
+                    item.ReturnFromAssignment(User.Identity!.Name ?? "System");
                     await _context.SaveChangesAsync();
                     TempData["Success"] = "Ürün zimmet iadesi yapıldı!";
                 }

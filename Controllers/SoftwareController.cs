@@ -64,7 +64,7 @@ namespace WebApplication1.Controllers
                 _context.Software.Add(software);
                 await _context.SaveChangesAsync();
                 
-                TempData["SuccessMessage"] = "Yazılım lisansı başarıyla eklendi.";
+                TempData["SuccessMessage"] = "Yazilim lisansi basariyla eklendi.";
                 return RedirectToAction("Index");
             }
             
@@ -113,7 +113,7 @@ namespace WebApplication1.Controllers
                 _context.Software.Update(software);
                 await _context.SaveChangesAsync();
                 
-                TempData["SuccessMessage"] = "Yazılım lisansı başarıyla güncellendi.";
+                TempData["SuccessMessage"] = "Yazilim lisansi basariyla guncellendi.";
                 return RedirectToAction("Index");
             }
             
@@ -135,7 +135,7 @@ namespace WebApplication1.Controllers
             _context.Software.Remove(software);
             await _context.SaveChangesAsync();
             
-            TempData["SuccessMessage"] = "Yazılım lisansı başarıyla silindi.";
+            TempData["SuccessMessage"] = "Yazilim lisansi basariyla silindi.";
             return RedirectToAction("Index");
         }
 
@@ -217,8 +217,8 @@ namespace WebApplication1.Controllers
             // Arama filtresi
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                query = query.Where(s => s.Name.Contains(searchTerm) || 
-                                        s.Brand.Contains(searchTerm) ||
+                query = query.Where(s => s.Name!.Contains(searchTerm) || 
+                                        s.Brand!.Contains(searchTerm) ||
                                         (s.Description != null && s.Description.Contains(searchTerm)));
             }
 

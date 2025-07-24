@@ -11,7 +11,8 @@
     var inactiveEmployees = totalEmployees - activeEmployees;
     var companies = ViewBag.Companies as IEnumerable<object> ?? new List<object>();
     var companiesCount = companies.Count();
-    var thisMonthEmployees = Model.Count(e => e.CreatedDate.Month == DateTime.Now.Month && e.CreatedDate.Year == DateTime.Now.Year);
+    var thisMonthEmployees = Model.Count(e => e.CreatedDate.Month == DateTime.Now.Month && e.CreatedDate.Year ==
+    DateTime.Now.Year);
 }
 
 <!-- Success/Error Messages -->
@@ -159,8 +160,8 @@
                                 <i class="fas fa-user text-muted me-1" aria-hidden="true"></i>
                                 Çalışan Adı veya Soyadı
                             </label>
-                            <input type="text" name="searchName" id="searchName" value="@searchName" class="form-control"
-                                placeholder="Çalışan ara..." aria-describedby="searchHelp">
+                            <input type="text" name="searchName" id="searchName" value="@searchName"
+                                class="form-control" placeholder="Çalışan ara..." aria-describedby="searchHelp">
                         </div>
                         <div class="col-lg-3 col-md-6">
                             <label for="companyId" class="form-label">
@@ -276,17 +277,18 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="employee-avatar me-3" aria-hidden="true">
-                                                @employee.FirstName.Substring(0, 1).ToUpper()@employee.LastName.Substring(0, 1).ToUpper()
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-1 fw-bold">@employee.FirstName @employee.LastName</h6>
-                                                <div class="small text-muted">ID: #@employee.Id</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div>
-                                            @if (!string.IsNullOrEmpty(employee.Email))
+                                                @employee.FirstName!.Substring(0, 1).ToUpper()@employee.LastName!.Substring(0,
+                                                1).ToUpper()
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold">@employee.FirstName @employee.LastName</h6>
+                                        <div class="small text-muted">ID: #@employee.Id</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    @if (!string.IsNullOrEmpty(employee.Email))
                                             {
                                                 <div class="small mb-1">
                                                     <i class="fas fa-envelope me-1 text-muted" aria-hidden="true"></i>
@@ -340,19 +342,22 @@
                                         <div class="btn-group" role="group" aria-label="Çalışan işlemleri">
                                             <a asp-action="Details" asp-route-id="@employee.Id"
                                                 class="btn btn-sm btn-outline-info"
-                                                title="@employee.FirstName @employee.LastName detaylarını görüntüle" data-bs-toggle="tooltip">
+                                                title="@employee.FirstName @employee.LastName detaylarını görüntüle"
+                                                data-bs-toggle="tooltip">
                                                 <i class="fas fa-eye" aria-hidden="true"></i>
                                                 <span class="visually-hidden">Detay</span>
                                             </a>
                                             <a asp-action="Edit" asp-route-id="@employee.Id"
-                                                class="btn btn-sm btn-outline-warning" title="@employee.FirstName @employee.LastName bilgilerini düzenle"
+                                                class="btn btn-sm btn-outline-warning"
+                                                title="@employee.FirstName @employee.LastName bilgilerini düzenle"
                                                 data-bs-toggle="tooltip">
                                                 <i class="fas fa-edit" aria-hidden="true"></i>
                                                 <span class="visually-hidden">Düzenle</span>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-outline-danger"
                                                 onclick="deleteEmployee(@employee.Id, '@employee.FirstName @employee.LastName')"
-                                                title="@employee.FirstName @employee.LastName kaydını sil" data-bs-toggle="tooltip">
+                                                title="@employee.FirstName @employee.LastName kaydını sil"
+                                                data-bs-toggle="tooltip">
                                                 <i class="fas fa-trash" aria-hidden="true"></i>
                                                 <span class="visually-hidden">Sil</span>
                                             </button>
@@ -375,18 +380,20 @@
                                         <div class="d-flex align-items-start justify-content-between mb-3">
                                             <div class="d-flex align-items-center">
                                                 <div class="employee-avatar-lg me-3" aria-hidden="true">
-                                                    @employee.FirstName.Substring(0, 1).ToUpper()@employee.LastName.Substring(0, 1).ToUpper()
-                                                </div>
-                                                <div>
-                                                    <h6 class="card-title mb-1 fw-bold">@employee.FirstName @employee.LastName</h6>
-                                                    <small class="text-muted">
-                                                        <time datetime="@employee.CreatedDate.ToString("yyyy-MM-dd")">
-                                                            @employee.CreatedDate.ToString("dd.MM.yyyy")
-                                                        </time>
-                                                    </small>
-                                                </div>
-                                            </div>
-                                            @if (employee.IsActive)
+                                                    @employee.FirstName!.Substring(0, 1).ToUpper()@employee.LastName!.Substring(0,
+                                                    1).ToUpper()
+                                        </div>
+                                        <div>
+                                            <h6 class="card-title mb-1 fw-bold">@employee.FirstName @employee.LastName
+                                            </h6>
+                                            <small class="text-muted">
+                                                <time datetime="@employee.CreatedDate.ToString("yyyy-MM-dd")">
+                                                    @employee.CreatedDate.ToString("dd.MM.yyyy")
+                                                </time>
+                                            </small>
+                                        </div>
+                                    </div>
+                                    @if (employee.IsActive)
                                             {
                                                 <span class="badge bg-success">Aktif</span>
                                             }
@@ -411,7 +418,8 @@
                                             {
                                                 <div class="small mb-1">
                                                     <i class="fas fa-envelope text-muted me-2" aria-hidden="true"></i>
-                                                    <a href="mailto:@employee.Email" class="text-decoration-none">@employee.Email</a>
+                                                    <a href="mailto:@employee.Email"
+                                                        class="text-decoration-none">@employee.Email</a>
                                                 </div>
                                             }
                                             @if (!string.IsNullOrEmpty(employee.Phone))
@@ -424,7 +432,8 @@
                                         </div>
 
                                         <div class="d-flex justify-content-between align-items-center mt-auto">
-                                            <div class="btn-group btn-group-sm w-100" role="group" aria-label="Çalışan işlemleri">
+                                            <div class="btn-group btn-group-sm w-100" role="group"
+                                                aria-label="Çalışan işlemleri">
                                                 <a asp-action="Details" asp-route-id="@employee.Id"
                                                     class="btn btn-outline-info flex-fill" title="Detayları görüntüle"
                                                     data-bs-toggle="tooltip">
@@ -436,8 +445,8 @@
                                                     <i class="fas fa-edit" aria-hidden="true"></i>
                                                 </a>
                                                 <button type="button" class="btn btn-outline-danger flex-fill"
-                                                    onclick="deleteEmployee(@employee.Id, '@employee.FirstName @employee.LastName')" title="Sil"
-                                                    data-bs-toggle="tooltip">
+                                                    onclick="deleteEmployee(@employee.Id, '@employee.FirstName @employee.LastName')"
+                                                    title="Sil" data-bs-toggle="tooltip">
                                                     <i class="fas fa-trash" aria-hidden="true"></i>
                                                 </button>
                                             </div>
@@ -454,7 +463,8 @@
                 <div class="text-center py-5">
                     <i class="fas fa-users fa-3x text-muted mb-3" aria-hidden="true"></i>
                     <h3 class="h5 text-muted">Çalışan Bulunamadı</h3>
-                    @if (!string.IsNullOrEmpty(searchName) || !string.IsNullOrEmpty(companyId) || !string.IsNullOrEmpty(status))
+                    @if (!string.IsNullOrEmpty(searchName) || !string.IsNullOrEmpty(companyId) ||
+                                    !string.IsNullOrEmpty(status))
                     {
                         <p class="text-muted">Arama kriterlerinize uygun çalışan bulunmuyor.</p>
                         <a href="@Url.Action("Index")" class="btn btn-outline-primary">
@@ -536,17 +546,22 @@
             const tableRadio = document.getElementById('tableViewRadio');
             const cardsRadio = document.getElementById('cardsViewRadio');
 
+            // Check if the view elements exist (they won't when no employees are listed)
+            if (!tableView || !cardsView) {
+                return;
+            }
+
             if (viewType === 'table') {
                 tableView.style.display = 'block';
                 cardsView.style.display = 'none';
-                tableRadio.checked = true;
-                cardsRadio.checked = false;
+                if (tableRadio) tableRadio.checked = true;
+                if (cardsRadio) cardsRadio.checked = false;
                 currentViewType = 'table';
             } else {
                 tableView.style.display = 'none';
                 cardsView.style.display = 'block';
-                tableRadio.checked = false;
-                cardsRadio.checked = true;
+                if (tableRadio) tableRadio.checked = false;
+                if (cardsRadio) cardsRadio.checked = true;
                 currentViewType = 'cards';
             }
 
@@ -615,7 +630,7 @@
             // Auto-submit search form on select change
             const statusSelect = document.getElementById('status');
             const companySelect = document.getElementById('companyId');
-            
+
             if (statusSelect) {
                 statusSelect.addEventListener('change', function () {
                     document.getElementById('searchForm').submit();

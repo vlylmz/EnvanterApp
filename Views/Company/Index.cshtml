@@ -1,7 +1,7 @@
 ﻿@model List<WebApplication1.Models.Company>
 @{
     ViewData["Title"] = "Firma Yönetimi";
-    var successMessage = TempData["Success"] as string;
+    var successMessage = Context.Session.GetString("successMessage");
     var errorMessage = TempData["Error"] as string;
     var totalCompanies = Model.Count;
     var activeCompanies = Model.Count(c => c.IsActive);
@@ -165,7 +165,7 @@
                             <select name="status" id="status" class="form-select">
                                 <option value="">Tüm Durumlar</option>
                                 <option value="active" selected="@(statusValue == "active")">Aktif</option>
-                                <option value="passive" selected="@(statusValue == "passive")")>Pasif
+                                <option value="passive" selected="@(statusValue == "passive")" )>Pasif
                                 </option>
                             </select>
                         </div>
@@ -310,12 +310,14 @@
                                                 <i class="fas fa-edit" aria-hidden="true"></i>
                                                 <span class="visually-hidden">Düzenle</span>
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-outline-danger"
-                                                onclick="deleteCompany(@company.Id, '@company.Name')"
-                                                title="@company.Name firmasını sil" data-bs-toggle="tooltip">
-                                                <i class="fas fa-trash" aria-hidden="true"></i>
-                                                <span class="visually-hidden">Sil</span>
-                                            </button>
+                                            <form asp-action="Delete" asp-route-id="@company.Id" method="post"
+                                                class="d-inline delete-form" data-company-name="@company.Name">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    title="@company.Name firmasını sil" data-bs-toggle="tooltip">
+                                                    <i class="fas fa-trash" aria-hidden="true"></i>
+                                                    <span class="visually-hidden">Sil</span>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -407,11 +409,12 @@
                                                     data-bs-toggle="tooltip">
                                                     <i class="fas fa-edit" aria-hidden="true"></i>
                                                 </a>
-                                                <button type="button" class="btn btn-outline-danger flex-fill"
-                                                    onclick="deleteCompany(@company.Id, '@company.Name')" title="Sil"
-                                                    data-bs-toggle="tooltip">
-                                                    <i class="fas fa-trash" aria-hidden="true"></i>
-                                                </button>
+                                                <form asp-action="Delete" asp-route-id="@company.Id" method="post" class="d-inline flex-fill delete-form" data-company-name="@company.Name">
+    <button type="submit" class="btn btn-outline-danger w-100"
+        title="Sil" data-bs-toggle="tooltip">
+        <i class="fas fa-trash" aria-hidden="true"></i>
+    </button>
+</form>
                                             </div>
                                         </div>
                                     </div>
@@ -508,6 +511,11 @@
             const tableRadio = document.getElementById('tableViewRadio');
             const cardsRadio = document.getElementById('cardsViewRadio');
 
+            // Add null checks
+            if (!tableView || !cardsView) {
+                return;
+            }
+
             if (viewType === 'table') {
                 tableView.style.display = 'block';
                 cardsView.style.display = 'none';
@@ -522,7 +530,7 @@
                 currentViewType = 'cards';
             }
 
-            // Save preference to session storage (not localStorage for artifact compatibility)
+            // Save preference to session storage
             try {
                 sessionStorage.setItem('companyViewType', viewType);
             } catch (e) {
@@ -568,13 +576,58 @@
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function () {
-            // Initialize tooltips
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl, {
-                    delay: { show: 500, hide: 100 }
+
+            const deleteForms = document.querySelectorAll('.delete-form');
+            deleteForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const companyName = this.getAttribute('data-company-name');
+                    const form = this;
+                    
+                    Swal.fire({
+                        title: 'Firmayı Sil?',
+                        html: `<strong>${companyName}</strong> firması silinecek.<br>Bu işlem geri alınamaz!`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: '<i class="fas fa-trash"></i> Evet, Sil',
+                        cancelButtonText: '<i class="fas fa-times"></i> İptal',
+                        customClass: {
+                            confirmButton: 'btn btn-danger',
+                            cancelButton: 'btn btn-secondary'
+                        },
+                        buttonsStyling: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Show loading
+                            Swal.fire({
+                                title: 'Siliniyor...',
+                                html: 'Lütfen bekleyin...',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                            
+                            // Submit the form
+                            form.submit();
+                        }
+                    });
                 });
             });
+
+            
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip && tooltipTriggerList.length > 0) {
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl, {
+                        delay: { show: 500, hide: 100 }
+                    });
+                });
+            }
 
             // Load saved view type
             try {
@@ -690,10 +743,15 @@
         // Error handling
         window.addEventListener('error', function (e) {
             console.error('JavaScript error:', e.error);
+            console.error('Error message:', e.message);
+            console.error('Error filename:', e.filename);
+            console.error('Error line:', e.lineno);
+            console.error('Error column:', e.colno);
+
             Swal.fire({
                 icon: 'error',
                 title: 'Bir hata oluştu',
-                text: 'Sayfa yenilendiğinde sorun devam ederse sistem yöneticisine başvurun.',
+                text: 'Hata: ' + e.message + ' (Line: ' + e.lineno + ')',
                 confirmButtonText: 'Tamam'
             });
         });
@@ -841,6 +899,5 @@
         }
 
         /* Responsive improvements */
-       
     </style>
 }

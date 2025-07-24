@@ -70,7 +70,7 @@ namespace WebApplication1.Controllers
                     model.CreatedDate = DateTime.UtcNow;
                     _context.Employees.Add(model);
                     await _context.SaveChangesAsync();
-                    TempData["Success"] = "Çalışan başarıyla eklendi!";
+                    TempData["Success"] = "Calisan basariyla eklendi!";
                     return RedirectToAction("Index");
                 }
                 catch (Exception ex)
@@ -138,7 +138,7 @@ namespace WebApplication1.Controllers
                 {
                     _context.Employees.Remove(emp);
                     await _context.SaveChangesAsync();
-                    TempData["Success"] = "Çalışan başarıyla silindi!";
+                    TempData["Success"] = "Calisan basariyla silindi!";
                 }
             }
             catch (Exception ex)

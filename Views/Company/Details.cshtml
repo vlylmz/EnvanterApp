@@ -11,7 +11,7 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-action="Index">Firmalar</a></li>
-            <li class="breadcrumb-item active">@Model.Company.Name</li>
+            <li class="breadcrumb-item active">@Model.Company!.Name</li>
         </ol>
     </nav>
     <div class="row mb-4">
@@ -36,7 +36,7 @@
                         <div class="col-md-8">
                             <h2 class="mb-1">@Model.Company.Name</h2>
                             <p class="mb-0 opacity-75">
-                                <i class="fas fa-users me-2"></i>@Model.Employees.Count Çalışan • @Model.Computers.Count Bilgisayar
+                                <i class="fas fa-users me-2"></i>@Model.Employees!.Count Çalışan • @Model.Computers!.Count Bilgisayar
                             </p>
                             <small class="opacity-75">
                                 <i class="fas fa-calendar me-1"></i>
@@ -655,13 +655,13 @@
                         </div>
                         <div class="col-6">
                             <div class="stat-item">
-                                <h4 class="text-warning mb-0">@Model.Software.Count</h4>
+                                <h4 class="text-warning mb-0">@Model.Software!.Count</h4>
                                 <small class="text-muted">Yazılım</small>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="stat-item">
-                                <h4 class="text-info mb-0">@Model.Supplies.Count</h4>
+                                <h4 class="text-info mb-0">@Model.Supplies!.Count</h4>
                                 <small class="text-muted">Sarf Malzeme</small>
                             </div>
                         </div>

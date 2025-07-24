@@ -249,7 +249,7 @@
                                         <div class="d-flex align-items-center">
                                             <div class="software-icon me-3" aria-hidden="true">
                                                 <div class="software-avatar">
-                                                    @(software.Name.Substring(0, Math.Min(2, software.Name.Length)).ToUpper())
+                                                    @(software.Name!.Substring(0, Math.Min(2, software.Name.Length)).ToUpper())
                                                 </div>
                                             </div>
                                             <div>
@@ -342,7 +342,7 @@
                                             <div class="d-flex align-items-center">
                                                 <div class="software-icon-lg me-3" aria-hidden="true">
                                                     <div class="software-avatar">
-                                                        @(software.Name.Substring(0, Math.Min(2,
+                                                        @(software.Name!.Substring(0, Math.Min(2,
                                                                                                         software.Name.Length)).ToUpper())
                                                     </div>
                                                 </div>

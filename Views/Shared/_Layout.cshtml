@@ -16,10 +16,10 @@
 </head>
 <body>
     <div class="d-flex">
-        @Html.Partial("~/Views/Shared/Partials/Sidebar.cshtml")
+        <partial name="~/Views/Shared/Partials/Sidebar.cshtml" />
 
         <div class="flex-grow-1">
-            @Html.Partial("~/Views/Shared/Partials/Navbar.cshtml")
+            <partial name="~/Views/Shared/Partials/Navbar.cshtml" />
 
             <main class="p-4">
                 @RenderBody()

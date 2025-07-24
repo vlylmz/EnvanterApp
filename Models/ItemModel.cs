@@ -10,22 +10,22 @@ namespace WebApplication1.Models
         [Required(ErrorMessage = "Ürün adı zorunludur")]
         [MaxLength(200)]
         [Display(Name = "Ürün Adı")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         [MaxLength(1000)]
         [Display(Name = "Açıklama")]
         [DataType(DataType.MultilineText)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [Required(ErrorMessage = "Kategori zorunludur")]
         [MaxLength(100)]
         [Display(Name = "Kategori")]
-        public string Category { get; set; }
+        public string? Category { get; set; }
 
         [Required]
         [MaxLength(50)]
         [Display(Name = "Sistem Barkodu")]
-        public string SystemBarcode { get; set; }
+        public string? SystemBarcode { get; set; }
 
         // Takip bilgileri
         [MaxLength(50)]
@@ -34,7 +34,7 @@ namespace WebApplication1.Models
 
         [MaxLength(200)]
         [Display(Name = "Konum")]
-        public string Location { get; set; }
+        public string? Location { get; set; }
 
         // Zimmet bilgileri
         [MaxLength(100)]
@@ -73,17 +73,17 @@ namespace WebApplication1.Models
         // Tedarikçi bilgileri
         [MaxLength(100)]
         [Display(Name = "Tedarikçi")]
-        public string Supplier { get; set; }
+        public string? Supplier { get; set; }
 
         [MaxLength(50)]
         [Display(Name = "Tedarikçi Kodu")]
-        public string SupplierCode { get; set; }
+        public string? SupplierCode { get; set; }
 
         // Notlar
         [MaxLength(1000)]
         [Display(Name = "Notlar")]
         [DataType(DataType.MultilineText)]
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
 
         // Denetim alanları
         [Display(Name = "Oluşturulma Tarihi")]
@@ -101,7 +101,7 @@ namespace WebApplication1.Models
         public string? UpdatedBy { get; set; }
 
 
-        public void AssignToPersonnel(string personnel, string assignedBy = null)
+        public void AssignToPersonnel(string personnel, string? assignedBy = null)
         {
             AssignedPersonnel = personnel;
             AssignmentDate = DateTime.Now;
@@ -110,7 +110,7 @@ namespace WebApplication1.Models
             UpdatedBy = assignedBy;
         }
 
-        public void ReturnFromAssignment(string returnedBy = null)
+        public void ReturnFromAssignment(string? returnedBy = null)
         {
             AssignedPersonnel = null;
             AssignmentDate = null;
@@ -119,7 +119,7 @@ namespace WebApplication1.Models
             UpdatedBy = returnedBy;
         }
 
-        public void UpdateLocation(string newLocation, string updatedBy = null)
+        public void UpdateLocation(string newLocation, string? updatedBy = null)
         {
             Location = newLocation;
             UpdatedDate = DateTime.Now;
