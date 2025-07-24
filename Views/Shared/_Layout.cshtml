@@ -1,19 +1,25 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@*
+    _Layout.cshtml
+
+*@
+<!DOCTYPE html>
+<html lang="tr">
 <head>
     <meta charset="utf-8" />
-    <title>@ViewBag.Title</title>
+    <title>@ViewData["Title"] - Admin Paneli</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Bootstrap, FontAwesome, SweetAlert2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-    <link href="~/css/custom.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.min.css" rel="stylesheet" />
+    <link href="~/css/custom.css" rel="stylesheet" asp-append-version="true" />
 </head>
 <body>
     <div class="d-flex">
-        <partial name="~/Views/Shared/Partials/Sidebar.cshtml" />
+        @Html.Partial("~/Views/Shared/Partials/Sidebar.cshtml")
 
         <div class="flex-grow-1">
-            <partial name="~/Views/Shared/Partials/Navbar.cshtml" />
+            @Html.Partial("~/Views/Shared/Partials/Navbar.cshtml")
 
             <main class="p-4">
                 @RenderBody()
@@ -21,46 +27,15 @@
         </div>
     </div>
 
-    <!-- 1. jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- 2. Bootstrap JS -->
+    <!-- Scriptler en sona, doğru sırada -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- 3. jQuery Validation -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.13/dist/jquery.validate.unobtrusive.min.js"></script>
-    <!-- 4. SweetAlert2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- 5. Kendi scriptlerin -->
-    <script src="~/js/custom.js"></script>
+    <script src="~/js/custom.js" asp-append-version="true"></script>
 
     @RenderSection("Scripts", required: false)
-    <!-- _ValidationScriptsPartial burada tekrar çağrılmasın! -->
-
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 </body>
 </html>
-
-<script>
-    function confirmDelete(id, name) {
-        if (confirm(`${name} adlı çalışanı silmek istediğinize emin misiniz?`)) {
-            // AJAX ile silme işlemi
-            fetch(`/Employee/Delete/${id}`, {
-                method: 'POST',
-                headers: {
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Sayfayı yenile veya silinen öğeyi DOM'dan kaldır
-                    location.reload();
-                } else {
-                    alert("Silme işlemi başarısız oldu.");
-                }
-            })
-            .catch(error => {
-                console.error("Hata:", error);
-                alert("Beklenmeyen bir hata oluştu.");
-            });
-        }
-    }
-</script>
