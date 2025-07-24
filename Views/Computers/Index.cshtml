@@ -355,11 +355,51 @@
                                                 <span class="visually-hidden">Düzenle</span>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-outline-danger"
-                                                onclick="deleteComputer(@computer.Id, '@computer.Name')"
-                                                title="@computer.Name kaydını sil" data-bs-toggle="tooltip">
+                                                data-bs-toggle="modal" data-bs-target="#deleteModal-@computer.Id"
+                                                title="@computer.Name kaydını sil">
                                                 <i class="fas fa-trash" aria-hidden="true"></i>
                                                 <span class="visually-hidden">Sil</span>
                                             </button>
+                                        </div>
+                                        
+                                        <!-- Delete Modal for this computer -->
+                                        <div class="modal fade" id="deleteModal-@computer.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@computer.Id" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="deleteModalLabel-@computer.Id">
+                                                            <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                                                            Bilgisayarı Sil
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p class="mb-2">Aşağıdaki bilgisayarı silmek üzeresiniz:</p>
+                                                        <div class="alert alert-danger">
+                                                            <h6 class="alert-heading mb-1">@computer.Name</h6>
+                                                            @if (!string.IsNullOrEmpty(computer.AssetTag))
+                                                            {
+                                                                <small>Varlık Etiketi: @computer.AssetTag</small>
+                                                            }
+                                                        </div>
+                                                        <p class="text-muted small mb-0">
+                                                            <i class="fas fa-info-circle me-1"></i>
+                                                            Bu işlem geri alınamaz. Bilgisayar kalıcı olarak silinecektir.
+                                                        </p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                            <i class="fas fa-times me-1"></i> İptal
+                                                        </button>
+                                                        <form asp-action="Delete" method="post" class="d-inline">
+                                                            <input type="hidden" name="id" value="@computer.Id" />
+                                                            <button type="submit" class="btn btn-danger">
+                                                                <i class="fas fa-trash me-1"></i> Evet, Sil
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -460,8 +500,8 @@
                                                     <i class="fas fa-edit" aria-hidden="true"></i>
                                                 </a>
                                                 <button type="button" class="btn btn-outline-danger flex-fill"
-                                                    onclick="deleteComputer(@computer.Id, '@computer.Name')" title="Sil"
-                                                    data-bs-toggle="tooltip">
+                                                    data-bs-toggle="modal" data-bs-target="#deleteModal-@computer.Id"
+                                                    title="Sil">
                                                     <i class="fas fa-trash" aria-hidden="true"></i>
                                                 </button>
                                             </div>
@@ -504,58 +544,8 @@
         // Global variables for view management
         let currentViewType = 'table';
 
-        // Delete computer function
-        function deleteComputer(computerId, computerName) {
-            Swal.fire({
-                title: 'Bilgisayarı Sil?',
-                html: `<strong>${computerName}</strong> bilgisayarı silinecek.<br>Bu işlem geri alınamaz!`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="fas fa-trash"></i> Evet, Sil',
-                cancelButtonText: '<i class="fas fa-times"></i> İptal',
-                customClass: {
-                    confirmButton: 'btn btn-danger',
-                    cancelButton: 'btn btn-secondary'
-                },
-                buttonsStyling: false
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Show loading
-                    Swal.fire({
-                        title: 'Siliniyor...',
-                        html: 'Lütfen bekleyin...',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                    // Create form and submit
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `/Computer/Delete/${computerId}`;
-
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
-                    if (token) {
-                        const tokenInput = document.createElement('input');
-                        tokenInput.type = 'hidden';
-                        tokenInput.name = '__RequestVerificationToken';
-                        tokenInput.value = token.value;
-                        form.appendChild(tokenInput);
-                    }
-
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
-        }
-
         // Toggle between table and cards view
         function toggleView(viewType) {
-
             const tableView = document.getElementById('tableView');
             const cardsView = document.getElementById('cardsView');
             const tableRadio = document.getElementById('tableViewRadio');
@@ -734,23 +724,6 @@
                 clearTimeout(timeout);
                 timeout = setTimeout(later, wait);
             };
-        }
-
-        // Loading state management
-        function showLoading(message = 'İşlem gerçekleştiriliyor...') {
-            Swal.fire({
-                title: message,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-        }
-
-        function hideLoading() {
-            Swal.close();
         }
 
         // Error handling
@@ -933,6 +906,20 @@
         .form-select:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Modal improvements */
+        .modal-content {
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow-lg);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e9ecef;
         }
     </style>
 }

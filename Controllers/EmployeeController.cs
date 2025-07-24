@@ -19,7 +19,7 @@ namespace WebApplication1.Controllers
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchName))
-                employees = employees.Where(e => e.FirstName != null && (e.FirstName.Contains(searchName) || (e.LastName != null && e.LastName.Contains(searchName)) ) );
+                employees = employees.Where(e => e.FirstName != null && (e.FirstName.Contains(searchName) || (e.LastName != null && e.LastName.Contains(searchName))));
 
             if (companyId.HasValue && companyId > 0)
                 employees = employees.Where(e => e.CompanyId == companyId);
@@ -175,8 +175,44 @@ namespace WebApplication1.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.CompanyList = new SelectList(_context.Companies, "Id", "Name", employee.CompanyId);
+            ViewBag.CompanyId = new SelectList(_context.Companies, "Id", "Name", employee.CompanyId);
             return View(employee);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Employee model)
+        {
+            if (id != model.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(model);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = "Çalışan başarıyla güncellendi!";
+                    return RedirectToAction("Index");
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!_context.Employees.Any(e => e.Id == model.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
+
+            // Re-populate dropdown on error
+            ViewBag.CompanyId = new SelectList(_context.Companies, "Id", "Name", model.CompanyId);
+            return View(model);
         }
 
 

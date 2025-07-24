@@ -316,12 +316,14 @@
                                                 <i class="fas fa-edit" aria-hidden="true"></i>
                                                 <span class="visually-hidden">Düzenle</span>
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-outline-danger"
-                                                onclick="deleteSoftware(@software.Id, '@software.Name')"
-                                                title="@software.Name yazılımını sil" data-bs-toggle="tooltip">
-                                                <i class="fas fa-trash" aria-hidden="true"></i>
-                                                <span class="visually-hidden">Sil</span>
-                                            </button>
+                                            <form asp-action="Delete" asp-route-id="@software.Id" method="post" class="d-inline"
+                                                onsubmit="return confirmDelete(event, '@software.Name');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    title="@software.Name yazılımını sil" data-bs-toggle="tooltip">
+                                                    <i class="fas fa-trash" aria-hidden="true"></i>
+                                                    <span class="visually-hidden">Sil</span>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -402,11 +404,13 @@
                                                     data-bs-toggle="tooltip">
                                                     <i class="fas fa-edit" aria-hidden="true"></i>
                                                 </a>
-                                                <button type="button" class="btn btn-outline-danger flex-fill"
-                                                    onclick="deleteSoftware(@software.Id, '@software.Name')" title="Sil"
-                                                    data-bs-toggle="tooltip">
-                                                    <i class="fas fa-trash" aria-hidden="true"></i>
-                                                </button>
+                                                <form asp-action="Delete" asp-route-id="@software.Id" method="post" 
+                                                    class="flex-fill" onsubmit="return confirmDelete(event, '@software.Name');">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100"
+                                                        title="Sil" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-trash" aria-hidden="true"></i>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -447,8 +451,11 @@
         // Global variables for view management
         let currentViewType = 'table';
 
-        // Delete software function
-        function deleteSoftware(softwareId, softwareName) {
+        // Confirm delete function
+        function confirmDelete(event, softwareName) {
+            event.preventDefault();
+            const form = event.target;
+            
             Swal.fire({
                 title: 'Yazılımı Sil?',
                 html: `<strong>${softwareName}</strong> yazılımı silinecek.<br>Bu işlem geri alınamaz!`,
@@ -475,25 +482,13 @@
                             Swal.showLoading();
                         }
                     });
-
-                    // Create form and submit
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `/Software/Delete/${softwareId}`;
-
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
-                    if (token) {
-                        const tokenInput = document.createElement('input');
-                        tokenInput.type = 'hidden';
-                        tokenInput.name = '__RequestVerificationToken';
-                        tokenInput.value = token.value;
-                        form.appendChild(tokenInput);
-                    }
-
-                    document.body.appendChild(form);
+                    
+                    // Submit the form
                     form.submit();
                 }
             });
+            
+            return false;
         }
 
         // Toggle between table and cards view
@@ -753,6 +748,15 @@
         .form-select:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        
+        /* Form inside button group styling */
+        .btn-group form {
+            display: inline-flex;
+        }
+        
+        .btn-group form.flex-fill {
+            flex: 1 1 0;
         }
     </style>
 }

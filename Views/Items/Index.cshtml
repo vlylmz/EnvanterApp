@@ -295,12 +295,14 @@
                                                title="Düzenle">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <button type="button" 
-                                                    class="btn btn-outline-danger" 
-                                                    title="Sil"
-                                                    onclick="confirmDelete(@item.Id, '@item.Name')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                                                  onsubmit="return confirmDelete(event, '@item.Name');">
+                                                <button type="submit" 
+                                                        class="btn btn-outline-danger" 
+                                                        title="Sil">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -337,49 +339,46 @@
     }
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Ürün Silme Onayı
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center mb-3">
-                    <i class="fas fa-trash fa-3x text-danger"></i>
-                </div>
-                <p class="text-center mb-3">Bu ürünü silmek istediğinizden emin misiniz?</p>
-                <div class="alert alert-warning">
-                    <strong id="deleteItemName"></strong> adlı ürün kalıcı olarak silinecektir.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>İptal
-                </button>
-                <form id="deleteForm" method="post" style="display: inline;">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i>Evet, Sil
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function confirmDelete(itemId, itemName) {
-            document.getElementById('deleteItemName').textContent = itemName;
-            document.getElementById('deleteForm').action = '/Items/Delete/' + itemId;
+        function confirmDelete(event, itemName) {
+            event.preventDefault();
+            const form = event.target;
             
-            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            deleteModal.show();
+            Swal.fire({
+                title: 'Ürünü Sil?',
+                html: `<strong>${itemName}</strong> adlı ürün kalıcı olarak silinecektir.<br>Bu işlem geri alınamaz!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash"></i> Evet, Sil',
+                cancelButtonText: '<i class="fas fa-times"></i> İptal',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Siliniyor...',
+                        html: 'Lütfen bekleyin...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    
+                    // Submit the form
+                    form.submit();
+                }
+            });
+            
+            return false;
         }
 
         // Auto-hide alerts after 5 seconds
@@ -431,5 +430,10 @@
     
     .opacity-75 {
         opacity: 0.75;
+    }
+    
+    /* Form inside button group styling */
+    .btn-group form {
+        display: inline-flex;
     }
 </style>
