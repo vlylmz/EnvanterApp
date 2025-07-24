@@ -1,0 +1,536 @@
+@model WebApplication1.Models.ItemModel
+
+@{
+    ViewData["Title"] = "Ürün Düzenle";
+}
+
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-1">
+                <i class="fas fa-edit text-warning me-2"></i>
+                Ürün Düzenle
+            </h2>
+            <p class="text-muted mb-0">
+                <strong>@Model.Name</strong> ürününün bilgilerini düzenleyin
+                <span class="badge bg-info ms-2">@Model.SystemBarcode</span>
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info btn-lg me-2">
+                <i class="fas fa-eye me-2"></i>
+                Detayları Gör
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-arrow-left me-2"></i>
+                Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form asp-action="Edit" method="post" id="editForm">
+        <input asp-for="Id" type="hidden" />
+        
+        <div class="row">
+            <!-- Sol Kolon -->
+            <div class="col-lg-8">
+                <!-- Temel Bilgiler -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Temel Bilgiler
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Name" class="form-label">
+                                        <i class="fas fa-tag me-1"></i>Ürün Adı <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Name" class="form-control form-control-lg">
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Category" class="form-label">
+                                        <i class="fas fa-list me-1"></i>Kategori <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="Category" class="form-select form-select-lg">
+                                        <option value="">Kategori Seçiniz</option>
+                                        @if (ViewBag.Kategoriler != null)
+                                        {
+                                            @foreach (var kategori in ViewBag.Kategoriler)
+                                            {
+                                                <option value="@kategori" selected="@(kategori == Model.Category)">@kategori</option>
+                                            }
+                                        }
+                                    </select>
+                                    <span asp-validation-for="Category" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="SystemBarcode" class="form-label">
+                                        <i class="fas fa-barcode me-1"></i>Barkod <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group input-group-lg">
+                                        <input asp-for="SystemBarcode" class="form-control font-monospace">
+                                        <button type="button" class="btn btn-outline-info" onclick="copyBarcode()">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    <span asp-validation-for="SystemBarcode" class="text-danger"></span>
+                                    <div class="form-text">Barkod değiştirilebilir, ancak benzersiz olmalıdır</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Location" class="form-label">
+                                        <i class="fas fa-map-marker-alt me-1"></i>Konum
+                                    </label>
+                                    <input asp-for="Location" class="form-control form-control-lg">
+                                    <span asp-validation-for="Location" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>Açıklama
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stok ve Fiyat Bilgileri -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cubes me-2"></i>Stok ve Fiyat Bilgileri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="StockQuantity" class="form-label">
+                                        <i class="fas fa-boxes me-1"></i>Stok Miktarı
+                                    </label>
+                                    <input asp-for="StockQuantity" type="number" min="0" class="form-control form-control-lg">
+                                    <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="MinimumStockLevel" class="form-label">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Minimum Stok
+                                    </label>
+                                    <input asp-for="MinimumStockLevel" type="number" min="0" class="form-control form-control-lg">
+                                    <span asp-validation-for="MinimumStockLevel" class="text-danger"></span>
+                                    <div class="form-text">Kritik seviye uyarısı için</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="Currency" class="form-label">
+                                        <i class="fas fa-money-bill me-1"></i>Para Birimi
+                                    </label>
+                                    <select asp-for="Currency" class="form-select form-select-lg">
+                                        <option value="TRY">TRY (₺)</option>
+                                        <option value="USD">USD ($)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                    </select>
+                                    <span asp-validation-for="Currency" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label asp-for="UnitPrice" class="form-label">
+                                        <i class="fas fa-lira-sign me-1"></i>Birim Fiyatı
+                                    </label>
+                                    <div class="input-group input-group-lg">
+                                        <input asp-for="UnitPrice" type="number" step="0.01" min="0" class="form-control">
+                                        <span class="input-group-text" id="currencySymbol">₺</span>
+                                    </div>
+                                    <span asp-validation-for="UnitPrice" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zimmet Bilgileri -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user-check me-2"></i>Zimmet Bilgileri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="AssignmentStatus" class="form-label">
+                                        <i class="fas fa-flag me-1"></i>Zimmet Durumu
+                                    </label>
+                                    <select asp-for="AssignmentStatus" class="form-select form-select-lg">
+                                        @if (ViewBag.ZimmetDurumlari != null)
+                                        {
+                                            @foreach (var durum in ViewBag.ZimmetDurumlari)
+                                            {
+                                                <option value="@durum" selected="@(durum == Model.AssignmentStatus)">@durum</option>
+                                            }
+                                        }
+                                    </select>
+                                    <span asp-validation-for="AssignmentStatus" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="AssignedPersonnel" class="form-label">
+                                        <i class="fas fa-user me-1"></i>Zimmetli Personel
+                                    </label>
+                                    <input asp-for="AssignedPersonnel" class="form-control form-control-lg" placeholder="Personel adı girin">
+                                    <span asp-validation-for="AssignedPersonnel" class="text-danger"></span>
+                                    <div class="form-text">Sadece "Zimmetli" durumunda doldurulur</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tedarikçi Bilgileri -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-truck me-2"></i>Tedarikçi Bilgileri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label asp-for="Supplier" class="form-label">
+                                        <i class="fas fa-building me-1"></i>Tedarikçi Adı
+                                    </label>
+                                    <input asp-for="Supplier" class="form-control form-control-lg">
+                                    <span asp-validation-for="Supplier" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label asp-for="SupplierCode" class="form-label">
+                                        <i class="fas fa-hashtag me-1"></i>Tedarikçi Kodu
+                                    </label>
+                                    <input asp-for="SupplierCode" class="form-control form-control-lg">
+                                    <span asp-validation-for="SupplierCode" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ Kolon -->
+            <div class="col-lg-4">
+                <!-- Ürün Durumu -->
+                <div class="card shadow-sm mb-4 border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-toggle-on me-2"></i>Ürün Durumu
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" style="transform: scale(1.5);">
+                            <label asp-for="IsActive" class="form-check-label ms-2 fw-bold">
+                                Ürün Aktif Mi?
+                            </label>
+                        </div>
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                Pasif ürünler listede gri renkte görünür ve yeni zimmet işlemleri yapılamaz.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sistem Bilgileri -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info me-2"></i>Sistem Bilgileri
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong class="text-muted">Oluşturulma:</strong>
+                            <div>@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</div>
+                            @if (!string.IsNullOrEmpty(Model.CreatedBy))
+                            {
+                                <small class="text-muted">@Model.CreatedBy tarafından</small>
+                            }
+                        </div>
+                        @if (Model.UpdatedDate.HasValue)
+                        {
+                            <div class="mb-3">
+                                <strong class="text-muted">Son Güncelleme:</strong>
+                                <div>@Model.UpdatedDate.Value.ToString("dd.MM.yyyy HH:mm")</div>
+                                @if (!string.IsNullOrEmpty(Model.UpdatedBy))
+                                {
+                                    <small class="text-muted">@Model.UpdatedBy tarafından</small>
+                                }
+                            </div>
+                        }
+                        @if (Model.AssignmentDate.HasValue)
+                        {
+                            <div class="mb-3">
+                                <strong class="text-muted">Zimmet Tarihi:</strong>
+                                <div>@Model.AssignmentDate.Value.ToString("dd.MM.yyyy HH:mm")</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Önizleme Kartı -->
+                <div class="card shadow-sm mb-4 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-eye me-2"></i>Güncel Durum
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-box fa-4x text-muted"></i>
+                        </div>
+                        <div class="mb-3">
+                            <strong class="text-muted">Stok Durumu:</strong>
+                            <div id="stockStatus" class="fw-bold">-</div>
+                        </div>
+                        <div class="mb-3">
+                            <strong class="text-muted">Zimmet:</strong>
+                            <div id="assignmentStatus" class="fw-bold">-</div>
+                        </div>
+                        @if (Model.IsCriticalLevel)
+                        {
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                <strong>Kritik Seviye!</strong>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Notlar -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-sticky-note me-2"></i>Notlar
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="Notes" class="form-label">Ek Notlar</label>
+                            <textarea asp-for="Notes" class="form-control" rows="4"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- İşlem Butonları -->
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-save me-2"></i>
+                                Değişiklikleri Kaydet
+                            </button>
+                            <button type="reset" class="btn btn-outline-secondary">
+                                <i class="fas fa-undo me-2"></i>
+                                Değişiklikleri Geri Al
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info">
+                                <i class="fas fa-eye me-2"></i>
+                                Detayları Görüntüle
+                            </a>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                İptal Et
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Durum güncelleme
+        function updateStatus() {
+            const stock = document.getElementById('StockQuantity').value;
+            const minStock = document.getElementById('MinimumStockLevel').value;
+            const isCritical = parseInt(stock) <= parseInt(minStock);
+            
+            document.getElementById('stockStatus').innerHTML = 
+                `${stock} adet ${isCritical ? '<span class="text-danger">(Kritik!)</span>' : ''}`;
+            
+            const assignmentStatus = document.getElementById('AssignmentStatus').value;
+            const assignedPersonnel = document.getElementById('AssignedPersonnel').value;
+            
+            let statusText = assignmentStatus;
+            if (assignmentStatus === 'Zimmetli' && assignedPersonnel) {
+                statusText += ` (${assignedPersonnel})`;
+            }
+            document.getElementById('assignmentStatus').textContent = statusText;
+        }
+
+        // Para birimi sembolü güncelleme
+        function updateCurrencySymbol() {
+            const currency = document.getElementById('Currency').value;
+            const symbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '₺';
+            document.getElementById('currencySymbol').textContent = symbol;
+        }
+
+        // Barkod kopyalama
+        function copyBarcode() {
+            const barcode = document.getElementById('SystemBarcode');
+            barcode.select();
+            barcode.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(barcode.value).then(function() {
+                alert('Barkod panoya kopyalandı!');
+            });
+        }
+
+        // Zimmet durumu değişiminde personel alanını kontrol et
+        function handleAssignmentChange() {
+            const status = document.getElementById('AssignmentStatus').value;
+            const personnelField = document.getElementById('AssignedPersonnel');
+            
+            if (status === 'Zimmetli') {
+                personnelField.required = true;
+                personnelField.parentElement.style.display = 'block';
+            } else {
+                personnelField.required = false;
+                if (status !== 'Zimmetli') {
+                    personnelField.value = '';
+                }
+            }
+            updateStatus();
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Durum güncellemelerini dinle
+            const statusInputs = document.querySelectorAll('#StockQuantity, #MinimumStockLevel, #AssignmentStatus, #AssignedPersonnel');
+            statusInputs.forEach(input => {
+                input.addEventListener('input', updateStatus);
+                input.addEventListener('change', updateStatus);
+            });
+
+            // Para birimi değişimini dinle
+            document.getElementById('Currency').addEventListener('change', updateCurrencySymbol);
+            
+            // Zimmet durumu değişimini dinle
+            document.getElementById('AssignmentStatus').addEventListener('change', handleAssignmentChange);
+
+            // İlk yükleme
+            updateStatus();
+            updateCurrencySymbol();
+            handleAssignmentChange();
+        });
+
+        // Form doğrulama
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            const requiredFields = ['Name', 'Category', 'SystemBarcode'];
+            let hasError = false;
+
+            requiredFields.forEach(fieldName => {
+                const field = document.getElementById(fieldName);
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    hasError = true;
+                } else {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                }
+            });
+
+            // Zimmetli ise personel kontrolü
+            const assignmentStatus = document.getElementById('AssignmentStatus').value;
+            const assignedPersonnel = document.getElementById('AssignedPersonnel');
+            
+            if (assignmentStatus === 'Zimmetli' && !assignedPersonnel.value.trim()) {
+                assignedPersonnel.classList.add('is-invalid');
+                hasError = true;
+                alert('Zimmetli durumunda personel adı girilmelidir!');
+            } else {
+                assignedPersonnel.classList.remove('is-invalid');
+            }
+
+            if (hasError) {
+                e.preventDefault();
+                alert('Lütfen gerekli alanları doldurunuz!');
+            }
+        });
+    </script>
+}
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+    
+    .form-control-lg, .form-select-lg {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .is-valid {
+        border-color: #198754;
+    }
+    
+    .font-monospace {
+        font-family: 'Courier New', monospace;
+        letter-spacing: 1px;
+    }
+    
+    .card-header {
+        border-bottom: none;
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    
+    .input-group-text {
+        font-weight: bold;
+    }
+</style>
