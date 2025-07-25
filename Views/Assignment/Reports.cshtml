@@ -1,0 +1,468 @@
+@model WebApplication1.Controllers.AssignmentReportViewModel
+
+@{
+    ViewData["Title"] = "Zimmetleme Raporları";
+}
+
+<div class="container-fluid">
+    <!-- Sayfa Başlığı -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Zimmetleme Raporları
+                </h2>
+                <div class="btn-group">
+                    <a href="@Url.Action("Index")" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-1"></i>Ana Liste
+                    </a>
+                    <a href="@Url.Action("Personnel")" class="btn btn-outline-info">
+                        <i class="fas fa-users me-1"></i>Personel Görünümü
+                    </a>
+                    <button class="btn btn-success" onclick="exportReports()">
+                        <i class="fas fa-download me-1"></i>Raporu İndir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ana İstatistikler -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        Genel Durum Özeti
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <div class="bg-primary text-white rounded p-3 mb-2">
+                                    <i class="fas fa-boxes fa-2x"></i>
+                                </div>
+                                <h4 class="fw-bold">@Model.TotalItems</h4>
+                                <p class="text-muted mb-0">Toplam Ürün</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <div class="bg-success text-white rounded p-3 mb-2">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                                <h4 class="fw-bold">@Model.AvailableItems</h4>
+                                <p class="text-muted mb-0">Zimmet Dışı</p>
+                                <small class="text-success">@Math.Round((double)Model.AvailableItems / Model.TotalItems * 100, 1)%</small>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <div class="bg-warning text-white rounded p-3 mb-2">
+                                    <i class="fas fa-user-check fa-2x"></i>
+                                </div>
+                                <h4 class="fw-bold">@Model.AssignedItems</h4>
+                                <p class="text-muted mb-0">Zimmetli</p>
+                                <small class="text-warning">@Math.Round(Model.AssignmentRate, 1)%</small>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <div class="bg-info text-white rounded p-3 mb-2">
+                                    <i class="fas fa-tools fa-2x"></i>
+                                </div>
+                                <h4 class="fw-bold">@Model.MaintenanceItems</h4>
+                                <p class="text-muted mb-0">Bakımda</p>
+                                <small class="text-info">@Math.Round((double)Model.MaintenanceItems / Model.TotalItems * 100, 1)%</small>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <div class="bg-danger text-white rounded p-3 mb-2">
+                                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                </div>
+                                <h4 class="fw-bold">@Model.LostItems</h4>
+                                <p class="text-muted mb-0">Kayıp</p>
+                                <small class="text-danger">@Math.Round((double)Model.LostItems / Model.TotalItems * 100, 1)%</small>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                            <div class="text-center">
+                                <div class="bg-secondary text-white rounded p-3 mb-2">
+                                    <i class="fas fa-calendar-alt fa-2x"></i>
+                                </div>
+                                <h4 class="fw-bold">@Model.ThisMonthAssignments</h4>
+                                <p class="text-muted mb-0">Bu Ay Zimmet</p>
+                                <small class="text-secondary">@DateTime.Now.ToString("MMMM")</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Durum Dağılımı Grafik -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-pie-chart me-2"></i>
+                        Durum Dağılımı
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="statusChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Zimmet Oranları
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="assignmentChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kritik Durumlar ve Bu Ayın Aktivitesi -->
+    <div class="row mb-4">
+        <div class="col-lg-4 mb-4">
+            <div class="card bg-danger text-white h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Kritik Durum
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="display-4">@Model.CriticalAssignedItems</h2>
+                    <p class="mb-0">Kritik Seviyede Zimmetli Ürün</p>
+                    @if (Model.CriticalAssignedItems > 0)
+                    {
+                        <small class="d-block mt-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Bu ürünler acil takip gerektirir
+                        </small>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="card bg-info text-white h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Bu Ayın Aktivitesi
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="display-4">@Model.ThisMonthAssignments</h2>
+                    <p class="mb-0">Yeni Zimmet İşlemi</p>
+                    <small class="d-block mt-2">
+                        <i class="fas fa-calendar me-1"></i>
+                        @DateTime.Now.ToString("MMMM yyyy")
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="card bg-success text-white h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-percentage me-2"></i>
+                        Genel Verimlilik
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- En Çok Zimmetli Ürüne Sahip Personeller -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy me-2"></i>
+                        En Çok Zimmetli Ürüne Sahip Personeller
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TopPersonnel != null && Model.TopPersonnel.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Sıra</th>
+                                        <th>Personel Adı</th>
+                                        <th>Ürün Sayısı</th>
+                                        <th>Toplam Değer</th>
+                                        <th>Oran</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{int sira = 1;}
+                                    @foreach (var personnel in Model.TopPersonnel)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if (sira == 1)
+                                                {
+                                                    <span class="badge bg-warning">🥇</span>
+                                                }
+                                                else if (sira == 2)
+                                                {
+                                                    <span class="badge bg-secondary">🥈</span>
+                                                }
+                                                else if (sira == 3)
+                                                {
+                                                    <span class="badge bg-info">🥉</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-light text-dark">@sira</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <strong>@personnel.PersonnelName</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">@personnel.ItemCount</span>
+                                            </td>
+                                            <td>
+                                                <strong class="text-success">@personnel.TotalValue.ToString("C")</strong>
+                                            </td>
+                                            <td>
+                                                @{
+                                                    var percentage = Model.AssignedItems > 0 ? (double)personnel.ItemCount / Model.AssignedItems * 100 : 0;
+                                                }
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         style="width: @percentage%" 
+                                                         aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100">
+                                                        @Math.Round(percentage, 1)%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        sira++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Henüz zimmet verilmemiş</h5>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Hızlı İstatistikler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                        <div>
+                            <h6 class="mb-0">Zimmetli Personel</h6>
+                            <small class="text-muted">Aktif personel sayısı</small>
+                        </div>
+                        <h4 class="mb-0 text-primary">@(Model.TopPersonnel?.Count ?? 0)</h4>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                        <div>
+                            <h6 class="mb-0">Ortalama Zimmet</h6>
+                            <small class="text-muted">Personel başına</small>
+                        </div>
+                        <h4 class="mb-0 text-info">
+                            @if (Model.TopPersonnel != null && Model.TopPersonnel.Any())
+                            {
+                                @Math.Round(Model.TopPersonnel.Average(p => p.ItemCount), 1)
+                            }
+                            else
+                            {
+                                @:0
+                            }
+                        </h4>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                        <div>
+                            <h6 class="mb-0">En Yüksek Değer</h6>
+                            <small class="text-muted">Tek personel bazında</small>
+                        </div>
+                        <h4 class="mb-0 text-success">
+                            @if (Model.TopPersonnel != null && Model.TopPersonnel.Any())
+                            {
+                                @Model.TopPersonnel.Max(p => p.TotalValue).ToString("C")
+                            }
+                            else
+                            {
+                                @:₺0
+                            }
+                        </h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kategori Bazında Zimmet Dağılımı -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tags me-2"></i>
+                        Kategori Bazında Zimmet Dağılımı
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.CategoryAssignments != null && Model.CategoryAssignments.Any())
+                    {
+                        <div class="row">
+                            @foreach (var category in Model.CategoryAssignments)
+                            {
+                                <div class="col-lg-3 col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">@category.Category</h6>
+                                            <div class="mb-2">
+                                                <span class="badge bg-warning me-1">@category.AssignedCount</span>
+                                                <span class="text-muted">/ @category.TotalCount</span>
+                                            </div>
+                                            <div class="progress mb-2">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: @category.AssignmentRate%" 
+                                                     aria-valuenow="@category.AssignmentRate" 
+                                                     aria-valuemin="0" aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">@Math.Round(category.AssignmentRate, 1)% zimmetli</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Kategori verisi bulunamadı</h5>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Durum Dağılımı Pie Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Zimmet Dışı', 'Zimmetli', 'Bakımda', 'Kayıp'],
+            datasets: [{
+                data: [@Model.AvailableItems, @Model.AssignedItems, @Model.MaintenanceItems, @Model.LostItems],
+                backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#dc3545'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Zimmet Oranları Bar Chart
+    const assignmentCtx = document.getElementById('assignmentChart').getContext('2d');
+    new Chart(assignmentCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Zimmet Dışı', 'Zimmetli', 'Bakımda', 'Kayıp'],
+            datasets: [{
+                label: 'Ürün Sayısı',
+                data: [@Model.AvailableItems, @Model.AssignedItems, @Model.MaintenanceItems, @Model.LostItems],
+                backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#dc3545'],
+                borderColor: ['#1e7e34', '#e0a800', '#138496', '#c82333'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = @Model.TotalItems;
+                            const percentage = ((context.parsed.y / total) * 100).toFixed(1);
+                            return context.parsed.y + ' ürün (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+
+// Rapor indirme fonksiyonu
+function exportReports() {
+    // Bu fonksiyon geliştirilecek - PDF veya Excel export
+    alert('Rapor indirme özelliği yakında eklenecek!');
+}
+</script>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+}

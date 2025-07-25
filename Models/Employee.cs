@@ -38,5 +38,13 @@ namespace WebApplication1.Models
         public Company? Company { get; set; }
 
         public string? Title { get; set; }
+
+        [StringLength(100)]
+        [Display(Name = "Departman")]
+        public string? Department { get; set; }
+
+        [StringLength(100)]
+        [Display(Name = "Pozisyon")]
+        public string? Position { get; set; }
     }
 }

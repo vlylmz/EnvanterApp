@@ -71,7 +71,7 @@ namespace WebApplication1.Models
         // Notlar
         [MaxLength(1000)]
         [Display(Name = "Notlar")]
-        [DataType(DataType.MultilineText)] 
+        [DataType(DataType.MultilineText)]
         public string? Notes { get; set; }
 
         // Denetim alanları
@@ -107,6 +107,8 @@ namespace WebApplication1.Models
         [MaxLength(20)]
         [Display(Name = "Yetkili Telefon")]
         public string? ContactPhone { get; set; }
+        
+        
 
         // İlişkisel veriler için navigation properties
         // public virtual ICollection<Employee> Employees { get; set; }

@@ -1,0 +1,1262 @@
+@model List<WebApplication1.Controllers.ItemDisplayViewModel>
+@{
+    ViewData["Title"] = "Zimmet Yönetim Sistemi";
+    var successMessage = Context.Session.GetString("successMessage");
+    var errorMessage = TempData["Error"] as string;
+    
+    // Statistics from ViewBag
+    var totalItems = ViewBag.TotalItems ?? 0;
+    var availableItems = ViewBag.AvailableItems ?? 0;
+    var assignedItems = ViewBag.AssignedItems ?? 0;
+    var maintenanceItems = ViewBag.MaintenanceItems ?? 0;
+    var lostItems = ViewBag.LostItems ?? 0;
+    
+    // Filters
+    var searchValue = ViewBag.SearchString as string;
+    var selectedStatus = ViewBag.SelectedStatus as string;
+    var selectedPersonnel = ViewBag.SelectedPersonnel as string;
+    var selectedProductType = ViewBag.SelectedProductType as string;
+}
+
+<!-- Success/Error Messages -->
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'success',
+                title: 'Başarılı!',
+                text: '@successMessage',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    </script>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Hata!',
+                text: '@errorMessage',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    </script>
+}
+
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="h2 mb-1 d-flex align-items-center">
+                        <i class="fas fa-clipboard-list text-primary me-2" aria-hidden="true"></i>
+                        Zimmet Yönetim Sistemi
+                    </h1>
+                    <p class="text-muted mb-0">Şirket varlıklarınızı kolayca yönetin ve takip edin</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-action="AssignmentPage" class="btn btn-primary">
+                        <i class="fas fa-plus me-1" aria-hidden="true"></i> Zimmet Ver
+                    </a>
+                    <a asp-action="ReturnPage" class="btn btn-warning">
+                        <i class="fas fa-undo me-1" aria-hidden="true"></i> Zimmet İade
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" onclick="exportToCSV()">
+                        <i class="fas fa-file-excel me-1" aria-hidden="true"></i> Rapor İndir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg col-md-6 mb-3">
+            <div class="card bg-primary text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Toplam Varlık</h5>
+                            <h3 class="mb-0 fw-bold">@totalItems</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-boxes fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg col-md-6 mb-3">
+            <div class="card bg-success text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Müsait</h5>
+                            <h3 class="mb-0 fw-bold">@availableItems</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-check-circle fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg col-md-6 mb-3">
+            <div class="card bg-info text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Zimmetli</h5>
+                            <h3 class="mb-0 fw-bold">@assignedItems</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-user-check fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg col-md-6 mb-3">
+            <div class="card bg-warning text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Bakımda</h5>
+                            <h3 class="mb-0 fw-bold">@maintenanceItems</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-tools fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg col-md-6 mb-3">
+            <div class="card bg-danger text-white h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Kayıp</h5>
+                            <h3 class="mb-0 fw-bold">@lostItems</h3>
+                        </div>
+                        <div>
+                            <i class="fas fa-exclamation-triangle fa-2x opacity-75" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0 d-flex align-items-center">
+                    <i class="fas fa-search me-2" aria-hidden="true"></i> Arama ve Filtreleme
+                </h2>
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#searchFilters" aria-expanded="true" aria-controls="searchFilters">
+                    <i class="fas fa-filter me-1" aria-hidden="true"></i> Filtreler
+                </button>
+            </div>
+        </div>
+        <div class="collapse show" id="searchFilters">
+            <div class="card-body">
+                <form method="get" asp-action="Index" id="searchForm" role="search">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-3 col-md-6">
+                            <label for="searchString" class="form-label">
+                                <i class="fas fa-search text-muted me-1" aria-hidden="true"></i>
+                                Arama
+                            </label>
+                            <input type="text" name="searchString" id="searchString" value="@searchValue" 
+                                class="form-control" placeholder="Ürün adı, barkod veya personel...">
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="status" class="form-label">
+                                <i class="fas fa-toggle-on text-muted me-1" aria-hidden="true"></i> Durum
+                            </label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">Tümü</option>
+                                @foreach (var durum in (ViewBag.ZimmetDurumlari as string[]) ?? new string[] { })
+                                {
+                                    if (durum != "Tümü")
+                                    {
+                                        <option value="@durum" selected="@(selectedStatus == durum)">@durum</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="personnel" class="form-label">
+                                <i class="fas fa-user text-muted me-1" aria-hidden="true"></i> Personel
+                            </label>
+                            <select name="personnel" id="personnel" class="form-select">
+                                <option value="">Tümü</option>
+                                @foreach (var personel in (ViewBag.Personeller as List<string>) ?? new List<string>())
+                                {
+                                    <option value="@personel" selected="@(selectedPersonnel == personel)">@personel</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label for="productType" class="form-label">
+                                <i class="fas fa-tags text-muted me-1" aria-hidden="true"></i> Kategori
+                            </label>
+                            <select name="productType" id="productType" class="form-select">
+                                <option value="">Tümü</option>
+                                @foreach (var type in (ViewBag.ProductTypes as string[]) ?? new string[] { })
+                                {
+                                    if (type != "Tümü")
+                                    {
+                                        <option value="@type" selected="@(selectedProductType == type)">@type</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-12">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-fill" aria-label="Arama yap">
+                                    <i class="fas fa-search me-1" aria-hidden="true"></i> Ara
+                                </button>
+                                <a href="@Url.Action("Index")" class="btn btn-outline-secondary flex-fill"
+                                    aria-label="Filtreleri temizle">
+                                    <i class="fas fa-times me-1" aria-hidden="true"></i> Temizle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="items-tab" data-bs-toggle="tab" data-bs-target="#items-tab-pane" 
+                type="button" role="tab" aria-controls="items-tab-pane" aria-selected="true">
+                <i class="fas fa-list me-1"></i> Zimmet Listesi
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="personnel-tab" data-bs-toggle="tab" data-bs-target="#personnel-tab-pane" 
+                type="button" role="tab" aria-controls="personnel-tab-pane" aria-selected="false">
+                <i class="fas fa-users me-1"></i> Personel Bazlı
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports-tab-pane" 
+                type="button" role="tab" aria-controls="reports-tab-pane" aria-selected="false">
+                <i class="fas fa-chart-bar me-1"></i> Raporlar
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Items List Tab -->
+        <div class="tab-pane fade show active" id="items-tab-pane" role="tabpanel" aria-labelledby="items-tab">
+            <!-- Items Table -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <h2 class="h6 mb-0 d-flex align-items-center">
+                            <i class="fas fa-table me-2" aria-hidden="true"></i> Zimmet Listesi
+                            <span class="badge bg-primary ms-2">@Model.Count kayıt</span>
+                        </h2>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Görünüm seçenekleri">
+                            <input type="radio" class="btn-check" name="viewType" id="tableViewRadio" autocomplete="off" checked>
+                            <label class="btn btn-outline-secondary" for="tableViewRadio" onclick="toggleView('table')">
+                                <i class="fas fa-table me-1" aria-hidden="true"></i> Tablo
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="viewType" id="cardsViewRadio" autocomplete="off">
+                            <label class="btn btn-outline-secondary" for="cardsViewRadio" onclick="toggleView('cards')">
+                                <i class="fas fa-th-large me-1" aria-hidden="true"></i> Kartlar
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Any())
+                    {
+                        <!-- Table View -->
+                        <div id="tableView" class="table-responsive">
+                            <table class="table table-hover table-striped mb-0" role="table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">
+                                            <i class="fas fa-box me-1" aria-hidden="true"></i> Ürün Bilgileri
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-barcode me-1" aria-hidden="true"></i> Barkod
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-tags me-1" aria-hidden="true"></i> Kategori
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-info-circle me-1" aria-hidden="true"></i> Durum
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-user me-1" aria-hidden="true"></i> Zimmetli Personel
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-calendar me-1" aria-hidden="true"></i> Zimmet Tarihi
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-building me-1" aria-hidden="true"></i> Şirket
+                                        </th>
+                                        <th scope="col">
+                                            <i class="fas fa-lira-sign me-1" aria-hidden="true"></i> Fiyat
+                                        </th>
+                                        <th scope="col" style="width: 180px;">
+                                            <i class="fas fa-cogs me-1" aria-hidden="true"></i> İşlemler
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="item-icon me-3" aria-hidden="true">
+                                                        <i class="fas fa-box fa-2x text-primary"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-1 fw-bold">@item.Name</h6>
+                                                        @if (!string.IsNullOrEmpty(item.Description))
+                                                        {
+                                                            <small class="text-muted">@item.Description</small>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <code>@item.SystemBarcode</code>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@item.Category</span>
+                                            </td>
+                                            <td>
+                                                @{
+                                                    var statusClass = item.AssignmentStatus switch
+                                                    {
+                                                        "Zimmet Dışı" or "Unassigned" => "bg-success",
+                                                        "Zimmetli" or "Assigned" => "bg-info",
+                                                        "Bakımda" or "Under Maintenance" => "bg-warning",
+                                                        "Kayıp" or "Lost" => "bg-danger",
+                                                        _ => "bg-secondary"
+                                                    };
+                                                    
+                                                    var statusText = item.AssignmentStatus switch
+                                                    {
+                                                        "Unassigned" => "Zimmet Dışı",
+                                                        "Assigned" => "Zimmetli",
+                                                        "Under Maintenance" => "Bakımda",
+                                                        "Lost" => "Kayıp",
+                                                        _ => item.AssignmentStatus
+                                                    };
+                                                }
+                                                <span class="badge @statusClass">
+                                                    @statusText
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(item.AssignedPersonnel))
+                                                {
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-user-circle text-muted me-2"></i>
+                                                        @item.AssignedPersonnel
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <em class="text-muted">-</em>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (item.AssignmentDate.HasValue)
+                                                {
+                                                    <time datetime="@item.AssignmentDate.Value.ToString("yyyy-MM-dd")" class="small">
+                                                        @item.AssignmentDate.Value.ToString("dd.MM.yyyy")
+                                                    </time>
+                                                }
+                                                else
+                                                {
+                                                    <em class="text-muted">-</em>
+                                                }
+                                            </td>
+                                            <td>
+                                                @(item.CompanyName ?? "-")
+                                            </td>
+                                            <td>
+                                                @if (item.UnitPrice.HasValue)
+                                                {
+                                                    <strong>₺@item.UnitPrice.Value.ToString("N2")</strong>
+                                                }
+                                                else
+                                                {
+                                                    <em class="text-muted">-</em>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group" aria-label="Ürün işlemleri">
+                                                    @if (item.AssignmentStatus == "Zimmet Dışı" || item.AssignmentStatus == "Unassigned")
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-success"
+                                                            onclick="assignItem(@item.Id)" title="Zimmet Ver" data-bs-toggle="tooltip">
+                                                            <i class="fas fa-user-plus" aria-hidden="true"></i>
+                                                        </button>
+                                                    }
+                                                    else if (item.AssignmentStatus == "Zimmetli" || item.AssignmentStatus == "Assigned")
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-warning"
+                                                            onclick="returnItem(@item.Id)" title="İade Al" data-bs-toggle="tooltip">
+                                                            <i class="fas fa-undo" aria-hidden="true"></i>
+                                                        </button>
+                                                    }
+                                                    <button type="button" class="btn btn-sm btn-outline-info"
+                                                        onclick="viewDetails(@item.Id)" title="Detaylar" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-eye" aria-hidden="true"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        onclick="changeStatus(@item.Id)" title="Durum Değiştir" data-bs-toggle="tooltip">
+                                                        <i class="fas fa-exchange-alt" aria-hidden="true"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Cards View -->
+                        <div id="cardsView" style="display: none;" class="p-3">
+                            <div class="row g-3">
+                                @foreach (var item in Model)
+                                {
+                                    var cardStatusClass = item.AssignmentStatus switch
+                                    {
+                                        "Zimmet Dışı" or "Unassigned" => "border-success",
+                                        "Zimmetli" or "Assigned" => "border-info",
+                                        "Bakımda" or "Under Maintenance" => "border-warning",
+                                        "Kayıp" or "Lost" => "border-danger",
+                                        _ => ""
+                                    };
+                                    
+                                    <div class="col-lg-4 col-md-6 col-12">
+                                        <div class="card h-100 item-card @cardStatusClass">
+                                            <div class="card-body">
+                                                <div class="d-flex align-items-start justify-content-between mb-3">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="item-icon-lg me-3" aria-hidden="true">
+                                                            <i class="fas fa-box fa-2x text-primary"></i>
+                                                        </div>
+                                                        <div>
+                                                            <h6 class="card-title mb-1 fw-bold">@item.Name</h6>
+                                                            <code class="small">@item.SystemBarcode</code>
+                                                        </div>
+                                                    </div>
+                                                    @{
+                                                        var statusClass2 = item.AssignmentStatus switch
+                                                        {
+                                                            "Zimmet Dışı" or "Unassigned" => "bg-success",
+                                                            "Zimmetli" or "Assigned" => "bg-info",
+                                                            "Bakımda" or "Under Maintenance" => "bg-warning",
+                                                            "Kayıp" or "Lost" => "bg-danger",
+                                                            _ => "bg-secondary"
+                                                        };
+                                                        
+                                                        var statusText2 = item.AssignmentStatus switch
+                                                        {
+                                                            "Unassigned" => "Zimmet Dışı",
+                                                            "Assigned" => "Zimmetli",
+                                                            "Under Maintenance" => "Bakımda",
+                                                            "Lost" => "Kayıp",
+                                                            _ => item.AssignmentStatus
+                                                        };
+                                                    }
+                                                    <span class="badge @statusClass2">@statusText2</span>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <div class="row g-2 small">
+                                                        <div class="col-6">
+                                                            <i class="fas fa-tags text-muted me-1"></i>
+                                                            <span class="text-muted">Kategori:</span>
+                                                            <br>
+                                                            <strong>@item.Category</strong>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <i class="fas fa-lira-sign text-muted me-1"></i>
+                                                            <span class="text-muted">Fiyat:</span>
+                                                            <br>
+                                                            <strong>₺@(item.UnitPrice?.ToString("N2") ?? "-")</strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                @if (!string.IsNullOrEmpty(item.AssignedPersonnel))
+                                                {
+                                                    <div class="mb-3 p-2 bg-light rounded">
+                                                        <div class="small">
+                                                            <i class="fas fa-user-circle text-primary me-2"></i>
+                                                            <strong>@item.AssignedPersonnel</strong>
+                                                        </div>
+                                                        @if (item.AssignmentDate.HasValue)
+                                                        {
+                                                            <div class="small text-muted mt-1">
+                                                                <i class="fas fa-calendar me-1"></i>
+                                                                @item.AssignmentDate.Value.ToString("dd.MM.yyyy")
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                }
+
+                                                @if (!string.IsNullOrEmpty(item.Description))
+                                                {
+                                                    <p class="card-text small text-muted mb-3">@item.Description</p>
+                                                }
+
+                                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                                    <div class="btn-group btn-group-sm w-100" role="group" aria-label="Ürün işlemleri">
+                                                        @if (item.AssignmentStatus == "Zimmet Dışı" || item.AssignmentStatus == "Unassigned")
+                                                        {
+                                                            <button type="button" class="btn btn-outline-success flex-fill"
+                                                                onclick="assignItem(@item.Id)" title="Zimmet Ver">
+                                                                <i class="fas fa-user-plus" aria-hidden="true"></i>
+                                                            </button>
+                                                        }
+                                                        else if (item.AssignmentStatus == "Zimmetli" || item.AssignmentStatus == "Assigned")
+                                                        {
+                                                            <button type="button" class="btn btn-outline-warning flex-fill"
+                                                                onclick="returnItem(@item.Id)" title="İade Al">
+                                                                <i class="fas fa-undo" aria-hidden="true"></i>
+                                                            </button>
+                                                        }
+                                                        <button type="button" class="btn btn-outline-info flex-fill"
+                                                            onclick="viewDetails(@item.Id)" title="Detaylar">
+                                                            <i class="fas fa-eye" aria-hidden="true"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-primary flex-fill"
+                                                            onclick="changeStatus(@item.Id)" title="Durum">
+                                                            <i class="fas fa-exchange-alt" aria-hidden="true"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3" aria-hidden="true"></i>
+                            <h3 class="h5 text-muted">Ürün Bulunamadı</h3>
+                            @if (!string.IsNullOrEmpty(searchValue) || !string.IsNullOrEmpty(selectedStatus) || 
+                                 !string.IsNullOrEmpty(selectedPersonnel) || !string.IsNullOrEmpty(selectedProductType))
+                            {
+                                <p class="text-muted">Arama kriterlerinize uygun ürün bulunmuyor.</p>
+                                <a href="@Url.Action("Index")" class="btn btn-outline-primary">
+                                    <i class="fas fa-times me-1" aria-hidden="true"></i> Filtreleri Temizle
+                                </a>
+                            }
+                            else
+                            {
+                                <p class="text-muted">Henüz sisteme ürün eklenmemiş.</p>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Personnel Tab -->
+        <div class="tab-pane fade" id="personnel-tab-pane" role="tabpanel" aria-labelledby="personnel-tab">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h2 class="h6 mb-0 d-flex align-items-center">
+                        <i class="fas fa-users me-2" aria-hidden="true"></i> Personel Bazlı Zimmet Durumu
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div id="personnelContent">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Yükleniyor...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Personel verileri yükleniyor...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div class="tab-pane fade" id="reports-tab-pane" role="tabpanel" aria-labelledby="reports-tab">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h2 class="h6 mb-0 d-flex align-items-center">
+                        <i class="fas fa-chart-bar me-2" aria-hidden="true"></i> Raporlar ve İstatistikler
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div id="reportsContent">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Yükleniyor...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Rapor verileri yükleniyor...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assignment Modal -->
+<div class="modal fade" id="assignmentModal" tabindex="-1" aria-labelledby="assignmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignmentModalLabel">
+                    <i class="fas fa-user-plus me-2"></i>Zimmet Ver
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="assignmentModalContent">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Change Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">
+                    <i class="fas fa-exchange-alt me-2"></i>Durum Değiştir
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="statusModalContent">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Global variables
+        let currentViewType = 'table';
+        let currentItemId = null;
+
+        // Toggle between table and cards view
+        function toggleView(viewType) {
+            const tableView = document.getElementById('tableView');
+            const cardsView = document.getElementById('cardsView');
+            const tableRadio = document.getElementById('tableViewRadio');
+            const cardsRadio = document.getElementById('cardsViewRadio');
+
+            if (!tableView || !cardsView) return;
+
+            if (viewType === 'table') {
+                tableView.style.display = 'block';
+                cardsView.style.display = 'none';
+                tableRadio.checked = true;
+                cardsRadio.checked = false;
+                currentViewType = 'table';
+            } else {
+                tableView.style.display = 'none';
+                cardsView.style.display = 'block';
+                tableRadio.checked = false;
+                cardsRadio.checked = true;
+                currentViewType = 'cards';
+            }
+
+            // Save preference
+            try {
+                sessionStorage.setItem('assignmentViewType', viewType);
+            } catch (e) {
+                // Silently handle storage errors
+            }
+        }
+
+        // Assign item
+        function assignItem(itemId) {
+            currentItemId = itemId;
+            
+            // Load assignment form
+            fetch(`/Assignment/GetAssignmentForm?productId=${itemId}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('assignmentModalContent').innerHTML = html;
+                    const modal = new bootstrap.Modal(document.getElementById('assignmentModal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    Swal.fire('Hata!', 'Form yüklenirken bir hata oluştu.', 'error');
+                });
+        }
+
+        // Return item
+        function returnItem(itemId) {
+            Swal.fire({
+                title: 'Zimmet İade',
+                text: 'Bu ürünün zimmet iadesini almak istediğinize emin misiniz?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#fd7e14',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-undo"></i> İade Al',
+                cancelButtonText: '<i class="fas fa-times"></i> İptal',
+                customClass: {
+                    confirmButton: 'btn btn-warning',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'İşlem yapılıyor...',
+                        html: 'Lütfen bekleyin...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Submit return request
+                    const form = new FormData();
+                    form.append('productId', itemId);
+                    form.append('returnReason', 'Normal İade');
+                    form.append('notes', '');
+                    
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (token) {
+                        form.append('__RequestVerificationToken', token.value);
+                    }
+
+                    fetch('/Assignment/ReturnProduct', {
+                        method: 'POST',
+                        body: form
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Başarılı!',
+                                text: result.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Hata!', result.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('Hata!', 'İade işlemi sırasında bir hata oluştu.', 'error');
+                    });
+                }
+            });
+        }
+
+        // View details
+        function viewDetails(itemId) {
+            window.location.href = `/Assignment/Details/${itemId}`;
+        }
+
+        // Change status
+        function changeStatus(itemId) {
+            currentItemId = itemId;
+            
+            // Load status form
+            const modalContent = `
+                <form id="statusChangeForm">
+                    <div class="mb-3">
+                        <label class="form-label">Yeni Durum</label>
+                        <select class="form-select" id="newStatus" required>
+                            <option value="">Durum seçin...</option>
+                            <option value="Zimmet Dışı">Müsait</option>
+                            <option value="Bakımda">Bakımda</option>
+                            <option value="Kayıp">Kayıp</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="statusReason" rows="3" 
+                            placeholder="Durum değişikliği sebebi..."></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Kaydet
+                        </button>
+                    </div>
+                </form>
+            `;
+            
+            document.getElementById('statusModalContent').innerHTML = modalContent;
+            const modal = new bootstrap.Modal(document.getElementById('statusModal'));
+            modal.show();
+            
+            // Handle form submission
+            document.getElementById('statusChangeForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitStatusChange();
+            });
+        }
+
+        // Submit status change
+        function submitStatusChange() {
+            const newStatus = document.getElementById('newStatus').value;
+            const reason = document.getElementById('statusReason').value;
+            
+            if (!newStatus) {
+                Swal.fire('Uyarı!', 'Lütfen yeni durum seçin.', 'warning');
+                return;
+            }
+            
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('statusModal')).hide();
+            
+            // Show loading
+            Swal.fire({
+                title: 'İşlem yapılıyor...',
+                html: 'Lütfen bekleyin...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Submit request
+            const form = new FormData();
+            form.append('productId', currentItemId);
+            form.append('newStatus', newStatus);
+            form.append('reason', reason);
+            
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                form.append('__RequestVerificationToken', token.value);
+            }
+
+            fetch('/Assignment/ChangeAssignmentStatus', {
+                method: 'POST',
+                body: form
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Başarılı!',
+                        text: result.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Hata!', result.message, 'error');
+                }
+            })
+            .catch(error => {
+                Swal.fire('Hata!', 'Durum değiştirme işlemi sırasında bir hata oluştu.', 'error');
+            });
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            Swal.fire({
+                title: 'Rapor İndir',
+                text: 'Zimmet listesi CSV dosyası olarak indirilecek.',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-download"></i> İndir',
+                cancelButtonText: 'İptal',
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const status = document.getElementById('status')?.value || '';
+                    window.location.href = `/Assignment/ExportToCsv?status=${status}&format=detailed`;
+                }
+            });
+        }
+
+        // Load personnel data
+        function loadPersonnelData() {
+            fetch('/Assignment/Personnel')
+                .then(response => response.text())
+                .then(html => {
+                    // Extract the content part from the response
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const content = doc.querySelector('.container-fluid') || doc.body;
+                    document.getElementById('personnelContent').innerHTML = content.innerHTML;
+                })
+                .catch(error => {
+                    document.getElementById('personnelContent').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Personel verileri yüklenirken bir hata oluştu.
+                        </div>
+                    `;
+                });
+        }
+
+        // Load reports data
+        function loadReportsData() {
+            fetch('/Assignment/Reports')
+                .then(response => response.text())
+                .then(html => {
+                    // Extract the content part from the response
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const content = doc.querySelector('.container-fluid') || doc.body;
+                    document.getElementById('reportsContent').innerHTML = content.innerHTML;
+                })
+                .catch(error => {
+                    document.getElementById('reportsContent').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Rapor verileri yüklenirken bir hata oluştu.
+                        </div>
+                    `;
+                });
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl, {
+                        delay: { show: 500, hide: 100 }
+                    });
+                });
+            }
+
+            // Load saved view type
+            try {
+                const savedViewType = sessionStorage.getItem('assignmentViewType') || 'table';
+                toggleView(savedViewType);
+            } catch (e) {
+                toggleView('table');
+            }
+
+            // Auto-submit form on select change
+            const selects = ['status', 'personnel', 'productType'];
+            selects.forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    select.addEventListener('change', function () {
+                        document.getElementById('searchForm').submit();
+                    });
+                }
+            });
+
+            // Real-time search with debounce
+            const searchInput = document.getElementById('searchString');
+            if (searchInput) {
+                let searchTimeout;
+                searchInput.addEventListener('input', function () {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        document.getElementById('searchForm').submit();
+                    }, 1000);
+                });
+            }
+
+            // Tab change events
+            document.getElementById('personnel-tab').addEventListener('shown.bs.tab', function () {
+                loadPersonnelData();
+            });
+
+            document.getElementById('reports-tab').addEventListener('shown.bs.tab', function () {
+                loadReportsData();
+            });
+
+            // Handle keyboard shortcuts
+            document.addEventListener('keydown', function (e) {
+                // Alt + T for table view
+                if (e.altKey && e.key === 't') {
+                    e.preventDefault();
+                    toggleView('table');
+                }
+                // Alt + C for cards view
+                if (e.altKey && e.key === 'c') {
+                    e.preventDefault();
+                    toggleView('cards');
+                }
+                // Alt + Z for new assignment
+                if (e.altKey && e.key === 'z') {
+                    e.preventDefault();
+                    window.location.href = '/Assignment/AssignmentPage';
+                }
+            });
+        });
+
+        // Handle responsive behavior
+        function handleResponsiveChanges() {
+            const isMobile = window.innerWidth < 768;
+            if (isMobile && currentViewType === 'table') {
+                toggleView('cards');
+            }
+        }
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Listen for window resize
+        window.addEventListener('resize', debounce(handleResponsiveChanges, 250));
+    </script>
+
+    <style>
+        /* Custom CSS for improved design */
+        :root {
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --warning-color: #fd7e14;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+            --secondary-color: #6c757d;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --border-radius: 0.375rem;
+            --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --box-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+            --transition: all 0.15s ease-in-out;
+        }
+
+        /* General improvements */
+        .card {
+            border: 1px solid rgba(0, 0, 0, 0.125);
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        /* Statistics cards */
+        .card.bg-primary,
+        .card.bg-success,
+        .card.bg-warning,
+        .card.bg-danger,
+        .card.bg-info {
+            border: none;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+        }
+
+        /* Item icons */
+        .item-icon {
+            width: 50px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .item-icon-lg {
+            width: 60px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Item cards */
+        .item-card {
+            transition: var(--transition);
+            border-width: 2px;
+            height: 100%;
+            position: relative;
+        }
+
+        .item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .item-card .card-body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Button improvements */
+        .btn {
+            transition: var(--transition);
+            border-radius: var(--border-radius);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-group .btn {
+            border-radius: 0;
+        }
+
+        .btn-group .btn:first-child {
+            border-top-left-radius: var(--border-radius);
+            border-bottom-left-radius: var(--border-radius);
+        }
+
+        .btn-group .btn:last-child {
+            border-top-right-radius: var(--border-radius);
+            border-bottom-right-radius: var(--border-radius);
+        }
+
+        /* Table improvements */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            background-color: var(--light-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .table-striped>tbody>tr:nth-of-type(odd)>td {
+            background-color: rgba(0, 0, 0, 0.025);
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.075);
+        }
+
+        /* Badge improvements */
+        .badge {
+            font-size: 0.75em;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Tab navigation */
+        .nav-tabs {
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .nav-tabs .nav-link {
+            color: #6c757d;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 0.75rem 1.5rem;
+            transition: var(--transition);
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-color);
+            border-bottom-color: rgba(13, 110, 253, 0.25);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            background-color: transparent;
+            border-color: transparent transparent var(--primary-color);
+        }
+
+        /* Search and filter section */
+        .collapse {
+            transition: var(--transition);
+        }
+
+        /* Form improvements */
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Code style */
+        code {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            font-size: 0.875em;
+        }
+
+        /* Modal improvements */
+        .modal-content {
+            border: none;
+            box-shadow: var(--box-shadow-lg);
+        }
+
+        .modal-header {
+            background-color: var(--light-color);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+
+        /* Responsive improvements */
+        @@media (max-width: 768px) {
+            .nav-tabs .nav-link {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+            
+            .btn-group {
+                display: flex;
+                flex-wrap: wrap;
+            }
+            
+            .btn-group .btn {
+                flex: 1 1 auto;
+            }
+        }
+    </style>
+}

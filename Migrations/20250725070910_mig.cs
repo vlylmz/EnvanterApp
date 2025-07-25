@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplication1.Migrations
 {
     /// <inheritdoc />
-    public partial class mig333 : Migration
+    public partial class mig : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -96,11 +96,11 @@ namespace WebApplication1.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     Category = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     SystemBarcode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     AssignmentStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Location = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     AssignedPersonnel = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     AssignmentDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     StockQuantity = table.Column<int>(type: "int", nullable: false),
@@ -109,9 +109,9 @@ namespace WebApplication1.Migrations
                     IsCriticalLevel = table.Column<bool>(type: "bit", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     Currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    Supplier = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    SupplierCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    Supplier = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    SupplierCode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedBy = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -260,7 +260,9 @@ namespace WebApplication1.Migrations
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ActiveTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Department = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Position = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {

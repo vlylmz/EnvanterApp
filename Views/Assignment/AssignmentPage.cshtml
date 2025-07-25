@@ -1,0 +1,946 @@
+@{
+    ViewData["Title"] = "Zimmet Ver";
+    var companies = ViewBag.Companies as dynamic;
+    var productTypes = ViewBag.ProductTypes as string[];
+}
+
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="h2 mb-1 d-flex align-items-center">
+                        <i class="fas fa-user-plus text-primary me-2" aria-hidden="true"></i>
+                        Zimmet Verme İşlemi
+                    </h1>
+                    <p class="text-muted mb-0">Ürünleri personele zimmetle</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-controller="Assignment" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1" aria-hidden="true"></i> Geri Dön
+                    </a>
+                    <button type="button" class="btn btn-outline-primary" onclick="resetForm()">
+                        <i class="fas fa-redo me-1" aria-hidden="true"></i> Formu Sıfırla
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="progress-steps">
+                        <div class="step active" id="step1">
+                            <div class="step-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="step-text">Firma Seçimi</div>
+                        </div>
+                        <div class="step" id="step2">
+                            <div class="step-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="step-text">Personel Seçimi</div>
+                        </div>
+                        <div class="step" id="step3">
+                            <div class="step-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="step-text">Ürün Seçimi</div>
+                        </div>
+                        <div class="step" id="step4">
+                            <div class="step-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="step-text">Onay</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Panel - Form Steps -->
+        <div class="col-lg-4 mb-4">
+            <!-- Step 1: Company Selection -->
+            <div class="card shadow-sm mb-3" id="companyCard">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-building me-2"></i> 1. Firma Seçimi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="companySelect" class="form-label">Firma Seçin</label>
+                        <select class="form-select form-select-lg" id="companySelect" onchange="onCompanySelected()">
+                            <option value="">Firma seçiniz...</option>
+                            @if (companies != null)
+                            {
+                                foreach (var company in companies)
+                                {
+                                    <option value="@company.Id">
+                                        @company.Name
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div id="companyInfo" class="mt-3" style="display: none;">
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="companyInfoText"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Employee Selection -->
+            <div class="card shadow-sm mb-3" id="employeeCard" style="opacity: 0.5; pointer-events: none;">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i> 2. Personel Seçimi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="employeeSelect" class="form-label">Personel Seçin</label>
+                        <select class="form-select form-select-lg" id="employeeSelect" onchange="onEmployeeSelected()" disabled>
+                            <option value="">Önce firma seçiniz...</option>
+                        </select>
+                    </div>
+                    <div id="employeeInfo" class="mt-3" style="display: none;">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title mb-2">Personel Bilgileri</h6>
+                                <div id="employeeDetails"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Product Filters -->
+            <div class="card shadow-sm mb-3" id="filterCard" style="opacity: 0.5; pointer-events: none;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i> 3. Ürün Filtreleri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label for="categoryFilter" class="form-label">Kategori</label>
+                        <select class="form-select" id="categoryFilter" onchange="filterProducts()" disabled>
+                            <option value="">Tüm Kategoriler</option>
+                            @if (productTypes != null)
+                            {
+                                foreach (var type in productTypes)
+                                {
+                                    if (type != "Tümü")
+                                    {
+                                        <option value="@type">@type</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="searchFilter" class="form-label">Ürün Ara</label>
+                        <input type="text" class="form-control" id="searchFilter" 
+                            placeholder="Ürün adı veya barkod..." onkeyup="filterProducts()" disabled>
+                    </div>
+                    <button class="btn btn-success w-100" onclick="loadAvailableProducts()" disabled id="loadProductsBtn">
+                        <i class="fas fa-sync me-2"></i> Ürünleri Yükle
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Product Selection and Summary -->
+        <div class="col-lg-8 mb-4">
+            <!-- Available Products -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-boxes me-2 text-success"></i> Müsait Ürünler
+                        </h5>
+                        <div>
+                            <span class="badge bg-success" id="availableCount">0</span>
+                            <span class="text-muted ms-2">ürün müsait</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="productsContainer">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-box-open fa-3x mb-3"></i>
+                            <p>Lütfen önce firma ve personel seçimi yapınız.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selected Products Summary -->
+            <div class="card shadow-sm mb-3" id="summaryCard" style="display: none;">
+                <div class="card-header bg-warning">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-white">
+                            <i class="fas fa-clipboard-list me-2"></i> Seçilen Ürünler
+                        </h5>
+                        <div>
+                            <span class="badge bg-white text-dark" id="selectedCount">0</span>
+                            <span class="text-white ms-2">ürün seçildi</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="selectedProductsList">
+                        <!-- Selected products will be listed here -->
+                    </div>
+                    <div class="border-top pt-3 mt-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Toplam Değer:</strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong class="text-primary">₺<span id="totalValue">0.00</span></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignment Notes -->
+            <div class="card shadow-sm mb-3" id="notesCard" style="display: none;">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-sticky-note me-2 text-primary"></i> Zimmet Notları
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <textarea class="form-control" id="assignmentNotes" rows="3" 
+                            placeholder="Zimmet ile ilgili notlarınızı buraya yazabilirsiniz..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card shadow-sm" id="actionCard" style="display: none;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="button" class="btn btn-outline-secondary" onclick="clearSelection()">
+                            <i class="fas fa-times me-2"></i> Seçimi Temizle
+                        </button>
+                        <button type="button" class="btn btn-primary btn-lg" onclick="confirmAssignment()" 
+                            id="confirmBtn" disabled>
+                            <i class="fas fa-check-circle me-2"></i> Zimmeti Onayla
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assignment Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="confirmModalLabel">
+                    <i class="fas fa-clipboard-check me-2"></i> Zimmet Onayı
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="confirmationDetails">
+                    <!-- Confirmation details will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i> İptal
+                </button>
+                <button type="button" class="btn btn-primary" onclick="submitAssignment()">
+                    <i class="fas fa-check me-2"></i> Zimmeti Tamamla
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Global variables
+        let selectedCompanyId = null;
+        let selectedEmployeeId = null;
+        let selectedEmployeeInfo = null;
+        let availableProducts = [];
+        let selectedProducts = [];
+
+        // Company selection
+        function onCompanySelected() {
+            const companySelect = document.getElementById('companySelect');
+            selectedCompanyId = companySelect.value;
+            
+            if (selectedCompanyId) {
+                // Update UI
+                document.getElementById('companyInfo').style.display = 'block';
+                const selectedOption = companySelect.options[companySelect.selectedIndex];
+                const employeeCount = selectedOption.getAttribute('data-employee-count');
+                document.getElementById('companyInfoText').textContent = 
+                    `${selectedOption.text} seçildi.`;
+                
+                // Enable employee section
+                document.getElementById('employeeCard').style.opacity = '1';
+                document.getElementById('employeeCard').style.pointerEvents = 'auto';
+                document.getElementById('employeeSelect').disabled = false;
+                
+                // Update progress
+                updateProgress(2);
+                
+                // Load employees
+                loadEmployees(selectedCompanyId);
+            } else {
+                resetFromStep(1);
+            }
+        }
+
+        // Load employees for selected company
+        async function loadEmployees(companyId) {
+            try {
+                const employeeSelect = document.getElementById('employeeSelect');
+                employeeSelect.innerHTML = '<option value="">Yükleniyor...</option>';
+                
+                const response = await fetch(`/Assignment/GetEmployeesByCompany?companyId=${companyId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    employeeSelect.innerHTML = '<option value="">Personel seçiniz...</option>';
+                    result.data.forEach(employee => {
+                        const option = document.createElement('option');
+                        option.value = employee.id;
+                        option.textContent = employee.name;
+                        option.setAttribute('data-department', employee.department || '');
+                        option.setAttribute('data-position', employee.position || '');
+                        option.setAttribute('data-email', employee.email || '');
+                        employeeSelect.appendChild(option);
+                    });
+                } else {
+                    employeeSelect.innerHTML = '<option value="">Çalışan bulunamadı</option>';
+                    Swal.fire('Uyarı', result.message, 'warning');
+                }
+            } catch (error) {
+                console.error('Error loading employees:', error);
+                Swal.fire('Hata', 'Çalışan listesi yüklenirken bir hata oluştu.', 'error');
+            }
+        }
+
+        // Employee selection
+        function onEmployeeSelected() {
+            const employeeSelect = document.getElementById('employeeSelect');
+            selectedEmployeeId = employeeSelect.value;
+            
+            if (selectedEmployeeId) {
+                const selectedOption = employeeSelect.options[employeeSelect.selectedIndex];
+                selectedEmployeeInfo = {
+                    id: selectedEmployeeId,
+                    name: selectedOption.textContent,
+                    department: selectedOption.getAttribute('data-department'),
+                    position: selectedOption.getAttribute('data-position'),
+                    email: selectedOption.getAttribute('data-email')
+                };
+                
+                // Show employee info
+                document.getElementById('employeeInfo').style.display = 'block';
+                document.getElementById('employeeDetails').innerHTML = `
+                    <p class="mb-1"><strong>Ad Soyad:</strong> ${selectedEmployeeInfo.name}</p>
+                    ${selectedEmployeeInfo.department ? `<p class="mb-1"><strong>Departman:</strong> ${selectedEmployeeInfo.department}</p>` : ''}
+                    ${selectedEmployeeInfo.position ? `<p class="mb-1"><strong>Pozisyon:</strong> ${selectedEmployeeInfo.position}</p>` : ''}
+                    ${selectedEmployeeInfo.email ? `<p class="mb-0"><strong>E-posta:</strong> ${selectedEmployeeInfo.email}</p>` : ''}
+                `;
+                
+                // Enable product section
+                document.getElementById('filterCard').style.opacity = '1';
+                document.getElementById('filterCard').style.pointerEvents = 'auto';
+                document.getElementById('categoryFilter').disabled = false;
+                document.getElementById('searchFilter').disabled = false;
+                document.getElementById('loadProductsBtn').disabled = false;
+                
+                // Update progress
+                updateProgress(3);
+                
+                // Load products
+                loadAvailableProducts();
+            } else {
+                resetFromStep(2);
+            }
+        }
+
+        // Load available products
+        async function loadAvailableProducts() {
+            try {
+                const category = document.getElementById('categoryFilter').value;
+                const container = document.getElementById('productsContainer');
+                
+                // Show loading
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Yükleniyor...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Müsait ürünler yükleniyor...</p>
+                    </div>
+                `;
+                
+                const response = await fetch(`/Assignment/GetAvailableProducts?productType=${category}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    availableProducts = result.data;
+                    document.getElementById('availableCount').textContent = result.count;
+                    displayProducts(availableProducts);
+                    
+                    // Update progress
+                    updateProgress(4);
+                } else {
+                    container.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            ${result.message}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+                document.getElementById('productsContainer').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Ürünler yüklenirken bir hata oluştu.
+                    </div>
+                `;
+            }
+        }
+
+        // Display products
+        function displayProducts(products) {
+            const container = document.getElementById('productsContainer');
+            
+            if (products.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-box-open fa-3x mb-3"></i>
+                        <p>Seçilen kriterlere uygun müsait ürün bulunamadı.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Create a scrollable list of products
+            let html = '<div class="product-list" style="max-height: 500px; overflow-y: auto;">';
+            
+            products.forEach(product => {
+                const isSelected = selectedProducts.some(p => p.id === product.id);
+                html += `
+                    <div class="product-item ${isSelected ? 'selected' : ''}" data-product-id="${product.id}">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" 
+                                id="product-${product.id}" 
+                                ${isSelected ? 'checked' : ''}
+                                onchange="toggleProductSelection(${product.id})">
+                            <label class="form-check-label w-100" for="product-${product.id}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">${product.name}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-barcode me-1"></i>${product.barcode}
+                                            <span class="mx-2">|</span>
+                                            <i class="fas fa-tag me-1"></i>${product.category}
+                                        </small>
+                                        ${product.description ? `<br><small class="text-secondary">${product.description}</small>` : ''}
+                                    </div>
+                                    <div class="text-end">
+                                        <strong class="text-primary">₺${(product.unitPrice || 0).toLocaleString('tr-TR', {minimumFractionDigits: 2})}</strong>
+                                        ${product.isCritical ? '<br><span class="badge bg-danger">Kritik</span>' : ''}
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Filter products
+        function filterProducts() {
+            const category = document.getElementById('categoryFilter').value.toLowerCase();
+            const search = document.getElementById('searchFilter').value.toLowerCase();
+            
+            const filtered = availableProducts.filter(product => {
+                const matchCategory = !category || product.category.toLowerCase() === category;
+                const matchSearch = !search || 
+                    product.name.toLowerCase().includes(search) || 
+                    product.barcode.toLowerCase().includes(search);
+                return matchCategory && matchSearch;
+            });
+            
+            displayProducts(filtered);
+        }
+
+        // Toggle product selection
+        function toggleProductSelection(productId) {
+            const product = availableProducts.find(p => p.id === productId);
+            if (!product) return;
+            
+            const index = selectedProducts.findIndex(p => p.id === productId);
+            
+            if (index > -1) {
+                // Remove from selection
+                selectedProducts.splice(index, 1);
+                document.querySelector(`.product-item[data-product-id="${productId}"]`).classList.remove('selected');
+            } else {
+                // Add to selection
+                selectedProducts.push(product);
+                document.querySelector(`.product-item[data-product-id="${productId}"]`).classList.add('selected');
+            }
+            
+            updateSelectedProductsDisplay();
+        }
+
+        // Update selected products display
+        function updateSelectedProductsDisplay() {
+            const count = selectedProducts.length;
+            document.getElementById('selectedCount').textContent = count;
+            
+            if (count > 0) {
+                document.getElementById('summaryCard').style.display = 'block';
+                document.getElementById('notesCard').style.display = 'block';
+                document.getElementById('actionCard').style.display = 'block';
+                document.getElementById('confirmBtn').disabled = false;
+                
+                // Calculate total value
+                const totalValue = selectedProducts.reduce((sum, p) => sum + (p.unitPrice || 0), 0);
+                document.getElementById('totalValue').textContent = totalValue.toLocaleString('tr-TR', {minimumFractionDigits: 2});
+                
+                // Update selected products list
+                let html = '<div class="selected-products-list">';
+                selectedProducts.forEach(product => {
+                    html += `
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <div>
+                                <strong>${product.name}</strong>
+                                <br>
+                                <small class="text-muted">${product.barcode}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-primary">₺${(product.unitPrice || 0).toLocaleString('tr-TR', {minimumFractionDigits: 2})}</span>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-2" 
+                                    onclick="toggleProductSelection(${product.id})">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                document.getElementById('selectedProductsList').innerHTML = html;
+            } else {
+                document.getElementById('summaryCard').style.display = 'none';
+                document.getElementById('notesCard').style.display = 'none';
+                document.getElementById('actionCard').style.display = 'none';
+                document.getElementById('confirmBtn').disabled = true;
+            }
+        }
+
+        // Clear selection
+        function clearSelection() {
+            selectedProducts = [];
+            document.querySelectorAll('.product-item input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            document.querySelectorAll('.product-item.selected').forEach(item => {
+                item.classList.remove('selected');
+            });
+            updateSelectedProductsDisplay();
+        }
+
+        // Confirm assignment
+        function confirmAssignment() {
+            if (selectedProducts.length === 0) {
+                Swal.fire('Uyarı', 'Lütfen en az bir ürün seçiniz.', 'warning');
+                return;
+            }
+            
+            // Build confirmation details
+            const companyName = document.getElementById('companySelect').options[document.getElementById('companySelect').selectedIndex].text;
+            const totalValue = selectedProducts.reduce((sum, p) => sum + (p.unitPrice || 0), 0);
+            const notes = document.getElementById('assignmentNotes').value;
+            
+            let detailsHtml = `
+                <div class="confirmation-details">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Firma:</h6>
+                            <p>${companyName}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Personel:</h6>
+                            <p>${selectedEmployeeInfo.name}</p>
+                        </div>
+                    </div>
+                    
+                    <h6>Zimmetlenecek Ürünler (${selectedProducts.length} adet):</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Ürün Adı</th>
+                                    <th>Barkod</th>
+                                    <th>Kategori</th>
+                                    <th class="text-end">Fiyat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            selectedProducts.forEach(product => {
+                detailsHtml += `
+                    <tr>
+                        <td>${product.name}</td>
+                        <td><code>${product.barcode}</code></td>
+                        <td>${product.category}</td>
+                        <td class="text-end">₺${(product.unitPrice || 0).toLocaleString('tr-TR', {minimumFractionDigits: 2})}</td>
+                    </tr>
+                `;
+            });
+            
+            detailsHtml += `
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-end">Toplam Değer:</th>
+                                    <th class="text-end text-primary">₺${totalValue.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+            `;
+            
+            if (notes) {
+                detailsHtml += `
+                    <div class="mt-3">
+                        <h6>Notlar:</h6>
+                        <p class="text-muted">${notes}</p>
+                    </div>
+                `;
+            }
+            
+            detailsHtml += '</div>';
+            
+            document.getElementById('confirmationDetails').innerHTML = detailsHtml;
+            
+            // Show confirmation modal
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            modal.show();
+        }
+
+        // Submit assignment
+        async function submitAssignment() {
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+            
+            // Show loading
+            Swal.fire({
+                title: 'İşlem yapılıyor...',
+                html: 'Zimmet işlemi gerçekleştiriliyor, lütfen bekleyin...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            try {
+                // Process assignments
+                const notes = document.getElementById('assignmentNotes').value;
+                const productIds = selectedProducts.map(p => p.id).join(',');
+                
+                const form = new FormData();
+                form.append('productIds', productIds);
+                form.append('employeeId', selectedEmployeeId);
+                form.append('notes', notes);
+                
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    form.append('__RequestVerificationToken', token.value);
+                }
+                
+                const response = await fetch('/Assignment/BulkAssignProducts', {
+                    method: 'POST',
+                    body: form
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Başarılı!',
+                        html: result.message,
+                        confirmButtonText: 'Tamam'
+                    }).then(() => {
+                        // Reset form or redirect
+                        if (result.data && result.data.successCount === selectedProducts.length) {
+                            window.location.href = '/Assignment/Index';
+                        } else {
+                            resetForm();
+                        }
+                    });
+                } else {
+                    Swal.fire('Hata!', result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting assignment:', error);
+                Swal.fire('Hata!', 'Zimmet işlemi sırasında bir hata oluştu.', 'error');
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            selectedCompanyId = null;
+            selectedEmployeeId = null;
+            selectedEmployeeInfo = null;
+            availableProducts = [];
+            selectedProducts = [];
+            
+            document.getElementById('companySelect').value = '';
+            document.getElementById('employeeSelect').innerHTML = '<option value="">Önce firma seçiniz...</option>';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('searchFilter').value = '';
+            document.getElementById('assignmentNotes').value = '';
+            
+            resetFromStep(0);
+            updateProgress(1);
+        }
+
+        // Reset from specific step
+        function resetFromStep(step) {
+            if (step < 1) {
+                document.getElementById('companyInfo').style.display = 'none';
+                document.getElementById('employeeCard').style.opacity = '0.5';
+                document.getElementById('employeeCard').style.pointerEvents = 'none';
+                document.getElementById('employeeSelect').disabled = true;
+            }
+            
+            if (step < 2) {
+                document.getElementById('employeeInfo').style.display = 'none';
+                document.getElementById('filterCard').style.opacity = '0.5';
+                document.getElementById('filterCard').style.pointerEvents = 'none';
+                document.getElementById('categoryFilter').disabled = true;
+                document.getElementById('searchFilter').disabled = true;
+                document.getElementById('loadProductsBtn').disabled = true;
+            }
+            
+            if (step < 3) {
+                document.getElementById('productsContainer').innerHTML = `
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-box-open fa-3x mb-3"></i>
+                        <p>Lütfen önce firma ve personel seçimi yapınız.</p>
+                    </div>
+                `;
+                document.getElementById('availableCount').textContent = '0';
+            }
+            
+            clearSelection();
+        }
+
+        // Update progress steps
+        function updateProgress(currentStep) {
+            for (let i = 1; i <= 4; i++) {
+                const stepElement = document.getElementById(`step${i}`);
+                if (i < currentStep) {
+                    stepElement.classList.add('completed');
+                    stepElement.classList.remove('active');
+                } else if (i === currentStep) {
+                    stepElement.classList.add('active');
+                    stepElement.classList.remove('completed');
+                } else {
+                    stepElement.classList.remove('active', 'completed');
+                }
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress(1);
+        });
+    </script>
+
+    <style>
+        /* Progress Steps */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 50px;
+            right: 50px;
+            height: 2px;
+            background: #dee2e6;
+            z-index: 0;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+
+        .step-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 24px;
+            border: 3px solid #fff;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-icon {
+            background: #0d6efd;
+            color: white;
+            transform: scale(1.1);
+            box-shadow: 0 0 0 5px rgba(13, 110, 253, 0.25);
+        }
+
+        .step.completed .step-icon {
+            background: #198754;
+            color: white;
+        }
+
+        .step-text {
+            font-size: 14px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .step.active .step-text,
+        .step.completed .step-text {
+            color: #212529;
+        }
+
+        /* Product List */
+        .product-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .product-item:hover {
+            border-color: #0d6efd;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-item.selected {
+            background: #e7f3ff;
+            border-color: #0d6efd;
+        }
+
+        .form-check-input {
+            width: 20px;
+            height: 20px;
+            margin-top: 0;
+            cursor: pointer;
+        }
+
+        .form-check-label {
+            cursor: pointer;
+            padding-left: 10px;
+        }
+
+        /* Cards */
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Scrollbar styling */
+        .product-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .product-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .product-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .product-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Selected products list */
+        .selected-products-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Confirmation details */
+        .confirmation-details .table {
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .progress-steps {
+                flex-wrap: wrap;
+            }
+            
+            .progress-steps::before {
+                display: none;
+            }
+            
+            .step {
+                margin-bottom: 20px;
+            }
+            
+            .step-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+    </style>
+}
