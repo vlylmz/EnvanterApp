@@ -1,0 +1,905 @@
+@model IEnumerable<WebApplication1.Controllers.PersonnelAssignmentViewModel>
+
+@{
+    ViewData["Title"] = "Personel Bazlı Zimmetler";
+    var totalPersonnel = Model.Count();
+    var totalItems = Model.Sum(p => p.ItemCount);
+    var totalValue = Model.Sum(p => p.TotalValue);
+    var avgItemsPerPersonnel = totalPersonnel > 0 ? Math.Round((decimal)totalItems / totalPersonnel, 1) : 0;
+}
+
+<div class="container-fluid">
+    <!-- Sayfa Başlığı ve Navigasyon -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 bg-gradient-custom">
+                <div class="card-body text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1 fw-bold">
+                                <i class="fas fa-users me-3"></i>
+                                Personel Bazlı Zimmetler
+                            </h2>
+                            <p class="mb-0 opacity-75">Personellere ait zimmetli ürünlerin detaylı görünümü</p>
+                        </div>
+                        <div class="btn-group">
+                            <a href="@Url.Action("Index")" class="btn btn-light">
+                                <i class="fas fa-list me-2"></i>Ana Liste
+                            </a>
+                            <a href="@Url.Action("Reports")" class="btn btn-outline-light">
+                                <i class="fas fa-chart-bar me-2"></i>Raporlar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gelişmiş İstatistik Kartları -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 border-left-primary">>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold text-primary mb-1">@totalPersonnel</h2>
+                            <p class="text-muted mb-0">Aktif Personel</p>
+                            <small class="text-success">
+                                <i class="fas fa-check-circle me-1"></i>Zimmetli personel
+                            </small>
+                        </div>
+                        <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                            <i class="fas fa-users fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 border-left-warning">>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold text-warning mb-1">@totalItems</h2>
+                            <p class="text-muted mb-0">Zimmetli Ürün</p>
+                            <small class="text-info">
+                                <i class="fas fa-info-circle me-1"></i>Toplam zimmetli
+                            </small>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 rounded-3 p-3">
+                            <i class="fas fa-boxes fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 border-left-success">>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold text-success mb-1">@totalValue.ToString("C0")</h2>
+                            <p class="text-muted mb-0">Toplam Değer</p>
+                            <small class="text-success">
+                                <i class="fas fa-chart-line me-1"></i>Zimmet değeri
+                            </small>
+                        </div>
+                        <div class="bg-success bg-opacity-10 rounded-3 p-3">
+                            <i class="fas fa-dollar-sign fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 border-left-info">>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold text-info mb-1">@avgItemsPerPersonnel</h2>
+                            <p class="text-muted mb-0">Ortalama/Personel</p>
+                            <small class="text-info">
+                                <i class="fas fa-calculator me-1"></i>Ürün dağılımı
+                            </small>
+                        </div>
+                        <div class="bg-info bg-opacity-10 rounded-3 p-3">
+                            <i class="fas fa-balance-scale fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gelişmiş Arama ve Filtreleme -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-bottom-0">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-filter me-2"></i>Arama ve Filtreleme
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label fw-semibold">Personel Ara</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-start-0" id="personnelSearch" 
+                                       placeholder="Personel adında ara...">
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-3">
+                            <label class="form-label fw-semibold">Sırala</label>
+                            <select class="form-select" id="sortSelect">
+                                <option value="name">Personel Adı</option>
+                                <option value="itemCount">Ürün Sayısı</option>
+                                <option value="totalValue">Toplam Değer</option>
+                                <option value="lastDate">Son Zimmet</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-3">
+                            <label class="form-label fw-semibold">Yön</label>
+                            <select class="form-select" id="sortDirection">
+                                <option value="asc">Artan</option>
+                                <option value="desc">Azalan</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-6">
+                            <label class="form-label fw-semibold">Görünüm</label>
+                            <div class="btn-group d-flex" role="group">
+                                <input type="radio" class="btn-check" name="viewMode" id="gridView" checked>
+                                <label class="btn btn-outline-primary" for="gridView">
+                                    <i class="fas fa-th"></i>
+                                </label>
+                                <input type="radio" class="btn-check" name="viewMode" id="listView">
+                                <label class="btn btn-outline-primary" for="listView">
+                                    <i class="fas fa-list"></i>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6 d-flex align-items-end">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                <i class="fas fa-times me-1"></i>Temizle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personel Listesi -->
+    @if (Model.Any())
+    {
+        <!-- Grid View -->
+        <div class="row" id="personnelGrid">
+            @foreach (var personnel in Model)
+            {
+                <div class="col-lg-6 col-xl-4 mb-4 personnel-card" 
+                     data-name="@personnel.PersonnelName.ToLower()" 
+                     data-items="@personnel.ItemCount"
+                     data-value="@personnel.TotalValue"
+                     data-date="@(personnel.LastAssignmentDate?.ToString("yyyy-MM-dd") ?? "1900-01-01")">
+                    <div class="card border-0 shadow-sm h-100 personnel-card-inner">
+                        <div class="card-header bg-gradient text-white border-0 bg-gradient-card-header">>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-white bg-opacity-20 rounded-circle p-2 me-3">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">@personnel.PersonnelName</h6>
+                                        <small class="opacity-75">Personel Kodu: P@(personnel.PersonnelName.GetHashCode().ToString().Substring(0, 4))</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-white text-primary fw-bold fs-6">@personnel.ItemCount</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Özet Bilgiler -->
+                            <div class="row text-center mb-4">
+                                <div class="col-6">
+                                    <div class="border-end">
+                                        <h5 class="text-success fw-bold mb-1">@personnel.TotalValue.ToString("C0")</h5>
+                                        <small class="text-muted">Toplam Değer</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <h6 class="text-info fw-bold mb-1">
+                                        @if (personnel.LastAssignmentDate.HasValue)
+                                        {
+                                            @personnel.LastAssignmentDate.Value.ToString("dd/MM/yy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </h6>
+                                    <small class="text-muted">Son Zimmet</small>
+                                </div>
+                            </div>
+
+                            <!-- Zimmetli Ürünler Önizleme -->
+                            <div class="mb-3">
+                                <h6 class="text-muted mb-3 fw-semibold">
+                                    <i class="fas fa-clipboard-list me-2"></i>Zimmetli Ürünler
+                                </h6>
+                                <div class="personnel-items-preview">
+                                    @foreach (var item in personnel.AssignedItems.Take(3))
+                                    {
+                                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                                            <div class="flex-grow-1">
+                                                <div class="fw-semibold text-truncate">@item.Name</div>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-barcode me-1"></i>@item.SystemBarcode
+                                                </small>
+                                            </div>
+                                            <div class="text-end">
+                                                <small class="text-success fw-bold">
+                                                    @(item.UnitPrice?.ToString("C0") ?? "-")
+                                                </small>
+                                                @if (item.IsCriticalLevel)
+                                                {
+                                                    <br><span class="badge bg-danger">Kritik</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                    @if (personnel.AssignedItems.Count > 3)
+                                    {
+                                        <div class="text-center mt-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-plus-circle me-1"></i>
+                                                @(personnel.AssignedItems.Count - 3) ürün daha
+                                            </small>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Hızlı İstatistikler -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-4">
+                                    <div class="bg-primary bg-opacity-10 rounded text-center py-2">
+                                        <div class="fw-bold text-primary">@personnel.AssignedItems.Where(i => i.IsCriticalLevel).Count()</div>
+                                        <small class="text-muted">Kritik</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="bg-success bg-opacity-10 rounded text-center py-2">
+                                        <div class="fw-bold text-success">@Math.Round(personnel.TotalValue / Math.Max(personnel.ItemCount, 1), 0).ToString("C0")</div>
+                                        <small class="text-muted">Ort. Değer</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="bg-info bg-opacity-10 rounded text-center py-2">
+                                        <div class="fw-bold text-info">@personnel.AssignedItems.Select(i => i.Category).Distinct().Count()</div>
+                                        <small class="text-muted">Kategori</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light border-0">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                                <button class="btn btn-outline-primary btn-sm flex-fill" 
+                                        onclick="showPersonnelDetails('@personnel.PersonnelName')">
+                                    <i class="fas fa-eye me-1"></i>Detay Görüntüle
+                                </button>
+                                <button class="btn btn-outline-warning btn-sm flex-fill" 
+                                        onclick="bulkReturnPersonnel('@personnel.PersonnelName', @personnel.ItemCount)">
+                                    <i class="fas fa-undo me-1"></i>Toplu İade
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- List View (Gizli) -->
+        <div class="d-none" id="personnelList">
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Personel</th>
+                                <th>Ürün Sayısı</th>
+                                <th>Toplam Değer</th>
+                                <th>Son Zimmet</th>
+                                <th>Kritik Ürün</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var personnel in Model)
+                            {
+                                <tr class="personnel-row" 
+                                    data-name="@personnel.PersonnelName.ToLower()" 
+                                    data-items="@personnel.ItemCount"
+                                    data-value="@personnel.TotalValue"
+                                    data-date="@(personnel.LastAssignmentDate?.ToString("yyyy-MM-dd") ?? "1900-01-01")">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                                <i class="fas fa-user text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-semibold">@personnel.PersonnelName</div>
+                                                <small class="text-muted">P@(personnel.PersonnelName.GetHashCode().ToString().Substring(0, 4))</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary fs-6">@personnel.ItemCount</span>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-success">@personnel.TotalValue.ToString("C")</span>
+                                    </td>
+                                    <td>
+                                        @if (personnel.LastAssignmentDate.HasValue)
+                                        {
+                                            @personnel.LastAssignmentDate.Value.ToString("dd.MM.yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @{
+                                            var criticalCount = personnel.AssignedItems.Where(i => i.IsCriticalLevel).Count();
+                                        }
+                                        @if (criticalCount > 0)
+                                        {
+                                            <span class="badge bg-danger">@criticalCount</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" 
+                                                    onclick="showPersonnelDetails('@personnel.PersonnelName')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline-warning" 
+                                                    onclick="bulkReturnPersonnel('@personnel.PersonnelName', @personnel.ItemCount)">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-users fa-4x text-muted opacity-50"></i>
+                        </div>
+                        <h4 class="text-muted mb-3">Zimmetli Ürünü Olan Personel Bulunamadı</h4>
+                        <p class="text-muted mb-4">Henüz hiçbir personele zimmet verilmemiş. İlk zimmet işlemini başlatmak için ana sayfaya gidin.</p>
+                        <a href="@Url.Action("Index")" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus me-2"></i>Zimmet İşlemi Başlat
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Gelişmiş Personel Detay Modal -->
+<div class="modal fade" id="personnelDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-gradient text-white border-0 bg-gradient-card-header">>
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-user-circle me-2"></i>
+                    <span id="modalPersonnelName"></span> - Zimmet Detayları
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="bg-light p-3 border-bottom">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="fw-bold text-primary" id="modalItemCount">-</div>
+                            <small class="text-muted">Toplam Ürün</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold text-success" id="modalTotalValue">-</div>
+                            <small class="text-muted">Toplam Değer</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold text-info" id="modalLastDate">-</div>
+                            <small class="text-muted">Son Zimmet</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold text-danger" id="modalCriticalCount">-</div>
+                            <small class="text-muted">Kritik Ürün</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-3">
+                    <div id="personnelDetailContent">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Yükleniyor...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Kapat
+                </button>
+                <button type="button" class="btn btn-warning" id="modalBulkReturn">
+                    <i class="fas fa-undo me-1"></i>Tümünü İade Al
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toplu İade Onay Modal -->
+<div class="modal fade" id="bulkReturnModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-warning text-white border-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Toplu İade Onayı
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning border-0">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                        <div>
+                            <strong id="bulkReturnPersonnelName"></strong> personelinin 
+                            <strong id="bulkReturnItemCount"></strong> adet ürününün 
+                            zimmet iadesini almak istediğinizden emin misiniz?
+                            <div class="mt-2">
+                                <small class="text-muted">Bu işlem geri alınamaz ve tüm ürünler "Zimmet Dışı" duruma geçecektir.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>İptal
+                </button>
+                <button type="button" class="btn btn-warning" onclick="confirmBulkReturn()">
+                    <i class="fas fa-check me-1"></i>İade Al
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Custom Styles -->
+<style>
+    .personnel-card-inner:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    }
+
+    .personnel-card-inner {
+        transition: all 0.3s ease;
+    }
+
+    .bg-gradient-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .bg-gradient-card-header {
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%) !important;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-hover-effect {
+        transition: all 0.3s ease;
+    }
+
+    .card-hover-effect:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .border-left-primary {
+        border-left: 4px solid #3b82f6 !important;
+    }
+
+    .border-left-warning {
+        border-left: 4px solid #f59e0b !important;
+    }
+
+    .border-left-success {
+        border-left: 4px solid #10b981 !important;
+    }
+
+    .border-left-info {
+        border-left: 4px solid #8b5cf6 !important;
+    }
+</style>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+@Html.AntiForgeryToken()
+
+<!-- Custom Scripts -->
+<script>
+    // Değişkenler
+    let currentPersonnelForReturn = '';
+    let currentItemCountForReturn = 0;
+
+    // Sayfa yüklendiğinde
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeEventListeners();
+        initializeTooltips();
+    });
+
+    // Event listener'ları başlat
+    function initializeEventListeners() {
+        // Arama fonksiyonu
+        const searchInput = document.getElementById('personnelSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', filterPersonnel);
+        }
+        
+        // Sıralama
+        const sortSelect = document.getElementById('sortSelect');
+        const sortDirection = document.getElementById('sortDirection');
+        if (sortSelect) sortSelect.addEventListener('change', sortPersonnel);
+        if (sortDirection) sortDirection.addEventListener('change', sortPersonnel);
+        
+        // Görünüm değiştirme
+        const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
+        if (gridView) {
+            gridView.addEventListener('change', function() {
+                if (this.checked) switchToGridView();
+            });
+        }
+        if (listView) {
+            listView.addEventListener('change', function() {
+                if (this.checked) switchToListView();
+            });
+        }
+    }
+
+    // Tooltip'leri başlat
+    function initializeTooltips() {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+    }
+
+    // Personel filtreleme
+    function filterPersonnel() {
+        const searchInput = document.getElementById('personnelSearch');
+        if (!searchInput) return;
+        
+        const searchTerm = searchInput.value.toLowerCase();
+        const cards = document.querySelectorAll('.personnel-card');
+        const rows = document.querySelectorAll('.personnel-row');
+        
+        // Grid view filtreleme
+        cards.forEach(card => {
+            const personnelName = card.getAttribute('data-name');
+            if (personnelName && personnelName.includes(searchTerm)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // List view filtreleme
+        rows.forEach(row => {
+            const personnelName = row.getAttribute('data-name');
+            if (personnelName && personnelName.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Personel sıralama
+    function sortPersonnel() {
+        const sortSelect = document.getElementById('sortSelect');
+        const sortDirection = document.getElementById('sortDirection');
+        if (!sortSelect || !sortDirection) return;
+        
+        const sortBy = sortSelect.value;
+        const direction = sortDirection.value;
+        const container = document.getElementById('personnelGrid');
+        const listContainer = document.querySelector('#personnelList tbody');
+        
+        // Grid view sıralama
+        if (container) {
+            const cards = Array.from(container.children);
+            cards.sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(sortBy) {
+                    case 'name':
+                        aVal = a.getAttribute('data-name') || '';
+                        bVal = b.getAttribute('data-name') || '';
+                        break;
+                    case 'itemCount':
+                        aVal = parseInt(a.getAttribute('data-items')) || 0;
+                        bVal = parseInt(b.getAttribute('data-items')) || 0;
+                        break;
+                    case 'totalValue':
+                        aVal = parseFloat(a.getAttribute('data-value')) || 0;
+                        bVal = parseFloat(b.getAttribute('data-value')) || 0;
+                        break;
+                    case 'lastDate':
+                        aVal = new Date(a.getAttribute('data-date') || '1900-01-01');
+                        bVal = new Date(b.getAttribute('data-date') || '1900-01-01');
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                if (direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+            
+            // Sıralanmış kartları yerleştir
+            cards.forEach(card => container.appendChild(card));
+        }
+        
+        // List view sıralama
+        if (listContainer) {
+            const rows = Array.from(listContainer.children);
+            rows.sort((a, b) => {
+                let aVal, bVal;
+                
+                switch(sortBy) {
+                    case 'name':
+                        aVal = a.getAttribute('data-name') || '';
+                        bVal = b.getAttribute('data-name') || '';
+                        break;
+                    case 'itemCount':
+                        aVal = parseInt(a.getAttribute('data-items')) || 0;
+                        bVal = parseInt(b.getAttribute('data-items')) || 0;
+                        break;
+                    case 'totalValue':
+                        aVal = parseFloat(a.getAttribute('data-value')) || 0;
+                        bVal = parseFloat(b.getAttribute('data-value')) || 0;
+                        break;
+                    case 'lastDate':
+                        aVal = new Date(a.getAttribute('data-date') || '1900-01-01');
+                        bVal = new Date(b.getAttribute('data-date') || '1900-01-01');
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                if (direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+            
+            rows.forEach(row => listContainer.appendChild(row));
+        }
+    }
+
+    // Grid görünümüne geç
+    function switchToGridView() {
+        const gridElement = document.getElementById('personnelGrid');
+        const listElement = document.getElementById('personnelList');
+        
+        if (gridElement) gridElement.classList.remove('d-none');
+        if (listElement) listElement.classList.add('d-none');
+    }
+
+    // Liste görünümüne geç
+    function switchToListView() {
+        const gridElement = document.getElementById('personnelGrid');
+        const listElement = document.getElementById('personnelList');
+        
+        if (gridElement) gridElement.classList.add('d-none');
+        if (listElement) listElement.classList.remove('d-none');
+    }
+
+    // Filtreleri temizle
+    function clearFilters() {
+        const searchInput = document.getElementById('personnelSearch');
+        const sortSelect = document.getElementById('sortSelect');
+        const sortDirection = document.getElementById('sortDirection');
+        const gridView = document.getElementById('gridView');
+        
+        if (searchInput) searchInput.value = '';
+        if (sortSelect) sortSelect.value = 'name';
+        if (sortDirection) sortDirection.value = 'asc';
+        if (gridView) gridView.checked = true;
+        
+        filterPersonnel();
+        sortPersonnel();
+        switchToGridView();
+    }
+
+    // Personel detaylarını göster
+    function showPersonnelDetails(personnelName) {
+        const modalPersonnelName = document.getElementById('modalPersonnelName');
+        if (modalPersonnelName) {
+            modalPersonnelName.textContent = personnelName;
+        }
+        
+        // Modal'ı göster
+        const modalElement = document.getElementById('personnelDetailModal');
+        if (modalElement && typeof bootstrap !== 'undefined') {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+        
+        // Personel verilerini modal'a yükle
+        const personnelData = @Html.Raw(Json.Serialize(Model.ToDictionary(p => p.PersonnelName, p => new { 
+            ItemCount = p.ItemCount,
+            TotalValue = p.TotalValue,
+            LastAssignmentDate = p.LastAssignmentDate?.ToString("dd.MM.yyyy"),
+            CriticalCount = p.AssignedItems.Where(i => i.IsCriticalLevel).Count()
+        })));
+        
+        if (personnelData[personnelName]) {
+            const data = personnelData[personnelName];
+            const modalItemCount = document.getElementById('modalItemCount');
+            const modalTotalValue = document.getElementById('modalTotalValue');
+            const modalLastDate = document.getElementById('modalLastDate');
+            const modalCriticalCount = document.getElementById('modalCriticalCount');
+            
+            if (modalItemCount) modalItemCount.textContent = data.ItemCount;
+            if (modalTotalValue) modalTotalValue.textContent = data.TotalValue.toLocaleString('tr-TR', {style: 'currency', currency: 'TRY'});
+            if (modalLastDate) modalLastDate.textContent = data.LastAssignmentDate || '-';
+            if (modalCriticalCount) modalCriticalCount.textContent = data.CriticalCount;
+        }
+        
+        // Ajax ile personel detaylarını yükle
+        fetch('@Url.Action("Index")?personnel=' + encodeURIComponent(personnelName))
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const table = doc.querySelector('table');
+                const contentDiv = document.getElementById('personnelDetailContent');
+                
+                if (table && contentDiv) {
+                    table.classList.add('table', 'table-striped', 'table-hover');
+                    contentDiv.innerHTML = '<div class="table-responsive">' + table.outerHTML + '</div>';
+                } else if (contentDiv) {
+                    contentDiv.innerHTML = '<div class="text-center py-4"><i class="fas fa-exclamation-circle fa-3x text-muted mb-3"></i><h5 class="text-muted">Veri yüklenemedi</h5></div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const contentDiv = document.getElementById('personnelDetailContent');
+                if (contentDiv) {
+                    contentDiv.innerHTML = '<div class="text-center py-4"><i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i><h5 class="text-danger">Hata oluştu</h5><p class="text-muted">Personel detayları yüklenirken bir hata oluştu.</p></div>';
+                }
+            });
+        
+        // Toplu iade butonunu ayarla
+        const modalBulkReturn = document.getElementById('modalBulkReturn');
+        if (modalBulkReturn) {
+            modalBulkReturn.onclick = function() {
+                const itemCount = personnelData[personnelName] ? personnelData[personnelName].ItemCount : 0;
+                bulkReturnPersonnel(personnelName, itemCount);
+            };
+        }
+    }
+
+    // Toplu iade
+    function bulkReturnPersonnel(personnelName, itemCount) {
+        currentPersonnelForReturn = personnelName;
+        currentItemCountForReturn = itemCount;
+        
+        const bulkReturnPersonnelName = document.getElementById('bulkReturnPersonnelName');
+        const bulkReturnItemCount = document.getElementById('bulkReturnItemCount');
+        
+        if (bulkReturnPersonnelName) bulkReturnPersonnelName.textContent = personnelName;
+        if (bulkReturnItemCount) bulkReturnItemCount.textContent = itemCount;
+        
+        const modalElement = document.getElementById('bulkReturnModal');
+        if (modalElement && typeof bootstrap !== 'undefined') {
+            new bootstrap.Modal(modalElement).show();
+        }
+    }
+
+    // Toplu iade onaylama
+    function confirmBulkReturn() {
+        // Loading state
+        const confirmBtn = document.querySelector('#bulkReturnModal .btn-warning');
+        if (confirmBtn) {
+            const originalText = confirmBtn.innerHTML;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>İşleniyor...';
+            confirmBtn.disabled = true;
+            
+            // Personelin tüm ürünlerini bul ve toplu iade yap
+            fetch('@Url.Action("Index")?personnel=' + encodeURIComponent(currentPersonnelForReturn))
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const checkboxes = doc.querySelectorAll('.item-checkbox');
+                    const itemIds = Array.from(checkboxes).map(cb => cb.value);
+                    
+                    if (itemIds.length > 0) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '@Url.Action("BulkReturn")';
+                        
+                        const tokenInput = document.createElement('input');
+                        tokenInput.type = 'hidden';
+                        tokenInput.name = '__RequestVerificationToken';
+                        
+                        const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                        if (tokenElement) {
+                            tokenInput.value = tokenElement.value;
+                        }
+                        form.appendChild(tokenInput);
+
+                        const itemsInput = document.createElement('input');
+                        itemsInput.type = 'hidden';
+                        itemsInput.name = 'itemIds';
+                        itemsInput.value = itemIds.join(',');
+                        form.appendChild(itemsInput);
+
+                        document.body.appendChild(form);
+                        form.submit();
+                    } else {
+                        // Reset button state
+                        confirmBtn.innerHTML = originalText;
+                        confirmBtn.disabled = false;
+                        alert('İade edilecek ürün bulunamadı!');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Reset button state
+                    confirmBtn.innerHTML = originalText;
+                    confirmBtn.disabled = false;
+                    alert('Bir hata oluştu, lütfen tekrar deneyin.');
+                });
+        }
+    }
+</script>

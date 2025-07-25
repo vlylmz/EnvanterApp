@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zimmet Yönetim Sistemi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card .icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .stat-card.total .icon { background: linear-gradient(45deg, #667eea, #764ba2); }
+        .stat-card.available .icon { background: linear-gradient(45deg, #4CAF50, #45a049); }
+        .stat-card.assigned .icon { background: linear-gradient(45deg, #2196F3, #1976D2); }
+        .stat-card.maintenance .icon { background: linear-gradient(45deg, #FF9800, #F57C00); }
+        .stat-card.lost .icon { background: linear-gradient(45deg, #f44336, #d32f2f); }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .action-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-card h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #FF9800, #F57C00);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 152, 0, 0.3);
+        }
+
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .content-area {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 10px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .data-table th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e1e5e9;
+            font-size: 14px;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .status-available { background: #e8f5e8; color: #2e7d2e; }
+        .status-assigned { background: #e3f2fd; color: #1565c0; }
+        .status-maintenance { background: #fff3e0; color: #ef6c00; }
+        .status-lost { background: #ffebee; color: #c62828; }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-header h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            padding: 5px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+
+        .notification.error {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @@media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+            
+            .filters {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                flex-wrap: wrap;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- CSRF Token for POST requests (will be populated by server-side code) -->
+        <input name="__RequestVerificationToken" type="hidden" value="" id="antiForgeryToken" />
+        
+        <!-- Header -->
+        <div class="header">
+            <h1>🏢 Zimmet Yönetim Sistemi</h1>
+            <p>Şirket varlıklarınızı kolayca yönetin ve takip edin</p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="icon">📊</div>
+                <div class="stat-number" id="totalItems">245</div>
+                <div class="stat-label">Toplam Varlık</div>
+            </div>
+            <div class="stat-card available">
+                <div class="icon">✅</div>
+                <div class="stat-number" id="availableItems">89</div>
+                <div class="stat-label">Müsait</div>
+            </div>
+            <div class="stat-card assigned">
+                <div class="icon">👤</div>
+                <div class="stat-number" id="assignedItems">142</div>
+                <div class="stat-label">Zimmetli</div>
+            </div>
+            <div class="stat-card maintenance">
+                <div class="icon">🔧</div>
+                <div class="stat-number" id="maintenanceItems">12</div>
+                <div class="stat-label">Bakımda</div>
+            </div>
+            <div class="stat-card lost">
+                <div class="icon">❌</div>
+                <div class="stat-number" id="lostItems">2</div>
+                <div class="stat-label">Kayıp</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Zimmet Verme -->
+                <div class="action-card">
+                    <h3>📋 Zimmet Ver</h3>
+                    <div class="form-group">
+                        <label>Şirket Seçin</label>
+                        <select class="form-control" id="assignCompanySelect">
+                            <option value="">Şirket seçiniz...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Çalışan Seçin</label>
+                        <select class="form-control" id="employeeSelect">
+                            <option>Önce şirket seçiniz...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ürün Kategorisi</label>
+                        <select class="form-control" id="productCategorySelect">
+                            <option value="">Tümü</option>
+                            <option value="Bilgisayar">Bilgisayar</option>
+                            <option value="Yazılım">Yazılım</option>
+                            <option value="Sarf Malzeme">Sarf Malzeme</option>
+                            <option value="Diğer">Diğer</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="openAssignModal()">
+                        ➕ Zimmet Ver
+                    </button>
+                </div>
+
+                <!-- Zimmet İade -->
+                <div class="action-card">
+                    <h3>↩️ Zimmet İade</h3>
+                    <div class="form-group">
+                        <label>Arama (Personel/Ürün/Barkod)</label>
+                        <input type="text" class="form-control" id="returnSearchInput" placeholder="Arama yapın...">
+                    </div>
+                    <button class="btn btn-warning btn-full" onclick="openReturnModal()">
+                        🔄 İade Al
+                    </button>
+                </div>
+
+                <!-- Hızlı Eylemler -->
+                <div class="action-card">
+                    <h3>⚡ Hızlı Eylemler</h3>
+                    <button class="btn btn-success btn-full" onclick="exportToCSV()" style="margin-bottom: 10px;">
+                        📊 Rapor İndir
+                    </button>
+                    <button class="btn btn-primary btn-full" onclick="refreshData()">
+                        🔄 Verileri Yenile
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Tab Buttons -->
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchTab(event, 'list')">📋 Zimmet Listesi</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'personnel')">👥 Personel Bazlı</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'reports')">📊 Raporlar</button>
+                </div>
+
+                <!-- List Tab -->
+                <div id="list" class="tab-content active">
+                    <!-- Filters -->
+                    <div class="filters">
+                        <div class="form-group">
+                            <label>Arama</label>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Ürün adı, barkod veya personel...">
+                        </div>
+                        <div class="form-group">
+                            <label>Durum</label>
+                            <select class="form-control" id="statusFilter">
+                                <option value="">Tümü</option>
+                                <option value="Zimmet Dışı">Müsait</option>
+                                <option value="Zimmetli">Zimmetli</option>
+                                <option value="Bakımda">Bakımda</option>
+                                <option value="Kayıp">Kayıp</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Kategori</label>
+                            <select class="form-control" id="categoryFilter">
+                                <option value="">Tümü</option>
+                                <option value="Bilgisayar">Bilgisayar</option>
+                                <option value="Yazılım">Yazılım</option>
+                                <option value="Sarf Malzeme">Sarf Malzeme</option>
+                                <option value="Diğer">Diğer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Şirket</label>
+                            <select class="form-control" id="companyFilter">
+                                <option value="">Tümü</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Loading -->
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Veriler yükleniyor...</p>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Ürün Adı</th>
+                                    <th>Barkod</th>
+                                    <th>Kategori</th>
+                                    <th>Durum</th>
+                                    <th>Zimmetli Personel</th>
+                                    <th>Zimmet Tarihi</th>
+                                    <th>Şirket</th>
+                                    <th>Fiyat</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsTableBody">
+                                <!-- Veriler controller'dan yüklenecek -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Personnel Tab -->
+                <div id="personnel" class="tab-content">
+                    <h3 style="margin-bottom: 20px;">👥 Personel Bazlı Zimmet Durumu</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Personel Adı</th>
+                                    <th>Şirket</th>
+                                    <th>Zimmetli Ürün Sayısı</th>
+                                    <th>Toplam Değer</th>
+                                    <th>Son Zimmet Tarihi</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="personnelTableBody">
+                                <!-- Veriler controller'dan yüklenecek -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div id="reports" class="tab-content">
+                    <h3 style="margin-bottom: 20px;">📊 Raporlar ve İstatistikler</h3>
+                    
+                    <div class="stats-grid" style="margin-bottom: 30px;">
+                        <div class="stat-card">
+                            <div class="icon">📈</div>
+                            <div class="stat-number" id="assignmentRate">-</div>
+                            <div class="stat-label">Zimmet Oranı</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="icon">💰</div>
+                            <div class="stat-number" id="totalValue">-</div>
+                            <div class="stat-label">Toplam Değer</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="icon">🏢</div>
+                            <div class="stat-number" id="activeCompanies">-</div>
+                            <div class="stat-label">Aktif Şirket</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="icon">👥</div>
+                            <div class="stat-number" id="assignedPersonnel">-</div>
+                            <div class="stat-label">Zimmetli Personel</div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="action-card">
+                            <h4>Kategori Bazlı Dağılım</h4>
+                            <div id="categoryStats" style="margin-top: 15px;">
+                                <!-- Controller'dan yüklenecek -->
+                            </div>
+                        </div>
+
+                        <div class="action-card">
+                            <h4>Şirket Bazlı Zimmet</h4>
+                            <div id="companyStats" style="margin-top: 15px;">
+                                <!-- Controller'dan yüklenecek -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Modal -->
+    <div id="assignModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Zimmet Ver</h3>
+                <button class="close-btn" onclick="closeModal('assignModal')">&times;</button>
+            </div>
+            <div id="assignModalContent">
+                <p>Lütfen önce sol menüden şirket ve çalışan seçimi yapınız.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Modal -->
+    <div id="returnModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>↩️ Zimmet İade</h3>
+                <button class="close-btn" onclick="closeModal('returnModal')">&times;</button>
+            </div>
+            <div id="returnModalContent">
+                <div class="form-group">
+                    <label>Zimmetli Ürünleri Ara</label>
+                    <input type="text" class="form-control" id="returnSearchField" placeholder="Personel adı, ürün adı veya barkod...">
+                </div>
+                <div id="assignedProductsList">
+                    <!-- Zimmetli ürünler buraya yüklenecek -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Global variables
+        let allItems = [];
+        let companies = [];
+        let selectedCompanyId = null;
+        let selectedEmployeeId = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInitialData();
+            bindEvents();
+            showNotification('Zimmet Yönetim Sistemi hazır!', 'success');
+        });
+
+        // Load initial data
+        async function loadInitialData() {
+            try {
+                showLoading(true);
+                await Promise.all([
+                    loadCompanies(),
+                    loadItems(),
+                    loadStats()
+                ]);
+                showLoading(false);
+            } catch (error) {
+                showLoading(false);
+                showNotification('Veri yükleme hatası: ' + error.message, 'error');
+            }
+        }
+
+        // Load companies
+        async function loadCompanies() {
+            try {
+                const response = await fetch('/Assignment/GetCompaniesList');
+                const result = await response.json();
+                
+                if (result.success) {
+                    companies = result.data;
+                    populateCompanyDropdowns();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('Şirket yükleme hatası:', error);
+                throw error;
+            }
+        }
+
+        // Populate company dropdowns
+        function populateCompanyDropdowns() {
+            const assignDropdown = document.getElementById('assignCompanySelect');
+            const filterDropdown = document.getElementById('companyFilter');
+            
+            // Clear existing options
+            assignDropdown.innerHTML = '<option value="">Şirket seçiniz...</option>';
+            filterDropdown.innerHTML = '<option value="">Tümü</option>';
+            
+            companies.forEach(company => {
+                assignDropdown.innerHTML += `<option value="${company.id}">${company.name}</option>`;
+                filterDropdown.innerHTML += `<option value="${company.id}">${company.name}</option>`;
+            });
+        }
+
+        // Load employees by company
+        async function loadEmployeesByCompany(companyId) {
+            try {
+                const response = await fetch(`/Assignment/GetEmployeesByCompany?companyId=${companyId}`);
+                const result = await response.json();
+                
+                const employeeSelect = document.getElementById('employeeSelect');
+                employeeSelect.innerHTML = '<option value="">Çalışan seçiniz...</option>';
+                
+                if (result.success && result.data.length > 0) {
+                    result.data.forEach(employee => {
+                        employeeSelect.innerHTML += `<option value="${employee.id}">${employee.name}</option>`;
+                    });
+                } else {
+                    employeeSelect.innerHTML = '<option value="">Bu şirkette aktif çalışan bulunamadı</option>';
+                }
+            } catch (error) {
+                console.error('Çalışan yükleme hatası:', error);
+                showNotification('Çalışan listesi yüklenemedi!', 'error');
+            }
+        }
+
+        // Load items with filters
+        async function loadItems(filters = {}) {
+            try {
+                const params = new URLSearchParams();
+                if (filters.searchString) params.append('searchString', filters.searchString);
+                if (filters.status) params.append('status', filters.status);
+                if (filters.personnel) params.append('personnel', filters.personnel);
+                if (filters.productType) params.append('productType', filters.productType);
+                
+                const response = await fetch(`/Assignment/Index?${params.toString()}`);
+                const html = await response.text();
+                
+                // Parse the response to extract items data
+                // Since this returns a view, we need to adjust the controller to return JSON
+                // For now, let's create a separate endpoint or modify existing ones
+                await loadItemsJson(filters);
+                
+            } catch (error) {
+                console.error('Ürün yükleme hatası:', error);
+                throw error;
+            }
+        }
+
+        // Load items as JSON (you may need to create this endpoint in controller)
+        async function loadItemsJson(filters = {}) {
+            try {
+                // Since the Index action returns a view, we'll need either:
+                // 1. Create a new GetItemsJson action in controller, or  
+                // 2. Modify existing actions to return JSON when requested
+                
+                // For now, let's use a workaround by calling existing endpoints
+                // In production, create a dedicated GetItemsJson endpoint
+                
+                // Mock implementation - replace with actual controller endpoint
+                allItems = [];
+                populateItemsTable(allItems);
+                updateStatsFromItems(allItems);
+                
+                // TODO: Implement actual data loading
+                // const response = await fetch('/Assignment/GetItemsJson?' + new URLSearchParams(filters));
+                // const result = await response.json();
+                // if (result.success) {
+                //     allItems = result.data;
+                //     populateItemsTable(allItems);
+                //     updateStatsFromItems(allItems);
+                // }
+                
+            } catch (error) {
+                console.error('Ürün JSON yükleme hatası:', error);
+                throw error;
+            }
+        }
+
+        // Populate items table
+        function populateItemsTable(items) {
+            const tbody = document.getElementById('itemsTableBody');
+            tbody.innerHTML = '';
+
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">Veri bulunamadı</td></tr>';
+                return;
+            }
+
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name || ''}</td>
+                    <td>${item.systemBarcode || ''}</td>
+                    <td>${item.category || ''}</td>
+                    <td><span class="status-badge ${getStatusClass(item.assignmentStatus)}">${getStatusText(item.assignmentStatus)}</span></td>
+                    <td>${item.assignedPersonnel || '-'}</td>
+                    <td>${item.assignmentDate ? new Date(item.assignmentDate).toLocaleDateString('tr-TR') : '-'}</td>
+                    <td>${item.companyName || '-'}</td>
+                    <td>${item.unitPrice ? '₺' + item.unitPrice.toLocaleString('tr-TR') : '-'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            ${getActionButtons(item)}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Get status CSS class
+        function getStatusClass(status) {
+            const statusMap = {
+                'Unassigned': 'status-available',
+                'Zimmet Dışı': 'status-available',
+                'Assigned': 'status-assigned', 
+                'Zimmetli': 'status-assigned',
+                'Under Maintenance': 'status-maintenance',
+                'Bakımda': 'status-maintenance',
+                'Lost': 'status-lost',
+                'Kayıp': 'status-lost'
+            };
+            return statusMap[status] || 'status-available';
+        }
+
+        // Get status display text
+        function getStatusText(status) {
+            const statusMap = {
+                'Unassigned': 'Müsait',
+                'Zimmet Dışı': 'Müsait',
+                'Assigned': 'Zimmetli',
+                'Zimmetli': 'Zimmetli',
+                'Under Maintenance': 'Bakımda',
+                'Bakımda': 'Bakımda',
+                'Lost': 'Kayıp',
+                'Kayıp': 'Kayıp'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Get action buttons based on item status
+        function getActionButtons(item) {
+            const isAssigned = item.assignmentStatus === 'Assigned' || item.assignmentStatus === 'Zimmetli';
+            const isAvailable = item.assignmentStatus === 'Unassigned' || item.assignmentStatus === 'Zimmet Dışı';
+            
+            let buttons = '';
+            
+            if (isAssigned) {
+                buttons += `<button class="btn btn-warning btn-sm" onclick="returnItem(${item.id})">İade</button>`;
+            } else if (isAvailable) {
+                buttons += `<button class="btn btn-success btn-sm" onclick="assignItem(${item.id})">Zimmet Ver</button>`;
+            }
+            
+            buttons += `<button class="btn btn-primary btn-sm" onclick="viewDetails(${item.id})">Detay</button>`;
+            
+            return buttons;
+        }
+
+        // Load and update statistics
+        async function loadStats() {
+            try {
+                // We can get stats from the loaded items or create a separate endpoint
+                // For now, we'll calculate from allItems
+                updateStatsFromItems(allItems);
+            } catch (error) {
+                console.error('İstatistik yükleme hatası:', error);
+            }
+        }
+
+        // Update stats from items array
+        function updateStatsFromItems(items) {
+            const stats = {
+                total: items.length,
+                available: items.filter(i => i.assignmentStatus === 'Unassigned' || i.assignmentStatus === 'Zimmet Dışı').length,
+                assigned: items.filter(i => i.assignmentStatus === 'Assigned' || i.assignmentStatus === 'Zimmetli').length,
+                maintenance: items.filter(i => i.assignmentStatus === 'Under Maintenance' || i.assignmentStatus === 'Bakımda').length,
+                lost: items.filter(i => i.assignmentStatus === 'Lost' || i.assignmentStatus === 'Kayıp').length
+            };
+            
+            document.getElementById('totalItems').textContent = stats.total;
+            document.getElementById('availableItems').textContent = stats.available;
+            document.getElementById('assignedItems').textContent = stats.assigned;
+            document.getElementById('maintenanceItems').textContent = stats.maintenance;
+            document.getElementById('lostItems').textContent = stats.lost;
+        }
+
+        // Bind events
+        function bindEvents() {
+            // Company selection change
+            document.getElementById('assignCompanySelect').addEventListener('change', function() {
+                selectedCompanyId = this.value;
+                if (selectedCompanyId) {
+                    loadEmployeesByCompany(selectedCompanyId);
+                } else {
+                    document.getElementById('employeeSelect').innerHTML = '<option value="">Önce şirket seçiniz...</option>';
+                }
+            });
+
+            // Employee selection change
+            document.getElementById('employeeSelect').addEventListener('change', function() {
+                selectedEmployeeId = this.value;
+            });
+
+            // Filter events
+            document.getElementById('searchInput').addEventListener('input', debounce(applyFilters, 500));
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
+            document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+            document.getElementById('companyFilter').addEventListener('change', applyFilters);
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const filters = {
+                searchString: document.getElementById('searchInput').value,
+                status: document.getElementById('statusFilter').value,
+                productType: document.getElementById('categoryFilter').value,
+                company: document.getElementById('companyFilter').value
+            };
+            
+            loadItems(filters);
+        }
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Tab switching
+        function switchTab(evt, tabName) {
+            const tabcontents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabcontents.length; i++) {
+                tabcontents[i].classList.remove("active");
+            }
+            
+            const tabbuttons = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < tabbuttons.length; i++) {
+                tabbuttons[i].classList.remove("active");
+            }
+            
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+
+            // Load tab-specific data
+            if (tabName === 'personnel') {
+                loadPersonnelData();
+            } else if (tabName === 'reports') {
+                loadReportsData();
+            }
+        }
+
+        // Load personnel data
+        async function loadPersonnelData() {
+            try {
+                // This would call your Personnel action or create a new API endpoint
+                const personnelData = await getPersonnelData();
+                populatePersonnelTable(personnelData);
+            } catch (error) {
+                console.error('Personel verisi yükleme hatası:', error);
+            }
+        }
+
+        // Mock personnel data (replace with real API call)
+        async function getPersonnelData() {
+            // return await fetch('/Assignment/GetPersonnelData');
+            return []; // Empty for now
+        }
+
+        // Populate personnel table
+        function populatePersonnelTable(data) {
+            const tbody = document.getElementById('personnelTableBody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Personel verisi bulunamadı</td></tr>';
+                return;
+            }
+
+            data.forEach(person => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${person.personnelName}</td>
+                    <td>${person.companyName || '-'}</td>
+                    <td>${person.itemCount}</td>
+                    <td>₺${person.totalValue.toLocaleString('tr-TR')}</td>
+                    <td>${person.lastAssignmentDate ? new Date(person.lastAssignmentDate).toLocaleDateString('tr-TR') : '-'}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewPersonnelDetails('${person.personnelName}')">Detay</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Load reports data
+        async function loadReportsData() {
+            try {
+                // Use existing Reports action from controller
+                // You may need to modify it to return JSON data instead of view
+                
+                // For now, we'll calculate basic stats from loaded items
+                if (allItems.length > 0) {
+                    updateReportsFromItems();
+                }
+                
+                // TODO: Implement full reports data loading
+                // const response = await fetch('/Assignment/GetReportsData');  
+                // const result = await response.json();
+                // if (result.success) { ... }
+                
+            } catch (error) {
+                console.error('Rapor verisi yükleme hatası:', error);
+            }
+        }
+
+        // Update reports from items data
+        function updateReportsFromItems() {
+            const totalItems = allItems.length;
+            const assignedItems = allItems.filter(i => 
+                i.assignmentStatus === 'Assigned' || i.assignmentStatus === 'Zimmetli'
+            ).length;
+            
+            const assignmentRate = totalItems > 0 ? Math.round((assignedItems / totalItems) * 100) : 0;
+            const totalValue = allItems.reduce((sum, item) => sum + (item.unitPrice || 0), 0);
+            const uniquePersonnel = new Set(allItems
+                .filter(i => i.assignedPersonnel)
+                .map(i => i.assignedPersonnel)
+            ).size;
+            
+            document.getElementById('assignmentRate').textContent = assignmentRate + '%';
+            document.getElementById('totalValue').textContent = '₺' + totalValue.toLocaleString('tr-TR');
+            document.getElementById('activeCompanies').textContent = companies.length;
+            document.getElementById('assignedPersonnel').textContent = uniquePersonnel;
+            
+            // Update category stats
+            const categoryStats = {};
+            allItems.forEach(item => {
+                if (!categoryStats[item.category]) {
+                    categoryStats[item.category] = 0;
+                }
+                categoryStats[item.category]++;
+            });
+            
+            let categoryHtml = '';
+            for (const [category, count] of Object.entries(categoryStats)) {
+                categoryHtml += `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>${category}</span>
+                        <span><strong>${count} adet</strong></span>
+                    </div>
+                `;
+            }
+            document.getElementById('categoryStats').innerHTML = categoryHtml || '<p>Veri bulunamadı</p>';
+            
+            // Update company stats (simplified - you may want to get this from backend)
+            let companyHtml = '';
+            companies.slice(0, 5).forEach(company => {
+                const companyItems = Math.floor(Math.random() * 50) + 10; // Mock data
+                companyHtml += `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span>${company.name}</span>
+                        <span><strong>${companyItems} ürün</strong></span>
+                    </div>
+                `;
+            });
+            document.getElementById('companyStats').innerHTML = companyHtml || '<p>Veri bulunamadı</p>';
+        }
+
+        // Modal functions
+        async function openAssignModal() {
+            if (!selectedCompanyId) {
+                showNotification('Lütfen önce şirket seçiniz!', 'error');
+                return;
+            }
+            
+            if (!selectedEmployeeId) {
+                showNotification('Lütfen çalışan seçiniz!', 'error');
+                return;
+            }
+            
+            try {
+                const productType = document.getElementById('productCategorySelect').value;
+                const response = await fetch(`/Assignment/GetAvailableProducts?productType=${productType}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    populateAssignModal(result.data);
+                    document.getElementById('assignModal').classList.add('active');
+                } else {
+                    showNotification(result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('Müsait ürünler yüklenemedi!', 'error');
+            }
+        }
+
+        // Populate assign modal with available products
+        function populateAssignModal(products) {
+            let modalContent = `
+                <div class="form-group">
+                    <label>Müsait Ürünler (${products.length} adet)</label>
+                    <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e1e5e9; border-radius: 8px; padding: 10px;">
+            `;
+            
+            if (products.length === 0) {
+                modalContent += '<p style="text-align: center; padding: 20px;">Seçilen kategoride müsait ürün bulunamadı.</p>';
+            } else {
+                products.forEach(product => {
+                    modalContent += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f0f0f0; margin-bottom: 10px;">
+                            <div>
+                                <strong>${product.name}</strong><br>
+                                <small>${product.barcode} - ${product.category} - ₺${product.unitPrice?.toLocaleString('tr-TR') || '0'}</small>
+                                ${product.description ? `<br><small style="color: #666;">${product.description}</small>` : ''}
+                            </div>
+                            <button class="btn btn-success btn-sm" onclick="assignProduct(${product.id}, '${product.name}')">Zimmet Ver</button>
+                        </div>
+                    `;
+                });
+            }
+            
+            modalContent += `
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary btn-full" onclick="openBulkAssignModal()">Toplu Zimmet Ver</button>
+                </div>
+            `;
+            
+            document.getElementById('assignModalContent').innerHTML = modalContent;
+        }
+
+        async function openReturnModal() {
+            try {
+                const searchTerm = document.getElementById('returnSearchInput').value;
+                const response = await fetch(`/Assignment/GetAssignedProducts?searchTerm=${searchTerm}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    populateReturnModal(result.data);
+                    document.getElementById('returnModal').classList.add('active');
+                } else {
+                    showNotification(result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('Zimmetli ürünler yüklenemedi!', 'error');
+            }
+        }
+
+        // Populate return modal
+        function populateReturnModal(products) {
+            let content = '<div style="max-height: 400px; overflow-y: auto;">';
+            
+            if (products.length === 0) {
+                content += '<p style="text-align: center; padding: 20px;">Zimmetli ürün bulunamadı.</p>';
+            } else {
+                products.forEach(product => {
+                    content += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #e1e5e9; border-radius: 8px; margin-bottom: 10px;">
+                            <div>
+                                <strong>${product.name}</strong><br>
+                                <small>${product.barcode}</small><br>
+                                <span style="color: #666;">Zimmetli: ${product.assignedPersonnel} (${product.assignmentDate ? new Date(product.assignmentDate).toLocaleDateString('tr-TR') : '-'})</span>
+                            </div>
+                            <button class="btn btn-warning btn-sm" onclick="returnProduct(${product.id}, '${product.name}', '${product.assignedPersonnel}')">İade Al</button>
+                        </div>
+                    `;
+                });
+            }
+            
+            content += '</div>';
+            document.getElementById('assignedProductsList').innerHTML = content;
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Assignment and return actions
+        async function assignProduct(productId, productName) {
+            try {
+                const token = document.getElementById('antiForgeryToken')?.value || 
+                            document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                
+                const response = await fetch('/Assignment/AssignProduct', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': token
+                    },
+                    body: new URLSearchParams({
+                        productId: productId,
+                        employeeId: selectedEmployeeId,
+                        notes: '',
+                        __RequestVerificationToken: token
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                    closeModal('assignModal');
+                    await loadItems(); // Refresh the list
+                } else {
+                    showNotification(result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('Zimmet verme işleminde hata oluştu!', 'error');
+            }
+        }
+
+        async function returnProduct(productId, productName, personnel) {
+            try {
+                const token = document.getElementById('antiForgeryToken')?.value || 
+                            document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                
+                const response = await fetch('/Assignment/ReturnProduct', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': token
+                    },
+                    body: new URLSearchParams({
+                        productId: productId,
+                        returnReason: 'Normal İade',
+                        notes: '',
+                        __RequestVerificationToken: token
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                    closeModal('returnModal');
+                    await loadItems(); // Refresh the list
+                } else {
+                    showNotification(result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('İade işleminde hata oluştu!', 'error');
+            }
+        }
+
+        // Quick actions from table
+        function assignItem(itemId) {
+            if (!selectedCompanyId || !selectedEmployeeId) {
+                showNotification('Lütfen önce şirket ve çalışan seçimi yapınız!', 'error');
+                return;
+            }
+            assignProduct(itemId, 'Selected Item');
+        }
+
+        async function returnItem(itemId) {
+            if (!confirm('Bu ürünün zimmet iadesini almak istediğinize emin misiniz?')) {
+                return;
+            }
+            
+            try {
+                const token = document.getElementById('antiForgeryToken')?.value || 
+                            document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                
+                const response = await fetch('/Assignment/ReturnProduct', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': token
+                    },
+                    body: new URLSearchParams({
+                        productId: itemId,
+                        returnReason: 'Hızlı İade',
+                        notes: '',
+                        __RequestVerificationToken: token
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                    await loadItems();
+                } else {
+                    showNotification(result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('İade işleminde hata oluştu!', 'error');
+            }
+        }
+
+        function viewDetails(itemId) {
+            // Implementation for viewing item details
+            showNotification(`Ürün detayları görüntüleniyor... (ID: ${itemId})`, 'success');
+        }
+
+        function viewPersonnelDetails(personnel) {
+            showNotification(`${personnel} adlı personelin zimmet detayları görüntüleniyor...`, 'success');
+        }
+
+        async function changeStatus(itemId, newStatus) {
+            try {
+                const token = document.getElementById('antiForgeryToken')?.value || 
+                            document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                
+                const response = await fetch('/Assignment/ChangeAssignmentStatus', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': token
+                    },
+                    body: new URLSearchParams({
+                        productId: itemId,
+                        newStatus: newStatus,
+                        reason: 'Durum değişikliği',
+                        __RequestVerificationToken: token
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification(result.message, 'success');
+                    await loadItems();
+                } else {
+                    showNotification(result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('Durum değiştirme işleminde hata oluştu!', 'error');
+            }
+        }
+
+        // Export and refresh functions
+        async function exportToCSV() {
+            try {
+                showNotification('Rapor hazırlanıyor...', 'success');
+                
+                const filters = {
+                    status: document.getElementById('statusFilter').value,
+                    format: 'detailed'
+                };
+                
+                const params = new URLSearchParams(filters);
+                window.location.href = `/Assignment/ExportToCsv?${params.toString()}`;
+                
+            } catch (error) {
+                showNotification('Rapor indirme hatası!', 'error');
+            }
+        }
+
+        async function refreshData() {
+            try {
+                showLoading(true);
+                await loadInitialData();
+                showNotification('Veriler başarıyla yenilendi!', 'success');
+            } catch (error) {
+                showNotification('Veri yenileme hatası!', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Utility functions
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            if (show) {
+                loading.classList.add('show');
+            } else {
+                loading.classList.remove('show');
+            }
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
