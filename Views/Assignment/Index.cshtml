@@ -53,6 +53,9 @@
     </script>
 }
 
+<!-- Anti-forgery token for AJAX requests -->
+@Html.AntiForgeryToken()
+
 <div class="container-fluid mt-4">
     <!-- Header Section -->
     <div class="row mb-4">
@@ -711,86 +714,93 @@
 
         // Assign item
         function assignItem(itemId) {
-            currentItemId = itemId;
-            
-            // Load assignment form
-            fetch(`/Assignment/GetAssignmentForm?productId=${itemId}`)
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById('assignmentModalContent').innerHTML = html;
-                    const modal = new bootstrap.Modal(document.getElementById('assignmentModal'));
-                    modal.show();
-                })
-                .catch(error => {
-                    Swal.fire('Hata!', 'Form yüklenirken bir hata oluştu.', 'error');
-                });
-        }
+    window.location.href = '/Assignment/AssignmentPage';
+}
 
         // Return item
-        function returnItem(itemId) {
+function returnItem(itemId) {
+    Swal.fire({
+        title: 'Zimmet İade',
+        text: 'Bu ürünün zimmet iadesini almak istediğinize emin misiniz?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#fd7e14',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-undo"></i> İade Al',
+        cancelButtonText: '<i class="fas fa-times"></i> İptal',
+        customClass: {
+            confirmButton: 'btn btn-warning',
+            cancelButton: 'btn btn-secondary'
+        },
+        buttonsStyling: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
             Swal.fire({
-                title: 'Zimmet İade',
-                text: 'Bu ürünün zimmet iadesini almak istediğinize emin misiniz?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#fd7e14',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="fas fa-undo"></i> İade Al',
-                cancelButtonText: '<i class="fas fa-times"></i> İptal',
-                customClass: {
-                    confirmButton: 'btn btn-warning',
-                    cancelButton: 'btn btn-secondary'
-                },
-                buttonsStyling: false
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Show loading
-                    Swal.fire({
-                        title: 'İşlem yapılıyor...',
-                        html: 'Lütfen bekleyin...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                    // Submit return request
-                    const form = new FormData();
-                    form.append('productId', itemId);
-                    form.append('returnReason', 'Normal İade');
-                    form.append('notes', '');
-                    
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
-                    if (token) {
-                        form.append('__RequestVerificationToken', token.value);
-                    }
-
-                    fetch('/Assignment/ReturnProduct', {
-                        method: 'POST',
-                        body: form
-                    })
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Başarılı!',
-                                text: result.message,
-                                timer: 2000,
-                                showConfirmButton: false
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire('Hata!', result.message, 'error');
-                        }
-                    })
-                    .catch(error => {
-                        Swal.fire('Hata!', 'İade işlemi sırasında bir hata oluştu.', 'error');
-                    });
+                title: 'İşlem yapılıyor...',
+                html: 'Lütfen bekleyin...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
             });
+
+            // Submit return request
+            const form = new FormData();
+            form.append('productId', itemId);
+            form.append('returnReason', 'Normal İade');
+            form.append('notes', '');
+            
+            // Get the anti-forgery token - try multiple methods
+            let token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (!token) {
+                // If not found as a standalone input, look in forms
+                const forms = document.querySelectorAll('form');
+                for (let f of forms) {
+                    token = f.querySelector('input[name="__RequestVerificationToken"]');
+                    if (token) break;
+                }
+            }
+            
+            if (token) {
+                form.append('__RequestVerificationToken', token.value);
+            } else {
+                console.error('Anti-forgery token not found!');
+                Swal.fire('Hata!', 'Güvenlik tokeni bulunamadı. Sayfayı yenileyin ve tekrar deneyin.', 'error');
+                return;
+            }
+
+            fetch('/Assignment/ReturnProduct', {
+                method: 'POST',
+                body: form
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(result => {
+                console.log('Return result:', result);
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Başarılı!',
+                        text: result.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Hata!', result.message || 'İade işlemi başarısız oldu.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error during return:', error);
+                Swal.fire('Hata!', 'İade işlemi sırasında bir hata oluştu: ' + error.message, 'error');
+            });
         }
+    });
+}
 
         // View details
         function viewDetails(itemId) {

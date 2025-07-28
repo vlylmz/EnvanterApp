@@ -1,0 +1,225 @@
+@model WebApplication1.Controllers.UserProfileViewModel
+@{
+    ViewData["Title"] = "Profilim";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-lg-3">
+            <!-- Profile Sidebar -->
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">@Model.FullName</h5>
+                    <p class="text-muted mb-3">@Model.UserRole</p>
+                    <div class="d-grid gap-2">
+                        <a asp-action="EditProfile" class="btn btn-primary btn-sm">
+                            <i class="fas fa-edit me-1"></i> Profili Düzenle
+                        </a>
+                        <a asp-action="ChangePassword" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-key me-1"></i> Şifre Değiştir
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Hesap Durumu</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Kayıt Tarihi:</span>
+                        <strong>@Model.CreatedDate.ToString("dd.MM.yyyy")</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>2FA Durumu:</span>
+                        @if (Model.TwoFactorEnabled)
+                        {
+                            <span class="badge bg-success">Aktif</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Pasif</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <!-- Success/Error Messages -->
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <!-- Profile Information -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2 text-primary"></i> Profil Bilgileri
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Kullanıcı Adı</label>
+                            <p class="mb-0"><strong>@Model.UserName</strong></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Kullanıcı ID</label>
+                            <p class="mb-0"><code>@Model.Id</code></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Ad</label>
+                            <p class="mb-0"><strong>@Model.FirstName</strong></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Soyad</label>
+                            <p class="mb-0"><strong>@Model.LastName</strong></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">E-posta</label>
+                            <p class="mb-0">
+                                <i class="fas fa-envelope text-muted me-1"></i>
+                                @Model.Email
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Telefon</label>
+                            <p class="mb-0">
+                                <i class="fas fa-phone text-muted me-1"></i>
+                                @(Model.PhoneNumber ?? "Belirtilmemiş")
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Rol</label>
+                            <p class="mb-0">
+                                @{
+                                    var roleClass = Model.UserRole switch
+                                    {
+                                        "Süper Admin" => "badge bg-danger",
+                                        "Admin" => "badge bg-primary",
+                                        "Employee" => "badge bg-success",
+                                        _ => "badge bg-secondary"
+                                    };
+                                }
+                                <span class="@roleClass">@Model.UserRole</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Hesap Oluşturma Tarihi</label>
+                            <p class="mb-0">
+                                <i class="fas fa-calendar text-muted me-1"></i>
+                                @Model.CreatedDate.ToString("dd MMMM yyyy, HH:mm")
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt me-2 text-primary"></i> Güvenlik Ayarları
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-1">İki Faktörlü Doğrulama (2FA)</h6>
+                            <p class="text-muted mb-0">
+                                Hesabınızı daha güvenli hale getirmek için iki faktörlü doğrulamayı etkinleştirin.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            @if (Model.TwoFactorEnabled)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i> Aktif
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-times me-1"></i> Pasif
+                                </span>
+                            }
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-1">Şifre</h6>
+                            <p class="text-muted mb-0">
+                                Güvenliğiniz için şifrenizi düzenli olarak değiştirin.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a asp-action="ChangePassword" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-key me-1"></i> Değiştir
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">Hesap İşlemleri</h6>
+                            <p class="text-muted mb-0 small">Oturumu kapatmak için aşağıdaki butonu kullanın.</p>
+                        </div>
+                        <form asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fas fa-sign-out-alt me-1"></i> Çıkış Yap
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+        });
+    </script>
+}

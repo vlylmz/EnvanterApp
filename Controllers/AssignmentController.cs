@@ -201,7 +201,7 @@ namespace WebApplication1.Controllers
             try
             {
                 var query = _context.Items
-                    .Where(i => i.IsActive && i.AssignmentStatus == "Zimmet Dışı");
+                    .Where(i => i.IsActive && (i.AssignmentStatus == "Zimmet Dışı" || i.AssignmentStatus == "Unassigned"));
 
                 if (!string.IsNullOrEmpty(productType) && productType != "Tümü")
                 {
@@ -231,43 +231,43 @@ namespace WebApplication1.Controllers
         }
 
         // Zimmetli ürünleri getir (iade için)
-[HttpGet]
-public async Task<IActionResult> GetAssignedProducts(string searchTerm)
-{
-    try
-    {
-        var query = _context.Items
-    .Where(i => i.IsActive && (i.AssignmentStatus == "Zimmetli" || i.AssignmentStatus == "Assigned"));
-
-        if (!string.IsNullOrEmpty(searchTerm))
+        [HttpGet]
+        public async Task<IActionResult> GetAssignedProducts(string searchTerm)
         {
-            query = query.Where(i => i.Name.Contains(searchTerm) ||
-                                   i.SystemBarcode.Contains(searchTerm) ||
-                                   i.AssignedPersonnel.Contains(searchTerm));
-        }
-
-        var products = await query
-            .Select(i => new
+            try
             {
-                id = i.Id,
-                name = i.Name,
-                barcode = i.SystemBarcode,
-                category = i.Category,
-                assignedPersonnel = i.AssignedPersonnel,
-                assignmentDate = i.AssignmentDate,
-                unitPrice = i.UnitPrice
-            })
-            .OrderBy(i => i.assignedPersonnel)
-            .ThenBy(i => i.name)
-            .ToListAsync();
+                var query = _context.Items
+            .Where(i => i.IsActive && (i.AssignmentStatus == "Zimmetli" || i.AssignmentStatus == "Assigned"));
 
-        return Json(new { success = true, data = products, count = products.Count });
-    }
-    catch (Exception ex)
-    {
-        return Json(new { success = false, message = $"Zimmetli ürün listesi alınırken hata: {ex.Message}" });
-    }
-}
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    query = query.Where(i => i.Name.Contains(searchTerm) ||
+                                           i.SystemBarcode.Contains(searchTerm) ||
+                                           i.AssignedPersonnel.Contains(searchTerm));
+                }
+
+                var products = await query
+                    .Select(i => new
+                    {
+                        id = i.Id,
+                        name = i.Name,
+                        barcode = i.SystemBarcode,
+                        category = i.Category,
+                        assignedPersonnel = i.AssignedPersonnel,
+                        assignmentDate = i.AssignmentDate,
+                        unitPrice = i.UnitPrice
+                    })
+                    .OrderBy(i => i.assignedPersonnel)
+                    .ThenBy(i => i.name)
+                    .ToListAsync();
+
+                return Json(new { success = true, data = products, count = products.Count });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Zimmetli ürün listesi alınırken hata: {ex.Message}" });
+            }
+        }
 
         // ZIMMET VERME İŞLEMİ
         [HttpPost]
