@@ -4,17 +4,25 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using WebApplication1.Data;
 using System.Threading.Tasks;
+using WebApplication1.Services;
+using System;
+using System.Security.Claims;
+
+// Bu sınıf, bilgisayar envanterini yönetmek için gerekli işlemleri içerir LOGLAMA EKLENMİŞTİR
 
 namespace WebApplication1.Controllers
 {
     public class ComputersController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IActivityLogger _activityLogger;
 
-        public ComputersController(AppDbContext context)
+        public ComputersController(AppDbContext context, IActivityLogger activityLogger)
         {
             _context = context;
+            _activityLogger = activityLogger;
         }
+
 
         // GET: Computers
         public async Task<IActionResult> Index()
@@ -77,8 +85,7 @@ namespace WebApplication1.Controllers
                 return View(new Computer());
             }
         }
-
-        // POST: Computers/Create
+        //post: Computers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Computer computer)
@@ -90,7 +97,14 @@ namespace WebApplication1.Controllers
                     computer.CreatedDate = DateTime.UtcNow;
                     _context.Computers.Add(computer);
                     await _context.SaveChangesAsync();
-                    
+
+                    // ✅ LOG EKLENDİ
+                    string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, "Bilgisayar oluşturuldu", "Computer", computer.Id);
+                    }
+
                     TempData["Success"] = "Bilgisayar basariyla eklendi.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -157,8 +171,7 @@ namespace WebApplication1.Controllers
 
             return View(computer);
         }
-
-        // POST: Computers/Edit/5
+        // POST: Computers/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Computer computer)
@@ -173,7 +186,14 @@ namespace WebApplication1.Controllers
                     computer.LastUpdatedDate = DateTime.UtcNow;
                     _context.Update(computer);
                     await _context.SaveChangesAsync();
-                    
+
+                    // ✅ LOG EKLENDİ
+                    string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, "Bilgisayar güncellendi", "Computer", computer.Id);
+                    }
+
                     TempData["Success"] = "Bilgisayar basariyla guncellendi.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -184,6 +204,7 @@ namespace WebApplication1.Controllers
                     else
                         throw;
                 }
+
             }
 
             // Hata durumunda ViewBag verilerini tekrar doldur
@@ -222,8 +243,7 @@ namespace WebApplication1.Controllers
 
             return View(computer);
         }
-
-        // POST: Computers/Delete/5
+        //post: Computers/Delete
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -233,6 +253,14 @@ namespace WebApplication1.Controllers
             {
                 _context.Computers.Remove(computer);
                 await _context.SaveChangesAsync();
+
+                // ✅ LOG EKLENDİ
+                string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    await _activityLogger.LogAsync(userId, "Bilgisayar silindi", "Computer", id);
+                }
+
                 TempData["Success"] = "Bilgisayar basariyla silindi.";
             }
 

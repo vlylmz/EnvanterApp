@@ -6,6 +6,8 @@ using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.ViewModels;
 
+// Bu sınıf, şirket envanterini yönetmek için gerekli işlemleri içerir LOGLAMA EKLENMİŞTİR
+
 namespace WebApplication1.Controllers
 {
     public class CompanyController : Controller
