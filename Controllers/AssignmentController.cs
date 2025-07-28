@@ -231,43 +231,43 @@ namespace WebApplication1.Controllers
         }
 
         // Zimmetli ürünleri getir (iade için)
-        [HttpGet]
-        public async Task<IActionResult> GetAssignedProducts(string searchTerm)
+[HttpGet]
+public async Task<IActionResult> GetAssignedProducts(string searchTerm)
+{
+    try
+    {
+        var query = _context.Items
+    .Where(i => i.IsActive && (i.AssignmentStatus == "Zimmetli" || i.AssignmentStatus == "Assigned"));
+
+        if (!string.IsNullOrEmpty(searchTerm))
         {
-            try
-            {
-                var query = _context.Items
-                    .Where(i => i.IsActive && i.AssignmentStatus == "Zimmetli");
-
-                if (!string.IsNullOrEmpty(searchTerm))
-                {
-                    query = query.Where(i => i.Name.Contains(searchTerm) ||
-                                           i.SystemBarcode.Contains(searchTerm) ||
-                                           i.AssignedPersonnel.Contains(searchTerm));
-                }
-
-                var products = await query
-                    .Select(i => new
-                    {
-                        id = i.Id,
-                        name = i.Name,
-                        barcode = i.SystemBarcode,
-                        category = i.Category,
-                        assignedPersonnel = i.AssignedPersonnel,
-                        assignmentDate = i.AssignmentDate,
-                        unitPrice = i.UnitPrice
-                    })
-                    .OrderBy(i => i.assignedPersonnel)
-                    .ThenBy(i => i.name)
-                    .ToListAsync();
-
-                return Json(new { success = true, data = products, count = products.Count });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = $"Zimmetli ürün listesi alınırken hata: {ex.Message}" });
-            }
+            query = query.Where(i => i.Name.Contains(searchTerm) ||
+                                   i.SystemBarcode.Contains(searchTerm) ||
+                                   i.AssignedPersonnel.Contains(searchTerm));
         }
+
+        var products = await query
+            .Select(i => new
+            {
+                id = i.Id,
+                name = i.Name,
+                barcode = i.SystemBarcode,
+                category = i.Category,
+                assignedPersonnel = i.AssignedPersonnel,
+                assignmentDate = i.AssignmentDate,
+                unitPrice = i.UnitPrice
+            })
+            .OrderBy(i => i.assignedPersonnel)
+            .ThenBy(i => i.name)
+            .ToListAsync();
+
+        return Json(new { success = true, data = products, count = products.Count });
+    }
+    catch (Exception ex)
+    {
+        return Json(new { success = false, message = $"Zimmetli ürün listesi alınırken hata: {ex.Message}" });
+    }
+}
 
         // ZIMMET VERME İŞLEMİ
         [HttpPost]
@@ -517,8 +517,8 @@ namespace WebApplication1.Controllers
             if (!product.IsActive)
                 return new ValidationResult { IsValid = false, ErrorMessage = "Ürün aktif değil!" };
 
-            // İngilizce kontrol
-            if (product.AssignmentStatus != "Assigned")  // "Zimmetli" yerine "Assigned"
+            // Check for both Turkish and English values
+            if (product.AssignmentStatus != "Assigned" && product.AssignmentStatus != "Zimmetli")
             {
                 return new ValidationResult
                 {
@@ -544,8 +544,8 @@ namespace WebApplication1.Controllers
             if (!employee.IsActive)
                 return new ValidationResult { IsValid = false, ErrorMessage = "Çalışan aktif değil!" };
 
-            // İngilizce kontrol
-            if (product.AssignmentStatus != "Unassigned")  // "Zimmet Dışı" yerine "Unassigned"
+            // Check for both Turkish and English values
+            if (product.AssignmentStatus != "Unassigned" && product.AssignmentStatus != "Zimmet Dışı")
             {
                 return new ValidationResult
                 {
