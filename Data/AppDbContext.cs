@@ -13,6 +13,8 @@ namespace WebApplication1.Data
         public DbSet<Software> Software { get; set; }
         public DbSet<Supply> Supplies { get; set; }
         public DbSet<ItemModel> Items { get; set; }
+        public DbSet<ActivityLog> ActivityLogs { get; set; }
+
 
     }
 }
