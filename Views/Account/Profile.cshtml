@@ -7,15 +7,6 @@
     <!-- Anti-forgery token for AJAX requests -->
     @Html.AntiForgeryToken()
     
-    <!-- Debug Info - Remove in production -->
-    @if (ViewBag.DebugInfo != null)
-    {
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <strong>Debug:</strong> @ViewBag.DebugInfo
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    
     <div class="row">
         <div class="col-lg-3">
             <!-- Profile Sidebar -->
@@ -367,27 +358,17 @@
             const newPassword = document.getElementById('quickNewPassword').value;
             
             if (!currentPassword || !newPassword) {
-                Swal.fire('Uyarı', 'Lütfen tüm alanları doldurun.', 'warning');
+                alert('Lütfen tüm alanları doldurun.');
                 return;
             }
             
             if (newPassword.length < 6) {
-                Swal.fire('Uyarı', 'Yeni şifre en az 6 karakter olmalıdır.', 'warning');
+                alert('Yeni şifre en az 6 karakter olmalıdır.');
                 return;
             }
             
             // Close modal
             bootstrap.Modal.getInstance(document.getElementById('quickPasswordModal')).hide();
-            
-            // Show loading
-            Swal.fire({
-                title: 'İşlem yapılıyor...',
-                html: 'Şifreniz değiştiriliyor...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
             
             try {
                 const form = new FormData();
@@ -397,6 +378,9 @@
                 const token = document.querySelector('input[name="__RequestVerificationToken"]');
                 if (token) {
                     form.append('__RequestVerificationToken', token.value);
+                } else {
+                    alert('Güvenlik tokeni bulunamadı!');
+                    return;
                 }
                 
                 const response = await fetch('/Account/QuickPasswordChange', {
@@ -404,21 +388,22 @@
                     body: form
                 });
                 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const result = await response.json();
                 
                 if (result.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Başarılı!',
-                        text: result.message,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
+                    alert('Başarılı! ' + result.message);
+                    // Clear the form
+                    document.getElementById('quickPasswordForm').reset();
                 } else {
-                    Swal.fire('Hata!', result.message || 'Şifre değiştirme başarısız.', 'error');
+                    alert('Hata! ' + result.message);
                 }
             } catch (error) {
-                Swal.fire('Hata!', 'Bir hata oluştu.', 'error');
+                console.error('Error:', error);
+                alert('Bir hata oluştu: ' + error.message);
             }
         }
     </script>

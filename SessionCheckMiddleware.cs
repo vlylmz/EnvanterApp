@@ -26,5 +26,6 @@ public class SessionCheckMiddleware
         }
 
         await _next(context);
+        
     }
 }

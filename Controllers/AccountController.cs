@@ -94,7 +94,7 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Logout()
         {
-            HttpContext.Session.Clear();
+            HttpContext.Session.Keys.Where(key => key != "adminPassword" && key != "adminTotpSecret").ToList().ForEach(key => HttpContext.Session.Remove(key));
             return RedirectToAction("Index", "Home");
         }
 

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using System.Threading.Tasks;
+using WebApplication1.Services;
 namespace WebApplication1.Controllers
 {
     public class ActivityLogsController : Controller

@@ -1,12 +1,12 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 using WebApplication1.ViewModels;
-
-// Bu sınıf, şirket envanterini yönetmek için gerekli işlemleri içerir LOGLAMA EKLENMİŞTİR
+using System.Security.Claims;
+using WebApplication1.Services;
 
 // Bu sınıf, şirket envanterini yönetmek için gerekli işlemleri içerir LOGLAMA EKLENMİŞTİR
 
@@ -15,10 +15,14 @@ namespace WebApplication1.Controllers
     public class CompanyController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IActivityLogger _activityLogger;
 
-        public CompanyController(AppDbContext context)
+
+        public CompanyController(AppDbContext context, IActivityLogger activityLogger)
         {
             _context = context;
+            _activityLogger = activityLogger;
+
         }
 
         // Listele
@@ -50,79 +54,85 @@ namespace WebApplication1.Controllers
         }
 
         // Detayları gösterme
-       public async Task<IActionResult> Details(int id)
-{
-    var company = await _context.Companies.FindAsync(id);
-    if (company == null)
-        return NotFound();
+        public async Task<IActionResult> Details(int id)
+        {
+            var company = await _context.Companies.FindAsync(id);
+            if (company == null)
+                return NotFound();
 
-    var viewModel = new CompanyDetailsViewModel
-    {
-        Company = company,
-        Employees = await _context.Employees.Where(e => e.CompanyId == id).ToListAsync(),
-        Computers = await _context.Computers.Where(c => c.CompanyId == id).ToListAsync(),
-        Software = await _context.Software.Where(s => s.CompanyId == id).ToListAsync(),
-        Supplies = await _context.Supplies.Where(s => s.CompanyId == id).ToListAsync()
-    };
+            var viewModel = new CompanyDetailsViewModel
+            {
+                Company = company,
+                Employees = await _context.Employees.Where(e => e.CompanyId == id).ToListAsync(),
+                Computers = await _context.Computers.Where(c => c.CompanyId == id).ToListAsync(),
+                Software = await _context.Software.Where(s => s.CompanyId == id).ToListAsync(),
+                Supplies = await _context.Supplies.Where(s => s.CompanyId == id).ToListAsync()
+            };
 
-    return View(viewModel); // ← sadece bunu düzelt!
-}
-
+            return View(viewModel); // ← sadece bunu düzelt!
+        }
         // Ekle (GET)
         public IActionResult Create()
         {
             return View();
         }
         // Ekle (POST)
-            [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Company model)
-    {
-            // Debug için
-        Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
-        Console.WriteLine($"Company Name: {model.Name}");
-        if (ModelState.IsValid)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Company model)
         {
-            try
+            Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+            Console.WriteLine($"Company Name: {model.Name}");
+
+            if (ModelState.IsValid)
             {
-                model.CreatedDate = DateTime.Now;
-                _context.Companies.Add(model);
-
-                // SaveChanges'tan önce kaç kayıt etkileneceğini kontrol et
-                var result = await _context.SaveChangesAsync();
-
-                // Eğer result 0 ise kayıt olmamış demektir
-                if (result > 0)
+                try
                 {
-                    //TempData["Success"] = System.Net.WebUtility.UrlEncode("Şirket başarıyla eklendi.");
-                    HttpContext.Session.SetString("successMessage", "Sirket basariyla eklendi.");
-                    return RedirectToAction(nameof(Index));
+                    model.CreatedDate = DateTime.Now;
+                    _context.Companies.Add(model);
+
+                    var result = await _context.SaveChangesAsync();
+                    Console.WriteLine("asdasd1");
+
+                    if (result > 0)
+                    {
+                        // ✅ LOG EKLENDİ
+                        string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                            .Select(u => u.Id)
+                            .FirstOrDefault();
+                        Console.WriteLine("asdasd2");
+                        if (!string.IsNullOrEmpty(userId))
+                        {
+                            Console.WriteLine("asdasd3");
+                            await _activityLogger.LogAsync(userId, "Firma oluşturuldu", "Company", model.Id);
+                        }
+
+                        HttpContext.Session.SetString("successMessage", "Sirket basariyla eklendi.");
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Kayıt yapılamadı!";
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    TempData["Error"] = "Kayıt yapılamadı!";
+                    TempData["Error"] = $"Hata: {ex.Message}";
+
+                    if (ex.InnerException != null)
+                    {
+                        TempData["Error"] += $" - İç hata: {ex.InnerException.Message}";
+                    }
                 }
             }
-            catch (Exception ex)
+            else
             {
-                // Hata mesajını TempData ile göster
-                TempData["Error"] = $"Hata: {ex.Message}";
-
-                // Inner exception varsa onu da ekle
-                if (ex.InnerException != null)
-                {
-                    TempData["Error"] += $" - İç hata: {ex.InnerException.Message}";
-                }
+                TempData["Error"] = "Form validation hatası var!";
             }
+
+            return View(model);
         }
-        else
-        {
-            // Model validation hatalarını göster
-        TempData["Error"] = "Form validation hatası var!";
-    }
-    
-    return View(model);
-}
+
         // Güncelle (GET)
         public async Task<IActionResult> Edit(int id)
         {
@@ -132,7 +142,6 @@ namespace WebApplication1.Controllers
 
             return View(company);
         }
-
         // Güncelle (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -148,6 +157,16 @@ namespace WebApplication1.Controllers
                     model.UpdatedDate = DateTime.Now;
                     _context.Update(model);
                     await _context.SaveChangesAsync();
+
+                    // ✅ LOG EKLENDİ
+                    string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                            .Select(u => u.Id)
+                            .FirstOrDefault();
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, "Firma güncellendi", "Company", model.Id);
+                    }
+
                     TempData["Success"] = "Sirket basariyla guncellendi.";
                 }
                 catch (DbUpdateConcurrencyException)
@@ -182,9 +201,17 @@ namespace WebApplication1.Controllers
             {
                 _context.Companies.Remove(company);
                 await _context.SaveChangesAsync();
-//                TempData["Success"] = System.Net.WebUtility.UrlEncode("Şirket başarıyla silindi.");
+
+                // ✅ LOG EKLENDİ
+                string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                            .Select(u => u.Id)
+                            .FirstOrDefault();
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    await _activityLogger.LogAsync(userId, "Firma silindi", "Company", id);
+                }
+
                 HttpContext.Session.SetString("successMessage", "Sirket basariyla silindi.");
-                //TempData["Success"] = "Şirket başarıyla silindi.";
             }
 
             return RedirectToAction(nameof(Index));

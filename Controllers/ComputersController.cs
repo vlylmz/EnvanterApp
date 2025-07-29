@@ -3,10 +3,8 @@ using Microsoft.AspNetCore.Mvc.Rendering; // Bu satırı ekleyin
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using WebApplication1.Data;
-using System.Threading.Tasks;
-using WebApplication1.Services;
-using System;
 using System.Security.Claims;
+using WebApplication1.Services;
 
 // Bu sınıf, bilgisayar envanterini yönetmek için gerekli işlemleri içerir LOGLAMA EKLENMİŞTİR
 
@@ -99,7 +97,9 @@ namespace WebApplication1.Controllers
                     await _context.SaveChangesAsync();
 
                     // ✅ LOG EKLENDİ
-                    string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                            .Select(u => u.Id)
+                            .FirstOrDefault();
                     if (!string.IsNullOrEmpty(userId))
                     {
                         await _activityLogger.LogAsync(userId, "Bilgisayar oluşturuldu", "Computer", computer.Id);
@@ -188,7 +188,9 @@ namespace WebApplication1.Controllers
                     await _context.SaveChangesAsync();
 
                     // ✅ LOG EKLENDİ
-                    string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                            .Select(u => u.Id)
+                            .FirstOrDefault();
                     if (!string.IsNullOrEmpty(userId))
                     {
                         await _activityLogger.LogAsync(userId, "Bilgisayar güncellendi", "Computer", computer.Id);
@@ -255,7 +257,9 @@ namespace WebApplication1.Controllers
                 await _context.SaveChangesAsync();
 
                 // ✅ LOG EKLENDİ
-                string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                            .Select(u => u.Id)
+                            .FirstOrDefault();
                 if (!string.IsNullOrEmpty(userId))
                 {
                     await _activityLogger.LogAsync(userId, "Bilgisayar silindi", "Computer", id);

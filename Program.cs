@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<IActivityLogger, ActivityLogger>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -43,5 +46,21 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Login}/{action=Index}");
 
+
+var dbC = app.Services.CreateScope().ServiceProvider.GetRequiredService<AppDbContext>();
+if (dbC.Users.Any(u => u.UserName == "admin") == false)
+{
+    Console.WriteLine("Admin user not found, creating one...");
+    dbC.Users.Add(new ApplicationUser
+    {
+        FirstName = "Hakkı",
+        LastName = "Alkan",
+        Email = "",
+        UserName = "admin",
+        UserRole = ""
+    });
+
+    dbC.SaveChanges();
+}
 
 app.Run();
