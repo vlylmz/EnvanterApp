@@ -1,80 +1,55 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WebApplication1.Models;
-using WebApplication1.Data;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Identity;
 
 namespace WebApplication1.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly AppDbContext _context;
-        private readonly IPasswordHasher<ApplicationUser> _passwordHasher;
-
-        public AccountController(AppDbContext context, IPasswordHasher<ApplicationUser> passwordHasher)
-        {
-            _context = context;
-            _passwordHasher = passwordHasher;
-        }
-
         // GET: Account/Profile
-        public async Task<IActionResult> Profile()
+        public IActionResult Profile()
         {
-            var username = HttpContext.Session.GetString("user");
-            if (string.IsNullOrEmpty(username))
+            // Initialize 2FA if needed (for testing - remove this in production)
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("adminTotpSecret")) && 
+                string.IsNullOrEmpty(HttpContext.Session.GetString("2FADisabled")))
             {
-                return RedirectToAction("Login", "Home"); // or wherever your login page is
+                // First time - enable 2FA by default
+                HttpContext.Session.SetString("adminTotpSecret", "MOCK2FASECRET123");
             }
-
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == username || u.Email == username);
-
-            if (user == null)
-            {
-                return NotFound("Kullanıcı bulunamadı.");
-            }
-
+            
+            // Check 2FA status from session - only active if secret exists
+            var totpSecret = HttpContext.Session.GetString("adminTotpSecret");
+            var has2FA = !string.IsNullOrEmpty(totpSecret);
+            
             var model = new UserProfileViewModel
             {
-                Id = user.Id,
-                UserName = user.UserName,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                UserRole = user.UserRole,
-                CreatedDate = user.CreatedDate,
-                TwoFactorEnabled = user.TwoFactorEnabled
+                Id = "mock-admin-001",
+                UserName = "admin",
+                FirstName = "Admin",
+                LastName = "User",
+                Email = "admin@example.com",
+                PhoneNumber = "+90 555 123 4567",
+                UserRole = "Süper Admin",
+                CreatedDate = new DateTime(2024, 1, 1),
+                TwoFactorEnabled = has2FA
             };
 
             return View(model);
         }
 
         // GET: Account/EditProfile
-        public async Task<IActionResult> EditProfile()
+        public IActionResult EditProfile()
         {
-            var username = HttpContext.Session.GetString("user");
-            if (string.IsNullOrEmpty(username))
-            {
-                return RedirectToAction("Login", "Home");
-            }
-
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == username || u.Email == username);
-
-            if (user == null)
-            {
-                return NotFound("Kullanıcı bulunamadı.");
-            }
-
+            // Check 2FA status from session
+            var totpSecret = HttpContext.Session.GetString("adminTotpSecret");
+            var has2FA = !string.IsNullOrEmpty(totpSecret);
+            
             var model = new EditProfileViewModel
             {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                TwoFactorEnabled = user.TwoFactorEnabled
+                FirstName = "Admin",
+                LastName = "User",
+                Email = "admin@example.com",
+                PhoneNumber = "+90 555 123 4567",
+                TwoFactorEnabled = has2FA
             };
 
             return View(model);
@@ -83,115 +58,35 @@ namespace WebApplication1.Controllers
         // POST: Account/EditProfile
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProfile(EditProfileViewModel model)
+        public IActionResult EditProfile(EditProfileViewModel model)
         {
-            var username = HttpContext.Session.GetString("user");
-            if (string.IsNullOrEmpty(username))
-            {
-                return RedirectToAction("Login", "Home");
-            }
-
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == username || u.Email == username);
-
-            if (user == null)
+            // Handle 2FA toggle - can only be disabled, not re-enabled
+            var currentTotpSecret = HttpContext.Session.GetString("adminTotpSecret");
+            var current2FA = !string.IsNullOrEmpty(currentTotpSecret);
+            
+            if (!model.TwoFactorEnabled && current2FA)
             {
-                return NotFound("Kullanıcı bulunamadı.");
+                // Disable 2FA - permanent action
+                HttpContext.Session.Remove("adminTotpSecret");
+                TempData["Success"] = "İki faktörlü doğrulama kalıcı olarak devre dışı bırakıldı.";
             }
-
-            // Check if email is already taken by another user
-            var emailExists = await _context.Users
-                .AnyAsync(u => u.Email == model.Email && u.Id != user.Id);
-
-            if (emailExists)
+            else if (model.TwoFactorEnabled && !current2FA)
             {
-                ModelState.AddModelError("Email", "Bu e-posta adresi zaten kullanımda.");
-                return View(model);
+                // Cannot re-enable 2FA once disabled
+                TempData["Error"] = "İki faktörlü doğrulama bir kez devre dışı bırakıldıktan sonra tekrar etkinleştirilemez.";
+                return RedirectToAction(nameof(Profile));
             }
-
-            // Update user properties
-            user.FirstName = model.FirstName;
-            user.LastName = model.LastName;
-            user.Email = model.Email;
-            user.PhoneNumber = model.PhoneNumber;
-            user.TwoFactorEnabled = model.TwoFactorEnabled;
-
-            try
+            else
             {
-                await _context.SaveChangesAsync();
                 TempData["Success"] = "Profil bilgileriniz başarıyla güncellendi.";
-                return RedirectToAction(nameof(Profile));
-            }
-            catch (DbUpdateException ex)
-            {
-                ModelState.AddModelError("", "Güncelleme sırasında bir hata oluştu.");
-                return View(model);
-            }
-        }
-
-        // GET: Account/ChangePassword
-        public IActionResult ChangePassword()
-        {
-            var username = HttpContext.Session.GetString("user");
-            if (string.IsNullOrEmpty(username))
-            {
-                return RedirectToAction("Login", "Home");
             }
 
-            return View();
-        }
-
-        // POST: Account/ChangePassword
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
-        {
-            var username = HttpContext.Session.GetString("user");
-            if (string.IsNullOrEmpty(username))
-            {
-                return RedirectToAction("Login", "Home");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == username || u.Email == username);
-
-            if (user == null)
-            {
-                return NotFound("Kullanıcı bulunamadı.");
-            }
-
-            // Verify current password
-            var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.CurrentPassword);
-            if (verificationResult == PasswordVerificationResult.Failed)
-            {
-                ModelState.AddModelError("CurrentPassword", "Mevcut şifre yanlış.");
-                return View(model);
-            }
-
-            // Hash and set new password
-            user.PasswordHash = _passwordHasher.HashPassword(user, model.NewPassword);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Şifreniz başarıyla değiştirildi.";
-                return RedirectToAction(nameof(Profile));
-            }
-            catch (DbUpdateException ex)
-            {
-                ModelState.AddModelError("", "Şifre değiştirme sırasında bir hata oluştu.");
-                return View(model);
-            }
+            return RedirectToAction(nameof(Profile));
         }
 
         // POST: Account/Logout
@@ -200,45 +95,68 @@ namespace WebApplication1.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
-            return RedirectToAction("Login", "Home");
+            return RedirectToAction("Index", "Home");
         }
 
         // GET: Account/Settings
-        public async Task<IActionResult> Settings()
+        public IActionResult Settings()
         {
-            var username = HttpContext.Session.GetString("user");
-            if (string.IsNullOrEmpty(username))
-            {
-                return RedirectToAction("Login", "Home");
-            }
-
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == username || u.Email == username);
-
-            if (user == null)
-            {
-                return NotFound("Kullanıcı bulunamadı.");
-            }
-
+            // Check 2FA status from session
+            var totpSecret = HttpContext.Session.GetString("adminTotpSecret");
+            var has2FA = !string.IsNullOrEmpty(totpSecret);
+            
             var model = new UserSettingsViewModel
             {
-                TwoFactorEnabled = user.TwoFactorEnabled,
-                EmailNotifications = true, // You can add these fields to ApplicationUser if needed
+                TwoFactorEnabled = has2FA,
+                EmailNotifications = true,
                 SmsNotifications = false
             };
 
             return View(model);
         }
 
-        // Helper method to get current user
-        private async Task<ApplicationUser> GetCurrentUserAsync()
+        // POST: Account/Disable2FA - AJAX endpoint for disabling 2FA (one-way only)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Disable2FA()
         {
-            var username = HttpContext.Session.GetString("user");
-            if (string.IsNullOrEmpty(username))
-                return null;
+            var current2FA = HttpContext.Session.GetString("adminTotpSecret");
+            
+            if (!string.IsNullOrEmpty(current2FA))
+            {
+                // Disable 2FA - one way only
+                HttpContext.Session.Remove("adminTotpSecret");
+                HttpContext.Session.SetString("2FADisabled", "true");
+                return Json(new { success = true, message = "İki faktörlü doğrulama kalıcı olarak devre dışı bırakıldı." });
+            }
+            else
+            {
+                return Json(new { success = false, message = "İki faktörlü doğrulama zaten devre dışı." });
+            }
+        }
 
-            return await _context.Users
-                .FirstOrDefaultAsync(u => u.UserName == username || u.Email == username);
+        // POST: Account/QuickPasswordChange - AJAX endpoint for password change
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult QuickPasswordChange(string currentPassword, string newPassword)
+        {
+            // Get current password from session or use default
+            var storedPassword = HttpContext.Session.GetString("adminPassword") ?? "admin123";
+
+            if (currentPassword != storedPassword)
+            {
+                return Json(new { success = false, message = "Mevcut şifre yanlış." });
+            }
+
+            if (string.IsNullOrEmpty(newPassword) || newPassword.Length < 6)
+            {
+                return Json(new { success = false, message = "Yeni şifre en az 6 karakter olmalıdır." });
+            }
+
+            // Save new password to session
+            HttpContext.Session.SetString("adminPassword", newPassword);
+
+            return Json(new { success = true, message = "Şifreniz başarıyla değiştirildi." });
         }
     }
 

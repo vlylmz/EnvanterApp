@@ -51,19 +51,14 @@
                     </div>
                 </div>
 
-                <form action="/Login/QrValidate" method="post" id="qrValidateForm" novalidate>
+                <form action="/Login/QrValidate" method="post">
                     <div class="form-group mb-4">
                         <label for="code_2fa" class="form-label fw-semibold">
                             <i class="fas fa-key text-muted me-1"></i>
                             6 Haneli Doğrulama Kodu
                         </label>
-                        <div class="code-input-container">
-                            <input type="text" name="code" id="code_2fa" class="form-control code-input text-center" 
-                                   placeholder="000000" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code">
-                        </div>
-                        <div class="invalid-feedback">
-                            Lütfen 6 haneli doğrulama kodunu girin.
-                        </div>
+                        <input type="text" name="code" id="code_2fa" class="form-control code-input text-center" 
+                               placeholder="000000" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code">
                         <div class="form-text text-center">
                             <i class="fas fa-clock me-1"></i>
                             Kod yaklaşık 30 saniyede bir yenilenir
@@ -71,20 +66,12 @@
                     </div>
 
                     <div class="d-grid mb-3">
-                        <button type="submit" class="btn btn-primary" id="validateBtn">
+                        <button type="submit" class="btn btn-primary">
                             <i class="fas fa-sign-in-alt me-2"></i>
                             Giriş Yap
                         </button>
                     </div>
                 </form>
-
-                <!-- Alternative options -->
-                <div class="text-center">
-                    <a href="#" class="text-decoration-none text-muted small" onclick="showHelp()">
-                        <i class="fas fa-question-circle me-1"></i>
-                        Yardım
-                    </a>
-                </div>
             </div>
 
             <!-- Footer -->
@@ -112,120 +99,18 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('qrValidateForm');
-        const codeInput = document.getElementById('code_2fa');
-        const validateBtn = document.getElementById('validateBtn');
-
-        // Focus on code input
-        codeInput.focus();
-
-        // Format code input - only allow digits
-        codeInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-            if (value.length > 6) {
-                value = value.substring(0, 6);
-            }
-            e.target.value = value;
-        });
-
-        // Simple form submission with basic validation
-        form.addEventListener('submit', function(e) {
-            const code = codeInput.value.trim();
-            
-            if (!code || code.length !== 6) {
-                e.preventDefault();
-                codeInput.classList.add('is-invalid');
-                codeInput.focus();
-                return false;
-            }
-
-            // Remove invalid class if present
-            codeInput.classList.remove('is-invalid');
-            codeInput.classList.add('is-valid');
-
-            // Show loading state
-            validateBtn.disabled = true;
-            validateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Doğrulanıyor...';
-            
-            // Form will submit normally
-            return true;
-        });
-
-        // Auto-focus and select on click
-        codeInput.addEventListener('click', function() {
-            this.select();
-        });
-
-        // Clear validation states on input
-        codeInput.addEventListener('input', function() {
-            this.classList.remove('is-invalid', 'is-valid');
-        });
-
-        // Handle paste events
-        codeInput.addEventListener('paste', function(e) {
-            e.preventDefault();
-            const paste = (e.clipboardData || window.clipboardData).getData('text');
-            const cleanPaste = paste.replace(/\D/g, '').substring(0, 6);
-            this.value = cleanPaste;
-        });
+    // Focus on code input when page loads
+    document.getElementById('code_2fa').focus();
+    
+    // Only allow numbers in the code input
+    document.getElementById('code_2fa').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
     });
-
-    function showHelp() {
-        Swal.fire({
-            title: '2FA Doğrulama Yardımı',
-            html: `
-                <div class="text-start">
-                    <h6 class="text-primary mb-3">Sorun mu yaşıyorsunuz?</h6>
-                    <div class="mb-3">
-                        <strong>Kod çalışmıyorsa:</strong>
-                        <ul class="small mt-1">
-                            <li>Telefonunuzun saatinin doğru olduğundan emin olun</li>
-                            <li>Authenticator uygulamasını yeniden açmayı deneyin</li>
-                            <li>Yeni bir kod oluşturulmasını bekleyin (30 saniye)</li>
-                        </ul>
-                    </div>
-                    <div class="mb-3">
-                        <strong>Uygulamaya erişiminiz yoksa:</strong>
-                        <ul class="small mt-1">
-                            <li>Sistem yöneticiniz ile iletişime geçin</li>
-                            <li>Hesap kurtarma seçeneklerini kontrol edin</li>
-                        </ul>
-                    </div>
-                    <div class="alert alert-info mt-3">
-                        <small><i class="fas fa-lightbulb me-1"></i>
-                        <strong>İpucu:</strong> Kodu girdikten sonra "Giriş Yap" butonuna tıklayın.
-                        </small>
-                    </div>
-                </div>
-            `,
-            confirmButtonText: 'Anladım',
-            confirmButtonColor: '#0d6efd',
-            width: '600px'
-        });
-    }
 </script>
 
 <style>
-    /* Custom CSS matching login page design */
-    :root {
-        --primary-color: #0d6efd;
-        --success-color: #198754;
-        --warning-color: #fd7e14;
-        --danger-color: #dc3545;
-        --info-color: #0dcaf0;
-        --secondary-color: #6c757d;
-        --light-color: #f8f9fa;
-        --dark-color: #212529;
-        --border-radius: 0.375rem;
-        --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        --transition: all 0.15s ease-in-out;
-    }
-
-    /* Body styling */
+    /* Clean, minimal CSS */
     body {
         background-color: #f8f9fa;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -237,7 +122,6 @@
         border-radius: 10px;
         overflow: hidden;
         background: white;
-        max-width: 100%;
         margin-top: 1rem;
     }
 
@@ -248,32 +132,26 @@
     }
 
     .login-card .card-footer {
-        background: var(--light-color) !important;
+        background: #f8f9fa !important;
         border-top: 1px solid #dee2e6;
         padding: 1rem;
     }
 
-    /* Brand styling - using primary color for validation theme */
+    /* Brand icon */
     .brand-icon {
         width: 60px;
         height: 60px;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary-color), #0b5ed7);
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto;
-        transition: var(--transition);
     }
 
     .brand-icon i {
         font-size: 1.5rem;
         color: white;
-    }
-
-    .brand-icon:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.25);
     }
 
     /* Code input styling */
@@ -287,53 +165,26 @@
     }
 
     .code-input:focus {
-        border-color: var(--primary-color);
+        border-color: #0d6efd;
         box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
         outline: none;
     }
 
-    .code-input.is-valid {
-        border-color: var(--success-color);
-        background: #f8fff9;
+    /* Form controls */
+    .form-control {
+        border-radius: 0.375rem;
     }
 
-    .code-input.is-invalid {
-        border-color: var(--danger-color);
-        background: #fff5f5;
-        animation: shake 0.6s ease-in-out;
-    }
-
-    /* Form improvements */
-    .form-control, .form-select {
-        border-radius: var(--border-radius);
-        border: 2px solid #e9ecef;
-        transition: var(--transition);
-        background: white;
-        font-size: 0.95rem;
-    }
-
-    /* Button improvements */
+    /* Buttons */
     .btn {
-        border-radius: var(--border-radius);
-        transition: var(--transition);
+        border-radius: 0.375rem;
         font-weight: 500;
         padding: 0.75rem 1.25rem;
-        font-size: 0.95rem;
-    }
-
-    .btn:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
-    }
-
-    .btn:disabled {
-        opacity: 0.6;
-        transform: none !important;
     }
 
     .btn-primary {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
+        background: #0d6efd;
+        border-color: #0d6efd;
     }
 
     .btn-primary:hover {
@@ -341,80 +192,48 @@
         border-color: #0a58ca;
     }
 
-    /* Alert improvements */
+    /* Alerts */
     .alert {
-        border: none;
-        border-radius: var(--border-radius);
+        border-radius: 0.375rem;
         border-left: 4px solid;
     }
 
     .alert-danger {
-        border-left-color: var(--danger-color);
+        border-left-color: #dc3545;
         background: #f8d7da;
         color: #721c24;
     }
 
     .alert-info {
-        border-left-color: var(--info-color);
+        border-left-color: #0dcaf0;
         background: #d1ecf1;
         color: #0c5460;
     }
 
-    .alert-warning {
-        border-left-color: var(--warning-color);
-        background: #fff3cd;
-        color: #856404;
-    }
-
-    /* Text improvements */
+    /* Labels */
     .form-label {
         margin-bottom: 0.5rem;
         font-weight: 600;
-        color: var(--dark-color);
+        color: #212529;
     }
 
-    /* Link improvements */
-    a.text-decoration-none:hover {
-        text-decoration: underline !important;
-    }
-
-    /* Animation for invalid inputs */
-    @@keyframes shake {
-        0%, 20%, 40%, 60%, 80%, 100% { transform: translateX(0); }
-        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-    }
-
-    /* Loading state */
-    .btn:disabled .fa-spinner {
-        animation: spin 1s linear infinite;
-    }
-
-    @@keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    /* Card shadow */
+    /* Shadow */
     .shadow {
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
     }
 
-    /* Responsive improvements */
+    /* Responsive */
     @@media (max-width: 576px) {
         .login-card {
             margin: 0.5rem;
         }
         
         .login-card .card-header {
-            padding: 1rem 1rem 0.5rem 1rem;
+            padding: 1rem;
         }
         
         .card-body {
             padding: 1rem !important;
-        }
-        
-        .login-card .card-footer {
-            padding: 0.75rem;
         }
         
         .brand-icon {
@@ -430,15 +249,5 @@
             font-size: 1.5rem;
             padding: 0.75rem;
         }
-    }
-
-    /* Additional spacing */
-    .mt-5 {
-        margin-top: 2rem !important;
-    }
-
-    /* Code input container */
-    .code-input-container {
-        position: relative;
     }
 </style>

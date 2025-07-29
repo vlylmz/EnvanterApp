@@ -1,15 +1,16 @@
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.VisualBasic;
 using OtpNet;
 using WebApplication1.Data;
 
 namespace WebApplication1.Controllers
 {
+
     public class LoginController(AppDbContext context) : Controller
     {
         readonly AppDbContext context = context;
-        private static byte[]? adminTotpSecret;
 
         public IActionResult Index()
         {
@@ -22,8 +23,11 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public IActionResult Index(string username, string password)
         {
-            Console.WriteLine("username:" + username + " password:" + password);
-            if (username == "admin" && password == "1234")
+            Console.WriteLine("username password entered: " + username + " " + password);
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("adminPassword")))
+                HttpContext.Session.SetString("adminPassword", "1234");
+
+            if (username == "admin" && password == HttpContext.Session.GetString("adminPassword"))
             {
                 if (HttpContext.Session.GetString("adminTotpSecretNew") != null)
                 {
@@ -32,7 +36,7 @@ namespace WebApplication1.Controllers
                     return RedirectToAction("QrRegister");
                 }
 
-                if (adminTotpSecret == null)
+                if (string.IsNullOrEmpty(HttpContext.Session.GetString("adminTotpSecret")))
                 {
                     Console.WriteLine("adminTotpSecret is null, redirecting to qrregister");
                     HttpContext.Session.SetString("adminTotpSecretNew", Convert.ToBase64String(KeyGeneration.GenerateRandomKey(16)));
@@ -40,10 +44,12 @@ namespace WebApplication1.Controllers
                     return RedirectToAction("QrRegister");
                 }
 
+                Console.WriteLine("adminTotpSecret is not null, redirecting to qrvalidate");
                 TempData["allowRedirectToQrValidate"] = true;
-                return RedirectToAction("QrValidate", adminTotpSecret);
+                return RedirectToAction("QrValidate");
             }
 
+            Console.WriteLine("wrong username or password");
             ViewBag.Error = "Wrong username or password";
             return View();
         }
@@ -51,7 +57,7 @@ namespace WebApplication1.Controllers
 
         public IActionResult Logout()
         {
-            HttpContext.Session.Clear();
+            ClearHContext();
             return RedirectToAction("Index");
         }
 
@@ -59,6 +65,7 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public IActionResult QrRegister(string code)
         {
+            Console.WriteLine("qrregister code: " + code);
             if (!string.IsNullOrEmpty(HttpContext.Session.GetString("user")))
                 return RedirectToAction("Index", "Home");
 
@@ -78,8 +85,8 @@ namespace WebApplication1.Controllers
             if (code == trueTotp)
             {
                 Console.WriteLine("ok");
-                adminTotpSecret = sessionTotp;
-                HttpContext.Session.Clear();
+                HttpContext.Session.SetString("adminTotpSecret", sessionBase64Totp);
+                ClearHContext();
                 HttpContext.Session.SetString("user", "admin");
                 return RedirectToAction("Index", "Home");
             }
@@ -96,15 +103,15 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public IActionResult QrValidate(string code)
         {
-            Console.WriteLine("qrvalidate code");
+            Console.WriteLine("qrvalidate code: " + code);
             if (!string.IsNullOrEmpty(HttpContext.Session.GetString("user")))
                 return RedirectToAction("Index", "Home");
 
 
-            var trueTotp = new Totp(adminTotpSecret).ComputeTotp();
+            var trueTotp = new Totp(Convert.FromBase64String(HttpContext.Session.GetString("adminTotpSecret")!)).ComputeTotp();
             if (code == trueTotp)
             {
-                HttpContext.Session.Clear();
+                ClearHContext();
                 HttpContext.Session.SetString("user", "admin");
                 return RedirectToAction("Index", "Home");
             }
@@ -135,9 +142,14 @@ namespace WebApplication1.Controllers
 
         public IActionResult QrSkip()
         {
-            HttpContext.Session.Clear();
+            ClearHContext();
             HttpContext.Session.SetString("user", "admin");
             return RedirectToAction("Index");
+        }
+
+        private void ClearHContext()
+        {
+            HttpContext.Session.Keys.Where(key => key != "adminPassword" && key != "adminTotpSecret").ToList().ForEach(key => HttpContext.Session.Remove(key));
         }
 
     }

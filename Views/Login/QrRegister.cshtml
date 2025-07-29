@@ -72,8 +72,12 @@
                 </div>
 
                 <!-- Manual Entry Option -->
-                <div class="collapse" id="manualEntry">
-                    <div class="alert alert-warning">
+                <details class="mb-3">
+                    <summary class="btn btn-link btn-sm text-muted">
+                        <i class="fas fa-keyboard me-1"></i>
+                        Manuel giriş seçeneği
+                    </summary>
+                    <div class="alert alert-warning mt-2">
                         <small class="d-block mb-2">
                             <i class="fas fa-key me-1"></i>
                             <strong>Manuel Giriş:</strong> QR kod tarayamıyorsanız, aşağıdaki kodu manuel olarak
@@ -87,29 +91,16 @@
                             </button>
                         </div>
                     </div>
-                </div>
+                </details>
 
-                <div class="text-center mb-3">
-                    <button class="btn btn-link btn-sm text-muted" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#manualEntry">
-                        <i class="fas fa-keyboard me-1"></i>
-                        Manuel giriş seçeneği
-                    </button>
-                </div>
-
-                <form action="/Login/QrRegister" method="post" id="qrRegisterForm" novalidate>
+                <form action="/Login/QrRegister" method="post">
                     <div class="form-group mb-3">
                         <label for="code_2fa" class="form-label fw-semibold">
                             <i class="fas fa-shield-alt text-muted me-1"></i>
                             6 Haneli Doğrulama Kodu
                         </label>
-                        <div class="code-input-container">
-                            <input type="text" name="code" id="code_2fa" class="form-control code-input text-center"
-                                placeholder="000000" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
-                        </div>
-                        <div class="invalid-feedback">
-                            Lütfen 6 haneli doğrulama kodunu girin.
-                        </div>
+                        <input type="text" name="code" id="code_2fa" class="form-control code-input text-center"
+                            placeholder="000000" required maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
                         <div class="form-text">
                             <i class="fas fa-info-circle me-1"></i>
                             <strong>Adım 2:</strong> Authenticator uygulamanızdan 6 haneli kodu girin
@@ -117,16 +108,17 @@
                     </div>
 
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-success" id="registerBtn">
+                        <button type="submit" class="btn btn-success">
                             <i class="fas fa-check me-2"></i>
                             2FA'yı Etkinleştir
                         </button>
                     </div>
                 </form>
-                <form action="/Login/QrSkip" method="post" style="display: inline;">
+                
+                <form action="/Login/QrSkip" method="post" class="mt-2">
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-success" id="skipBtn">
-                            <i class="fas fa-check me-2"></i>
+                        <button type="submit" class="btn btn-outline-secondary">
+                            <i class="fas fa-forward me-2"></i>
                             Geç
                         </button>
                     </div>
@@ -140,16 +132,10 @@
                         <i class="fas fa-info-circle me-1"></i>
                         Bu adım güvenliğiniz için zorunludur. Lütfen güvenli bir authenticator uygulaması kullanın.
                     </p>
-                    <div class="d-flex justify-content-center gap-3">
-                        <a href="#" class="text-decoration-none text-muted" onclick="showHelp()">
-                            <i class="fas fa-question-circle me-1"></i>
-                            Yardım
-                        </a>
-                        <a asp-controller="Login" asp-action="Index" class="text-decoration-none text-muted">
-                            <i class="fas fa-arrow-left me-1"></i>
-                            Geri Dön
-                        </a>
-                    </div>
+                    <a asp-controller="Login" asp-action="Index" class="text-decoration-none text-muted">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Giriş Sayfasına Dön
+                    </a>
                 </div>
             </div>
         </div>
@@ -164,137 +150,41 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('qrRegisterForm');
-        const codeInput = document.getElementById('code_2fa');
-        const registerBtn = document.getElementById('registerBtn');
-
-        // Focus on code input
-        codeInput.focus();
-
-        // Format code input - only allow digits
-        codeInput.addEventListener('input', function (e) {
-            let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-            if (value.length > 6) {
-                value = value.substring(0, 6);
-            }
-            e.target.value = value;
-        });
-
-        // Simple form submission with basic validation
-        form.addEventListener('submit', function (e) {
-            const code = codeInput.value.trim();
-
-            if (!code || code.length !== 6) {
-                e.preventDefault();
-                alert('Lütfen 6 haneli doğrulama kodunu girin.');
-                codeInput.focus();
-                return false;
-            }
-
-            // Show loading state
-            registerBtn.disabled = true;
-            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Doğrulanıyor...';
-
-            // Form will submit normally
-            return true;
-        });
-
-        // Auto-focus and select on click
-        codeInput.addEventListener('click', function () {
-            this.select();
-        });
-    });
-
+    // Simple script to handle copy function
     function copySecret() {
         const secretCode = document.getElementById('secretCode').textContent;
-
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(secretCode).then(() => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Kopyalandı!',
-                    text: 'Gizli kod panoya kopyalandı.',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end'
-                });
-            });
-        } else {
-            // Fallback for older browsers
-            const textArea = document.createElement('textarea');
-            textArea.value = secretCode;
-            document.body.appendChild(textArea);
-            textArea.select();
+        
+        // Create temporary textarea
+        const textArea = document.createElement('textarea');
+        textArea.value = secretCode;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        
+        try {
             document.execCommand('copy');
-            document.body.removeChild(textArea);
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Kopyalandı!',
-                text: 'Gizli kod panoya kopyalandı.',
-                timer: 2000,
-                showConfirmButton: false,
-                toast: true,
-                position: 'top-end'
-            });
+            // Simple alert instead of SweetAlert
+            alert('Gizli kod panoya kopyalandı!');
+        } catch (err) {
+            alert('Kopyalama başarısız oldu.');
         }
+        
+        document.body.removeChild(textArea);
     }
 
-    function showHelp() {
-        Swal.fire({
-            title: '2FA Kurulum Yardımı',
-            html: `
-                <div class="text-start">
-                    <h6 class="text-success mb-3">Kurulum Adımları:</h6>
-                    <ol class="list-unstyled">
-                        <li class="mb-2"><strong>1.</strong> Telefonunuza bir authenticator uygulaması indirin:
-                            <ul class="small mt-1">
-                                <li>Google Authenticator</li>
-                                <li>Microsoft Authenticator</li>
-                                <li>Authy</li>
-                            </ul>
-                        </li>
-                        <li class="mb-2"><strong>2.</strong> Uygulamada "QR kod tara" seçeneğini kullanın</li>
-                        <li class="mb-2"><strong>3.</strong> Yukarıdaki QR kodu telefonunuzla tarayın</li>
-                        <li class="mb-2"><strong>4.</strong> Uygulamada görünen 6 haneli kodu girin</li>
-                        <li class="mb-2"><strong>5.</strong> "2FA'yı Etkinleştir" butonuna tıklayın</li>
-                    </ol>
-                    <div class="alert alert-warning mt-3">
-                        <small><i class="fas fa-exclamation-triangle me-1"></i>
-                        <strong>Önemli:</strong> Bu kurulum tamamlandıktan sonra giriş yapmak için her seferinde authenticator uygulamanızdan kod girmeniz gerekecek.
-                        </small>
-                    </div>
-                </div>
-            `,
-            confirmButtonText: 'Anladım',
-            confirmButtonColor: '#198754',
-            width: '600px'
-        });
-    }
+    // Focus on code input when page loads
+    document.getElementById('code_2fa').focus();
+    
+    // Only allow numbers in the code input
+    document.getElementById('code_2fa').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+    });
 </script>
 
 <style>
-    /* Custom CSS matching login page design */
-    :root {
-        --primary-color: #0d6efd;
-        --success-color: #198754;
-        --warning-color: #fd7e14;
-        --danger-color: #dc3545;
-        --info-color: #0dcaf0;
-        --secondary-color: #6c757d;
-        --light-color: #f8f9fa;
-        --dark-color: #212529;
-        --border-radius: 0.375rem;
-        --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        --transition: all 0.15s ease-in-out;
-    }
-
-    /* Body styling */
+    /* Clean, minimal CSS */
     body {
         background-color: #f8f9fa;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -306,7 +196,6 @@
         border-radius: 10px;
         overflow: hidden;
         background: white;
-        max-width: 100%;
         margin-top: 1rem;
     }
 
@@ -317,7 +206,7 @@
     }
 
     .login-card .card-footer {
-        background: var(--light-color) !important;
+        background: #f8f9fa !important;
         border-top: 1px solid #dee2e6;
         padding: 1rem;
     }
@@ -327,12 +216,11 @@
         width: 60px;
         height: 60px;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--success-color), #28a745);
+        background: linear-gradient(135deg, #198754, #28a745);
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto;
-        transition: var(--transition);
     }
 
     .brand-icon i {
@@ -340,16 +228,11 @@
         color: white;
     }
 
-    .brand-icon:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0.5rem 1rem rgba(25, 135, 84, 0.25);
-    }
-
     /* QR Code container */
     .qr-container {
         background: white;
         border: 2px solid #e9ecef;
-        border-radius: var(--border-radius);
+        border-radius: 0.375rem;
         padding: 1rem;
         display: inline-block;
     }
@@ -372,19 +255,8 @@
     }
 
     .code-input:focus {
-        border-color: var(--success-color);
+        border-color: #198754;
         box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.15);
-    }
-
-    .code-input.is-valid {
-        border-color: var(--success-color);
-        background: white;
-    }
-
-    .code-input.is-invalid {
-        border-color: var(--danger-color);
-        background: white;
-        animation: shake 0.6s ease-in-out;
     }
 
     /* Secret code styling */
@@ -396,38 +268,22 @@
         user-select: all;
     }
 
-    /* Form improvements */
-    .form-control,
-    .form-select {
-        border-radius: var(--border-radius);
+    /* Form controls */
+    .form-control {
+        border-radius: 0.375rem;
         border: 2px solid #e9ecef;
-        transition: var(--transition);
-        background: white;
-        font-size: 0.95rem;
     }
 
-    /* Button improvements */
+    /* Buttons */
     .btn {
-        border-radius: var(--border-radius);
-        transition: var(--transition);
+        border-radius: 0.375rem;
         font-weight: 500;
         padding: 0.75rem 1.25rem;
-        font-size: 0.95rem;
-    }
-
-    .btn:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
-    }
-
-    .btn:disabled {
-        opacity: 0.6;
-        transform: none !important;
     }
 
     .btn-success {
-        background: var(--success-color);
-        border-color: var(--success-color);
+        background: #198754;
+        border-color: #198754;
     }
 
     .btn-success:hover {
@@ -435,100 +291,64 @@
         border-color: #146c43;
     }
 
-    /* Alert improvements */
+    /* Alerts */
     .alert {
-        border: none;
-        border-radius: var(--border-radius);
+        border-radius: 0.375rem;
         border-left: 4px solid;
     }
 
     .alert-danger {
-        border-left-color: var(--danger-color);
+        border-left-color: #dc3545;
         background: #f8d7da;
         color: #721c24;
     }
 
     .alert-info {
-        border-left-color: var(--info-color);
+        border-left-color: #0dcaf0;
         background: #d1ecf1;
         color: #0c5460;
     }
 
     .alert-warning {
-        border-left-color: var(--warning-color);
+        border-left-color: #fd7e14;
         background: #fff3cd;
         color: #856404;
     }
 
-    /* Text improvements */
+    /* Labels */
     .form-label {
         margin-bottom: 0.5rem;
         font-weight: 600;
-        color: var(--dark-color);
+        color: #212529;
     }
 
-    /* Link improvements */
-    a.text-decoration-none:hover {
-        text-decoration: underline !important;
+    /* Details/Summary styling */
+    details summary {
+        cursor: pointer;
+        user-select: none;
     }
 
-    /* Animation for invalid inputs */
-    @@keyframes shake {
-
-        0%,
-        20%,
-        40%,
-        60%,
-        80%,
-        100% {
-            transform: translateX(0);
-        }
-
-        10%,
-        30%,
-        50%,
-        70%,
-        90% {
-            transform: translateX(-5px);
-        }
+    details summary::-webkit-details-marker {
+        display: none;
     }
 
-    /* Loading state */
-    .btn:disabled .fa-spinner {
-        animation: spin 1s linear infinite;
-    }
-
-    @@keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* Card shadow */
+    /* Shadow */
     .shadow {
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
     }
 
-    /* Responsive improvements */
+    /* Responsive */
     @@media (max-width: 576px) {
         .login-card {
             margin: 0.5rem;
         }
 
         .login-card .card-header {
-            padding: 1rem 1rem 0.5rem 1rem;
+            padding: 1rem;
         }
 
         .card-body {
             padding: 1rem !important;
-        }
-
-        .login-card .card-footer {
-            padding: 0.75rem;
         }
 
         .brand-icon {
@@ -552,10 +372,5 @@
         .code-input {
             font-size: 1.25rem;
         }
-    }
-
-    /* Additional spacing */
-    .mt-5 {
-        margin-top: 2rem !important;
     }
 </style>

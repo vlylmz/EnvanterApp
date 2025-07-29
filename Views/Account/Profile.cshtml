@@ -4,6 +4,18 @@
 }
 
 <div class="container-fluid mt-4">
+    <!-- Anti-forgery token for AJAX requests -->
+    @Html.AntiForgeryToken()
+    
+    <!-- Debug Info - Remove in production -->
+    @if (ViewBag.DebugInfo != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <strong>Debug:</strong> @ViewBag.DebugInfo
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
     <div class="row">
         <div class="col-lg-3">
             <!-- Profile Sidebar -->
@@ -17,9 +29,6 @@
                     <div class="d-grid gap-2">
                         <a asp-action="EditProfile" class="btn btn-primary btn-sm">
                             <i class="fas fa-edit me-1"></i> Profili Düzenle
-                        </a>
-                        <a asp-action="ChangePassword" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-key me-1"></i> Şifre Değiştir
                         </a>
                     </div>
                 </div>
@@ -153,20 +162,27 @@
                         <div class="col-md-8">
                             <h6 class="mb-1">İki Faktörlü Doğrulama (2FA)</h6>
                             <p class="text-muted mb-0">
-                                Hesabınızı daha güvenli hale getirmek için iki faktörlü doğrulamayı etkinleştirin.
+                                @if (Model.TwoFactorEnabled)
+                                {
+                                    <text>2FA aktif. Devre dışı bırakmak kalıcıdır ve geri alınamaz.</text>
+                                }
+                                else
+                                {
+                                    <text>2FA kalıcı olarak devre dışı bırakıldı.</text>
+                                }
                             </p>
                         </div>
                         <div class="col-md-4 text-end">
                             @if (Model.TwoFactorEnabled)
                             {
-                                <span class="badge bg-success">
-                                    <i class="fas fa-check me-1"></i> Aktif
-                                </span>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="disable2FA()">
+                                    <i class="fas fa-times me-1"></i> Kalıcı Olarak Kapat
+                                </button>
                             }
                             else
                             {
                                 <span class="badge bg-secondary">
-                                    <i class="fas fa-times me-1"></i> Pasif
+                                    <i class="fas fa-times me-1"></i> Kalıcı Olarak Kapalı
                                 </span>
                             }
                         </div>
@@ -180,9 +196,10 @@
                             </p>
                         </div>
                         <div class="col-md-4 text-end">
-                            <a asp-action="ChangePassword" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-key me-1"></i> Değiştir
-                            </a>
+                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                onclick="showQuickPasswordChange()">
+                                <i class="fas fa-key me-1"></i> Şifre Değiştir
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -209,7 +226,57 @@
     </div>
 </div>
 
+<!-- Quick Password Change Modal -->
+<div class="modal fade" id="quickPasswordModal" tabindex="-1" aria-labelledby="quickPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickPasswordModalLabel">
+                    <i class="fas fa-bolt me-2"></i> Hızlı Şifre Değiştir
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickPasswordForm">
+                    <div class="mb-3">
+                        <label for="quickCurrentPassword" class="form-label">Mevcut Şifre</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" class="form-control" id="quickCurrentPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="toggleQuickPassword('quickCurrentPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quickNewPassword" class="form-label">Yeni Şifre</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" class="form-control" id="quickNewPassword" required minlength="6">
+                            <button class="btn btn-outline-secondary" type="button" onclick="toggleQuickPassword('quickNewPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">En az 6 karakter olmalıdır</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="submitQuickPasswordChange()">
+                    <i class="fas fa-save me-1"></i> Şifreyi Değiştir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Auto-hide alerts after 5 seconds
         document.addEventListener('DOMContentLoaded', function() {
@@ -221,5 +288,138 @@
                 });
             }, 5000);
         });
+
+        // Disable 2FA (one-way only)
+        async function disable2FA() {
+            const result = await Swal.fire({
+                title: 'Emin misiniz?',
+                text: '2FA\'yı devre dışı bırakmak kalıcıdır ve geri alınamaz!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-times me-1"></i> Evet, Kalıcı Olarak Kapat',
+                cancelButtonText: '<i class="fas fa-arrow-left me-1"></i> İptal',
+                reverseButtons: true
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const form = new FormData();
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (token) {
+                        form.append('__RequestVerificationToken', token.value);
+                    }
+                    
+                    const response = await fetch('/Account/Disable2FA', {
+                        method: 'POST',
+                        body: form
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı!',
+                            text: data.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Hata!', data.message || 'İşlem başarısız oldu.', 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Hata!', 'Bir hata oluştu.', 'error');
+                }
+            }
+        }
+
+        // Show quick password change modal
+        function showQuickPasswordChange() {
+            document.getElementById('quickPasswordForm').reset();
+            const modal = new bootstrap.Modal(document.getElementById('quickPasswordModal'));
+            modal.show();
+        }
+
+        // Toggle password visibility
+        function toggleQuickPassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const button = field.nextElementSibling;
+            const icon = button.querySelector('i');
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                field.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Submit quick password change
+        async function submitQuickPasswordChange() {
+            const currentPassword = document.getElementById('quickCurrentPassword').value;
+            const newPassword = document.getElementById('quickNewPassword').value;
+            
+            if (!currentPassword || !newPassword) {
+                Swal.fire('Uyarı', 'Lütfen tüm alanları doldurun.', 'warning');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                Swal.fire('Uyarı', 'Yeni şifre en az 6 karakter olmalıdır.', 'warning');
+                return;
+            }
+            
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('quickPasswordModal')).hide();
+            
+            // Show loading
+            Swal.fire({
+                title: 'İşlem yapılıyor...',
+                html: 'Şifreniz değiştiriliyor...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            try {
+                const form = new FormData();
+                form.append('currentPassword', currentPassword);
+                form.append('newPassword', newPassword);
+                
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (token) {
+                    form.append('__RequestVerificationToken', token.value);
+                }
+                
+                const response = await fetch('/Account/QuickPasswordChange', {
+                    method: 'POST',
+                    body: form
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Başarılı!',
+                        text: result.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Hata!', result.message || 'Şifre değiştirme başarısız.', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Hata!', 'Bir hata oluştu.', 'error');
+            }
+        }
     </script>
 }
