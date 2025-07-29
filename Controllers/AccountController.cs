@@ -7,15 +7,7 @@ namespace WebApplication1.Controllers
     {
         // GET: Account/Profile
         public IActionResult Profile()
-        {
-            // Initialize 2FA if needed (for testing - remove this in production)
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("adminTotpSecret")) && 
-                string.IsNullOrEmpty(HttpContext.Session.GetString("2FADisabled")))
-            {
-                // First time - enable 2FA by default
-                HttpContext.Session.SetString("adminTotpSecret", "MOCK2FASECRET123");
-            }
-            
+        {         
             // Check 2FA status from session - only active if secret exists
             var totpSecret = HttpContext.Session.GetString("adminTotpSecret");
             var has2FA = !string.IsNullOrEmpty(totpSecret);

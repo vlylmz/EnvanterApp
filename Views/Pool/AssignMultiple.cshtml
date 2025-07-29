@@ -1,0 +1,221 @@
+﻿@model List<WebApplication1.Models.Computer>
+@{
+    ViewData["Title"] = "Çoklu Zimmetleme";
+    var employees = ViewBag.Employees as List<WebApplication1.Models.Employee>;
+    var selectedIds = ViewBag.SelectedComputerIds as List<int>;
+}
+
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1 d-flex align-items-center">
+                        <i class="fas fa-user-plus text-success me-2"></i>
+                        Çoklu Zimmetleme
+                    </h1>
+                    <p class="text-muted mb-0">Seçili ekipmanları çalışana zimmetle</p>
+                </div>
+                <div>
+                    <a asp-controller="Pool" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Havuz Envanterine Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selected Equipment Cards -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0 d-flex align-items-center">
+                <i class="fas fa-desktop me-2"></i>
+                Zimmetlenecek Ekipmanlar
+                <span class="badge bg-info ms-2">@Model.Count adet</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                @foreach (var computer in Model)
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card border-success h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-start justify-content-between mb-2">
+                                    <div>
+                                        <h6 class="card-title mb-1 fw-bold">@computer.Name</h6>
+                                        <small class="text-muted">@computer.Company?.Name</small>
+                                    </div>
+                                    <span class="badge bg-success">Havuzda</span>
+                                </div>
+                                <div class="small text-muted">
+                                    <div><i class="fas fa-tag me-1"></i> @computer.AssetTag</div>
+                                    <div><i class="fas fa-barcode me-1"></i> @computer.SerialNumber</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Form -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0 d-flex align-items-center">
+                <i class="fas fa-user me-2"></i> Zimmetleme Bilgileri
+            </h5>
+        </div>
+        <div class="card-body">
+            <form asp-controller="Pool" asp-action="AssignMultiple" method="post" id="assignmentForm">
+                @foreach (var id in selectedIds)
+                {
+                    <input type="hidden" name="computerIds" value="@id" />
+                }
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="employeeId" class="form-label">
+                            <i class="fas fa-user text-muted me-1"></i> Çalışan Seçin *
+                        </label>
+                        <select name="employeeId" id="employeeId" class="form-select" required>
+                            <option value="">Çalışan seçiniz...</option>
+                            @if (employees != null)
+                            {
+                                var groupedEmployees = employees.GroupBy(e => e.Company?.Name ?? "Firma Atanmamış");
+                                @foreach (var group in groupedEmployees.OrderBy(g => g.Key))
+                                {
+                                    <optgroup label="@group.Key">
+                                        @foreach (var employee in group.OrderBy(e => e.FirstName).ThenBy(e => e.LastName))
+                                        {
+                                            <option value="@employee.Id">
+                                                @employee.FirstName @employee.LastName
+                                                @if (!string.IsNullOrEmpty(employee.Title))
+                                                {
+                                                    <text> - @employee.Title</text>
+                                                }
+                                            </option>
+                                        }
+                                    </optgroup>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="assignmentDate" class="form-label">
+                            <i class="fas fa-calendar text-muted me-1"></i> Zimmetleme Tarihi *
+                        </label>
+                        <input type="date" name="assignmentDate" id="assignmentDate"
+                               class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="notes" class="form-label">
+                            <i class="fas fa-sticky-note text-muted me-1"></i> Notlar
+                        </label>
+                        <textarea name="notes" id="notes" class="form-control" rows="3"
+                                  placeholder="Zimmetleme ile ilgili notlarınızı buraya yazabilirsiniz..."></textarea>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>@Model.Count</strong> adet ekipman zimmetlenecek
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a asp-controller="Pool" asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i> İptal
+                                </a>
+                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                    <i class="fas fa-user-plus me-1"></i> Zimmetle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('assignmentForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const employeeSelect = document.getElementById('employeeId');
+                const selectedEmployee = employeeSelect.options[employeeSelect.selectedIndex];
+
+                if (!employeeSelect.value) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Uyarı',
+                        text: 'Lütfen bir çalışan seçin.',
+                        confirmButtonText: 'Tamam'
+                    });
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Zimmetleme Onayı',
+                    html: `<strong>@Model.Count</strong> adet ekipman <br><strong>${selectedEmployee.text}</strong><br> adlı çalışana zimmetlenecek.<br><br>Devam etmek istiyor musunuz?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fas fa-user-plus"></i> Evet, Zimmetle',
+                    cancelButtonText: '<i class="fas fa-times"></i> İptal',
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-secondary'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading
+                        Swal.fire({
+                            title: 'Zimmetleniyor...',
+                            html: 'Ekipmanlar zimmetleniyor, lütfen bekleyin...',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        // Submit form
+                        form.submit();
+                    }
+                });
+            });
+
+            // Employee select change handler
+            document.getElementById('employeeId').addEventListener('change', function() {
+                const submitBtn = document.getElementById('submitBtn');
+                if (this.value) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('btn-outline-success');
+                    submitBtn.classList.add('btn-success');
+                } else {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.remove('btn-success');
+                    submitBtn.classList.add('btn-outline-success');
+                }
+            });
+
+            // Initialize button state
+            document.getElementById('employeeId').dispatchEvent(new Event('change'));
+        });
+    </script>
+}
