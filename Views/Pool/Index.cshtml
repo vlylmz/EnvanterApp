@@ -703,6 +703,10 @@
             const tableRadio = document.getElementById('tableViewRadio');
             const cardsRadio = document.getElementById('cardsViewRadio');
 
+            if (!tableView || !cardsView) {
+                return;
+            }
+
             if (viewType === 'table') {
                 tableView.style.display = 'block';
                 cardsView.style.display = 'none';
