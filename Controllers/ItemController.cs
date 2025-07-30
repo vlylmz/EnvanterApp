@@ -2,16 +2,21 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using WebApplication1.Data;
+using WebApplication1.Services;
+using System.Security.Claims;
 
 namespace WebApplication1.Controllers
 {
-    public class ItemsController : Controller
+    public class ItemController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IActivityLogger _activityLogger;
 
-        public ItemsController(AppDbContext context)
+        public ItemController(AppDbContext context, IActivityLogger activityLogger)
         {
             _context = context;
+            _activityLogger = activityLogger;
+
         }
 
         // GET: Items
@@ -28,7 +33,7 @@ namespace WebApplication1.Controllers
 
             if (!string.IsNullOrEmpty(searchString))
             {
-                items = items.Where(s => s.Name!.Contains(searchString) || 
+                items = items.Where(s => s.Name!.Contains(searchString) ||
                                         s.Description!.Contains(searchString) ||
                                         s.SystemBarcode!.Contains(searchString));
                 ViewBag.SearchString = searchString;
@@ -69,7 +74,6 @@ namespace WebApplication1.Controllers
             return View();
         }
 
-        // POST: Items/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ItemModel item)
@@ -77,7 +81,6 @@ namespace WebApplication1.Controllers
             // Debug: ModelState kontrolü
             if (!ModelState.IsValid)
             {
-                // Hataları logla
                 foreach (var error in ModelState)
                 {
                     Console.WriteLine($"Field: {error.Key}, Errors: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
@@ -88,7 +91,7 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    // Check if barcode already exists
+                    // Barkod kontrolü
                     if (await _context.Items.AnyAsync(i => i.SystemBarcode == item.SystemBarcode))
                     {
                         ModelState.AddModelError("SystemBarcode", "Bu barkod zaten kullanılmaktadır. Lütfen farklı bir barkod giriniz.");
@@ -96,22 +99,31 @@ namespace WebApplication1.Controllers
                         return View(item);
                     }
 
-                    // Set audit fields
+                    // Oluşturma bilgileri
                     item.CreatedBy = User.Identity!.Name ?? "System";
                     item.CreatedDate = DateTime.Now;
-                    
-                    // Check critical level
+
                     item.CheckCriticalLevel();
 
                     _context.Items.Add(item);
                     await _context.SaveChangesAsync();
+
+                    // LOG EKLENDİ
+                    string? userId = _context.Users
+                        .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                        .Select(u => u.Id)
+                        .FirstOrDefault();
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, "Ürün oluşturuldu", "Item", item.Id);
+                    }
 
                     TempData["Success"] = "Urun basariyla olusturuldu!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    // Hata logla
                     Console.WriteLine($"Create Error: {ex.Message}");
                     TempData["Error"] = "Ürün kaydedilirken hata oluştu: " + ex.Message;
                 }
@@ -137,11 +149,10 @@ namespace WebApplication1.Controllers
 
             ViewBag.Kategoriler = GetCategories();
             ViewBag.ZimmetDurumlari = new[] { "Zimmet Dışı", "Zimmetli", "Bakımda", "Kayıp" };
-            
+
             return View(item);
         }
 
-        // POST: Items/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ItemModel item)
@@ -164,7 +175,7 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    // Check if barcode already exists (excluding current item)
+                    // Aynı barkod başka üründe var mı kontrol et
                     if (await _context.Items.AnyAsync(i => i.SystemBarcode == item.SystemBarcode && i.Id != item.Id))
                     {
                         ModelState.AddModelError("SystemBarcode", "Bu barkod zaten kullanılmaktadır. Lütfen farklı bir barkod giriniz.");
@@ -174,19 +185,29 @@ namespace WebApplication1.Controllers
                     }
 
                     var originalItem = await _context.Items.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id);
-                    
-                    // Preserve original values
+
+                    // Orijinal alanları koru
                     item.UpdatedDate = DateTime.Now;
                     item.UpdatedBy = User.Identity!.Name ?? "System";
                     item.CreatedDate = originalItem!.CreatedDate;
                     item.CreatedBy = originalItem.CreatedBy;
-                    
-                    // Check critical level
+
                     item.CheckCriticalLevel();
 
                     _context.Update(item);
                     await _context.SaveChangesAsync();
-                    
+
+                    // LOG EKLENDİ
+                    string? userId = _context.Users
+                        .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                        .Select(u => u.Id)
+                        .FirstOrDefault();
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, "Ürün güncellendi", "Item", item.Id);
+                    }
+
                     TempData["Success"] = "Urun basariyla guncellendi!";
                     return RedirectToAction(nameof(Index));
                 }
@@ -244,7 +265,18 @@ namespace WebApplication1.Controllers
                 {
                     _context.Items.Remove(item);
                     await _context.SaveChangesAsync();
-                    
+
+                    // LOG EKLENDİ
+                    string? userId = _context.Users
+                        .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                        .Select(u => u.Id)
+                        .FirstOrDefault();
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, "Ürün silindi", "Item", item.Id);
+                    }
+
                     TempData["Success"] = "Urun basariyla silindi!";
                 }
             }
@@ -256,7 +288,6 @@ namespace WebApplication1.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-
         // POST: Items/AssignToPersonnel/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -269,6 +300,18 @@ namespace WebApplication1.Controllers
                 {
                     item.AssignToPersonnel(personnel, User.Identity!.Name ?? "System");
                     await _context.SaveChangesAsync();
+
+                    // ✅ LOG EKLENDİ
+                    string? userId = _context.Users
+                        .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                        .Select(u => u.Id)
+                        .FirstOrDefault();
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, $"Ürün {personnel} adlı personele zimmetlendi", "Item", item.Id);
+                    }
+
                     TempData["Success"] = $"Ürün {personnel} adlı personele zimmet verildi!";
                 }
             }
@@ -280,7 +323,6 @@ namespace WebApplication1.Controllers
 
             return RedirectToAction(nameof(Details), new { id = id });
         }
-
         // POST: Items/ReturnFromAssignment/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -294,6 +336,18 @@ namespace WebApplication1.Controllers
                     var previousPersonnel = item.AssignedPersonnel;
                     item.ReturnFromAssignment(User.Identity!.Name ?? "System");
                     await _context.SaveChangesAsync();
+
+                    // ✅ LOG EKLENDİ
+                    string? userId = _context.Users
+                        .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                        .Select(u => u.Id)
+                        .FirstOrDefault();
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, $"Ürün {previousPersonnel} adlı personelden iade alındı", "Item", item.Id);
+                    }
+
                     TempData["Success"] = "Ürün zimmet iadesi yapıldı!";
                 }
             }
@@ -313,7 +367,7 @@ namespace WebApplication1.Controllers
 
         private string[] GetCategories()
         {
-            return new string[] 
+            return new string[]
             {
                 "Bilgisayar Malzemeleri",
                 "Kırtasiye Malzemeleri",

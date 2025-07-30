@@ -4,6 +4,6 @@ namespace WebApplication1.Services
 {
     public interface IActivityLogger
     {
-    Task LogAsync(string userId, string action, string entityType, int? entityId = null);
+    Task LogAsync(string userId, string action, string entityType, int entityId, string? detail = null);
     }
 }

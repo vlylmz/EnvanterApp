@@ -76,38 +76,33 @@ namespace WebApplication1.Controllers
         {
             return View();
         }
-        // Ekle (POST)
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Company model)
         {
-            Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
-            Console.WriteLine($"Company Name: {model.Name}");
-
             if (ModelState.IsValid)
             {
                 try
                 {
                     model.CreatedDate = DateTime.Now;
                     _context.Companies.Add(model);
-
                     var result = await _context.SaveChangesAsync();
-                    Console.WriteLine("asdasd1");
 
                     if (result > 0)
                     {
-                        // ✅ LOG EKLENDİ
-                        string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                        string? userId = _context.Users
+                            .Where(u => u.UserName == HttpContext.Session.GetString("user"))
                             .Select(u => u.Id)
                             .FirstOrDefault();
-                        Console.WriteLine("asdasd2");
+
                         if (!string.IsNullOrEmpty(userId))
                         {
-                            Console.WriteLine("asdasd3");
-                            await _activityLogger.LogAsync(userId, "Firma oluşturuldu", "Company", model.Id);
+                            var detail = LogHelper.GetSummary(model);
+                            await _activityLogger.LogAsync(userId, "Firma oluşturuldu", "Company", model.Id, detail);
                         }
 
-                        HttpContext.Session.SetString("successMessage", "Sirket basariyla eklendi.");
+                        HttpContext.Session.SetString("successMessage", "Şirket başarıyla eklendi.");
                         return RedirectToAction(nameof(Index));
                     }
                     else
@@ -118,11 +113,8 @@ namespace WebApplication1.Controllers
                 catch (Exception ex)
                 {
                     TempData["Error"] = $"Hata: {ex.Message}";
-
                     if (ex.InnerException != null)
-                    {
                         TempData["Error"] += $" - İç hata: {ex.InnerException.Message}";
-                    }
                 }
             }
             else
@@ -154,20 +146,27 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
+                    var original = await _context.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
+                    if (original == null)
+                        return NotFound();
+
                     model.UpdatedDate = DateTime.Now;
                     _context.Update(model);
                     await _context.SaveChangesAsync();
 
-                    // ✅ LOG EKLENDİ
-                    string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
-                            .Select(u => u.Id)
-                            .FirstOrDefault();
+                    string? userId = _context.Users
+                        .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                        .Select(u => u.Id)
+                        .FirstOrDefault();
+
                     if (!string.IsNullOrEmpty(userId))
                     {
-                        await _activityLogger.LogAsync(userId, "Firma güncellendi", "Company", model.Id);
+                        var detail = LogHelper.GetDifferences(original, model);
+                        await _activityLogger.LogAsync(userId, "Firma güncellendi", "Company", model.Id, detail);
                     }
 
-                    TempData["Success"] = "Sirket basariyla guncellendi.";
+                    TempData["Success"] = "Şirket başarıyla güncellendi.";
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -176,10 +175,15 @@ namespace WebApplication1.Controllers
                     else
                         throw;
                 }
-                return RedirectToAction(nameof(Index));
             }
+
             return View(model);
         }
+        private bool CompanyExists(int id)
+        {
+            return _context.Companies.Any(e => e.Id == id);
+        }
+
 
         // Sil (GET)
         public async Task<IActionResult> Delete(int id)
@@ -202,24 +206,21 @@ namespace WebApplication1.Controllers
                 _context.Companies.Remove(company);
                 await _context.SaveChangesAsync();
 
-                // ✅ LOG EKLENDİ
-                string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
-                            .Select(u => u.Id)
-                            .FirstOrDefault();
+                string? userId = _context.Users
+                    .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                    .Select(u => u.Id)
+                    .FirstOrDefault();
+
                 if (!string.IsNullOrEmpty(userId))
                 {
-                    await _activityLogger.LogAsync(userId, "Firma silindi", "Company", id);
+                    var detail = LogHelper.GetSummary(company);
+                    await _activityLogger.LogAsync(userId, "Firma silindi", "Company", id, detail);
                 }
 
-                HttpContext.Session.SetString("successMessage", "Sirket basariyla silindi.");
+                HttpContext.Session.SetString("successMessage", "Şirket başarıyla silindi.");
             }
 
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool CompanyExists(int id)
-        {
-            return _context.Companies.Any(e => e.Id == id);
         }
     }
 }

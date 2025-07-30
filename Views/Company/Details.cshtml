@@ -448,15 +448,20 @@
                         </div>
 
                         <!-- Computers -->
-                        <div class="accordion-item border-0">
-                            <h2 class="accordion-header" id="headingComputers">
-                                <button class="accordion-button collapsed bg-light" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#collapseComputers">
-                                    <i class="fas fa-laptop me-2 text-success"></i>
-                                    <strong>Bilgisayarlar</strong>
-                                    <span class="badge bg-success rounded-pill ms-auto me-2">@Model.Computers.Count</span>
-                                </button>
-                            </h2>
+<div class="accordion-item border-0">
+    <div class="accordion-header d-flex justify-content-between align-items-center px-3 pt-3">
+        <button class="accordion-button collapsed flex-grow-1 bg-light rounded" type="button"
+                data-bs-toggle="collapse" data-bs-target="#collapseComputers"
+                aria-expanded="false" aria-controls="collapseComputers">
+            <i class="fas fa-laptop me-2 text-success"></i>
+            <strong>Bilgisayarlar</strong>
+            <span class="badge bg-success rounded-pill ms-2">@Model.Computers.Count</span>
+        </button>
+        <a asp-controller="Computers" asp-action="Index" asp-route-companyId="@Model.Company.Id"
+           class="btn btn-outline-primary btn-sm ms-3">
+            <i class="fas fa-list me-1"></i> Tümünü Gör
+        </a>
+    </div>
                             <div id="collapseComputers" class="accordion-collapse collapse"
                                 data-bs-parent="#companyAssetsAccordion">
                                 <div class="accordion-body">
@@ -491,7 +496,7 @@
                                                             </td>
                                                             <td><span class="badge bg-primary">@computer.Status</span></td>
                                                             <td>
-                                                                <a asp-controller="Computer" asp-action="Details" asp-route-id="@computer.Id" 
+                                                                <a asp-controller="Computers" asp-action="Details" asp-route-id="@computer.Id" 
                                                                    class="btn btn-sm btn-outline-primary">
                                                                     <i class="fas fa-eye"></i>
                                                                 </a>

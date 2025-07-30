@@ -238,37 +238,16 @@
                     </ul>
                 </div>
             </li>
-
-            <!-- Raporlar -->
+            <!-- Loglar-->
             <li class="nav-item">
-                <a class="nav-link text-white" data-bs-toggle="collapse" href="#raporSubMenu" role="button"
-                    aria-expanded="false" aria-controls="raporSubMenu">
-                    <i class="fas fa-chart-pie me-2"></i> Raporlar
+                <a class="nav-link text-white" asp-controller="ActivityLogs" asp-action="Index">
+                    <i class="fas fa-clipboard-list"></i> Loglar
                 </a>
-                <div class="collapse ms-3" id="raporSubMenu">
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link text-white" href="#">Genel Rapor</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="#">Detaylı Rapor</a></li>
-                    </ul>
-                </div>
             </li>
-
             <!-- Ayarlar -->
             <li class="nav-item">
-                <a class="nav-link text-white" data-bs-toggle="collapse" href="#ayarSubMenu" role="button"
-                    aria-expanded="false" aria-controls="ayarSubMenu">
-                    <i class="fas fa-cog me-2"></i> Ayarlar
-                </a>
-                <div class="collapse ms-3" id="ayarSubMenu">
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link text-white" href="#">Kullanıcılar</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="#">Roller</a></li>
-                    </ul>
-                </div>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" asp-controller="ActivityLogs" asp-action="Index">
-                    <i class="fas fa-clipboard-list"></i> Loglar
+                <a class="nav-link text-white" asp-controller="Account" asp-action="Profile">
+                    <i class="fas fa-user-cog"></i> Hesap Ayarları
                 </a>
             </li>
 
