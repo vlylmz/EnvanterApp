@@ -1,3 +1,4 @@
+// loglar eklendi tamamen tamamlandı
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
@@ -5,6 +6,7 @@ using System.Diagnostics;
 using WebApplication1.Data;
 using WebApplication1.Services;
 using System.Security.Claims;
+
 
 namespace WebApplication1.Controllers
 {
@@ -25,6 +27,7 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Index()
         {
             var softwareList = await _context.Software
+                .Where(s => s.IsActive)
                 .Include(s => s.AssignedEmployee)
                 .Include(s => s.Company)
                 .ToListAsync();
@@ -53,23 +56,15 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Kalan süreyi hesapla
                 software.RemainingTime = CalculateRemainingTime(software.ExpiryDate);
-
-                // Durumu belirle
                 software.Status = DetermineStatus(software.ExpiryDate);
-
-                // Görsel uyarı rengini belirle
                 software.AlertColor = DetermineAlertColor(software.Status);
-
-                // Oluşturma tarihi
                 software.CreatedDate = DateTime.Now;
 
-                // Kaydet
                 _context.Software.Add(software);
                 await _context.SaveChangesAsync();
 
-                // LOG EKLENDİ
+                // LOG
                 string? userId = _context.Users
                     .Where(u => u.UserName == HttpContext.Session.GetString("user"))
                     .Select(u => u.Id)
@@ -77,17 +72,19 @@ namespace WebApplication1.Controllers
 
                 if (!string.IsNullOrEmpty(userId))
                 {
-                    await _activityLogger.LogAsync(userId, "Yazılım oluşturuldu", "Software", software.Id);
+                    var detail = LogHelper.GetSummary(software);
+                    await _activityLogger.LogAsync(userId, "Yazılım oluşturuldu", "Software", software.Id, detail);
                 }
 
-                TempData["SuccessMessage"] = "Yazilim lisansi basariyla eklendi.";
+                TempData["SuccessMessage"] = "Yazılım lisansı başarıyla eklendi.";
                 return RedirectToAction("Index");
             }
 
-            // Model geçerli değilse dropdown verilerini tekrar yükle
             await LoadDropdownData();
             return View(software);
         }
+
+
         // Software düzenleme sayfası (GET)
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
@@ -111,6 +108,13 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
+                var original = await _context.Software.AsNoTracking().FirstOrDefaultAsync(s => s.Id == software.Id);
+                if (original == null)
+                {
+                    TempData["ErrorMessage"] = "Yazılım bulunamadı.";
+                    return RedirectToAction("Index");
+                }
+
                 software.RemainingTime = CalculateRemainingTime(software.ExpiryDate);
                 software.Status = DetermineStatus(software.ExpiryDate);
                 software.AlertColor = DetermineAlertColor(software.Status);
@@ -119,7 +123,6 @@ namespace WebApplication1.Controllers
                 _context.Software.Update(software);
                 await _context.SaveChangesAsync();
 
-                //  LOG EKLENDİ
                 string? userId = _context.Users
                     .Where(u => u.UserName == HttpContext.Session.GetString("user"))
                     .Select(u => u.Id)
@@ -127,42 +130,49 @@ namespace WebApplication1.Controllers
 
                 if (!string.IsNullOrEmpty(userId))
                 {
-                    await _activityLogger.LogAsync(userId, "Yazılım güncellendi", "Software", software.Id);
+                    var detail = LogHelper.GetDifferences(original, software);
+                    await _activityLogger.LogAsync(userId, "Yazılım güncellendi", "Software", software.Id, detail);
                 }
 
-                TempData["SuccessMessage"] = "Yazilim lisansi basariyla guncellendi.";
+                TempData["SuccessMessage"] = "Yazılım lisansı başarıyla güncellendi.";
                 return RedirectToAction("Index");
             }
 
             return View(software);
         }
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var software = await _context.Software.FindAsync(id);
-            if (software == null)
-            {
-                TempData["ErrorMessage"] = "Yazılım lisansı bulunamadı.";
-                return RedirectToAction("Index");
-            }
+      [HttpPost]
+public async Task<IActionResult> Delete(int id)
+{
+    var software = await _context.Software.FindAsync(id);
+    if (software == null)
+    {
+        TempData["ErrorMessage"] = "Yazılım lisansı bulunamadı.";
+        return RedirectToAction("Index");
+    }
 
-            _context.Software.Remove(software);
-            await _context.SaveChangesAsync();
+    // Silmek yerine pasife al
+    software.IsActive = false;
+    software.UpdatedDate = DateTime.Now;
 
-            //LOG EKLENDİ
-            string? userId = _context.Users
-                .Where(u => u.UserName == HttpContext.Session.GetString("user"))
-                .Select(u => u.Id)
-                .FirstOrDefault();
+    await _context.SaveChangesAsync();
 
-            if (!string.IsNullOrEmpty(userId))
-            {
-                await _activityLogger.LogAsync(userId, "Yazılım silindi", "Software", software.Id);
-            }
+    // LOG
+    string? userId = _context.Users
+        .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+        .Select(u => u.Id)
+        .FirstOrDefault();
 
-            TempData["SuccessMessage"] = "Yazilim lisansi basariyla silindi.";
-            return RedirectToAction("Index");
-        }
+    if (!string.IsNullOrEmpty(userId))
+    {
+        var detail = LogHelper.GetSummary(software);
+        await _activityLogger.LogAsync(userId, "Yazılım silindi (pasife alındı)", "Software", software.Id, detail);
+    }
+
+    TempData["SuccessMessage"] = "Yazılım başarıyla pasif duruma alındı.";
+    return RedirectToAction("Index");
+}
+
+
 
         // Software detay sayfası (GET)
         [HttpGet]
@@ -328,7 +338,7 @@ namespace WebApplication1.Controllers
             var companies = await _context.Companies
                 .OrderBy(c => c.Name)
                 .Select(c => new { c.Id, c.Name })
-                .ToListAsync();
+                .ToListAsync(); 
             ViewBag.Companies = companies;
 
             // Çalışanları yükle

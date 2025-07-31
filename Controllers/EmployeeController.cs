@@ -108,38 +108,43 @@ namespace WebApplication1.Controllers
             return View(model);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
+     [HttpPost]
+public async Task<IActionResult> Delete(int id)
+{
+    try
+    {
+        var emp = await _context.Employees.FindAsync(id);
+        if (emp != null)
         {
-            try
+            emp.IsActive = false;
+            emp.ActiveTime = DateTimeOffset.UtcNow;
+
+            _context.Employees.Update(emp);
+            await _context.SaveChangesAsync();
+
+            // LOG EKLENDİ
+            string? userId = _context.Users
+                .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                .Select(u => u.Id)
+                .FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(userId))
             {
-                var emp = await _context.Employees.FindAsync(id);
-                if (emp != null)
-                {
-                    _context.Employees.Remove(emp);
-                    await _context.SaveChangesAsync();
-
-                    // LOG EKLENDİ
-                    string? userId = _context.Users
-                        .Where(u => u.UserName == HttpContext.Session.GetString("user"))
-                        .Select(u => u.Id)
-                        .FirstOrDefault();
-
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        await _activityLogger.LogAsync(userId, "Çalışan silindi", "Employee", emp.Id);
-                    }
-
-                    TempData["Success"] = "Calisan basariyla silindi!";
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Silme işlemi sırasında hata oluştu: " + ex.Message;
+                var detail = $"Pasif duruma geçirildi: {emp.FirstName} {emp.LastName}, Email: {emp.Email}";
+                await _activityLogger.LogAsync(userId, "Çalışan pasifleştirildi", "Employee", emp.Id, detail);
             }
 
-            return RedirectToAction("Index");
+            TempData["Success"] = "Çalışan başarıyla pasifleştirildi!";
         }
+    }
+    catch (Exception ex)
+    {
+        TempData["Error"] = "Silme işlemi sırasında hata oluştu: " + ex.Message;
+    }
+
+    return RedirectToAction("Index");
+}
+
 
         [HttpGet]
         public async Task<IActionResult> Details(int id)

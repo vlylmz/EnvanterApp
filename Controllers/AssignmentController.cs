@@ -10,17 +10,21 @@ using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.IO;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     public class AssignmentController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IActivityLogger _activityLogger;
 
-        public AssignmentController(AppDbContext context)
+        public AssignmentController(AppDbContext context, IActivityLogger activityLogger)
         {
             _context = context;
+            _activityLogger = activityLogger;
         }
+
 
         // GET: Assignment/Index - Ana zimmetleme sayfası
         public async Task<IActionResult> Index(string searchString, string status, string personnel, string productType)
@@ -276,32 +280,38 @@ namespace WebApplication1.Controllers
         {
             try
             {
-                // Ürün ve çalışan bilgilerini al
                 var product = await _context.Items.FirstOrDefaultAsync(i => i.Id == productId);
                 var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == employeeId);
 
                 if (product == null)
-                {
                     return Json(new { success = false, message = "Ürün bulunamadı!" });
-                }
 
                 if (employee == null)
-                {
                     return Json(new { success = false, message = "Çalışan bulunamadı!" });
-                }
 
-                // Basit kontroller
                 var validationResult = ValidateAssignmentSimple(product, employee);
                 if (!validationResult.IsValid)
-                {
                     return Json(new { success = false, message = validationResult.ErrorMessage });
-                }
 
-                // Zimmet işlemi
                 var personnelName = $"{employee.FirstName} {employee.LastName}";
                 product.AssignToPersonnel(personnelName, User.Identity.Name ?? "System");
 
                 await _context.SaveChangesAsync();
+
+                // ✅ LOG EKLENDİ
+                string? userId = _context.Users
+                    .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                    .Select(u => u.Id)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
+                                 $"Kategori: {product.Category}\n" +
+                                 $"Zimmet Edilen: {personnelName}\n" +
+                                 $"Zimmet Tarihi: {DateTime.Now:dd.MM.yyyy HH:mm}";
+                    await _activityLogger.LogAsync(userId, "Zimmet verildi", "Item", product.Id, detail);
+                }
 
                 return Json(new
                 {
@@ -335,23 +345,33 @@ namespace WebApplication1.Controllers
                 var product = await _context.Items.FirstOrDefaultAsync(i => i.Id == productId);
 
                 if (product == null)
-                {
                     return Json(new { success = false, message = "Ürün bulunamadı!" });
-                }
 
-                // İade validasyonu
                 var validationResult = ValidateReturnSimple(product);
                 if (!validationResult.IsValid)
-                {
                     return Json(new { success = false, message = validationResult.ErrorMessage });
-                }
 
                 var previousPersonnel = product.AssignedPersonnel;
 
-                // İade işlemi
                 product.ReturnFromAssignment(User.Identity.Name ?? "System");
 
                 await _context.SaveChangesAsync();
+
+                // ✅ LOG EKLENDİ
+                string? userId = _context.Users
+                    .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                    .Select(u => u.Id)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
+                                 $"Kategori: {product.Category}\n" +
+                                 $"İade Eden: {previousPersonnel}\n" +
+                                 $"İade Nedeni: {returnReason}\n" +
+                                 $"İade Tarihi: {DateTime.Now:dd.MM.yyyy HH:mm}";
+                    await _activityLogger.LogAsync(userId, "Zimmet iade alındı", "Item", product.Id, detail);
+                }
 
                 return Json(new
                 {
@@ -405,6 +425,11 @@ namespace WebApplication1.Controllers
                 var errors = new List<string>();
                 var successProducts = new List<string>();
 
+                string? userId = _context.Users
+                    .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                    .Select(u => u.Id)
+                    .FirstOrDefault();
+
                 foreach (var product in products)
                 {
                     var validationResult = ValidateAssignmentSimple(product, employee);
@@ -418,6 +443,16 @@ namespace WebApplication1.Controllers
                     product.AssignToPersonnel(personnelName, User.Identity.Name ?? "System");
                     successProducts.Add(product.Name);
                     successCount++;
+
+                    // ✅ LOG EKLENDİ
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
+                                     $"Kategori: {product.Category}\n" +
+                                     $"Zimmet Edilen: {personnelName}\n" +
+                                     $"Zimmet Tarihi: {DateTime.Now:dd.MM.yyyy HH:mm}";
+                        await _activityLogger.LogAsync(userId, "Toplu zimmet verildi", "Item", product.Id, detail);
+                    }
                 }
 
                 await _context.SaveChangesAsync();
@@ -455,7 +490,6 @@ namespace WebApplication1.Controllers
         {
             try
             {
-                // İngilizce durum mapping'i ekleyin
                 var statusMapping = new Dictionary<string, string>
         {
             { "Zimmet Dışı", "Unassigned" },
@@ -464,7 +498,6 @@ namespace WebApplication1.Controllers
             { "Kayıp", "Lost" }
         };
 
-                // Türkçe gelirse İngilizce'ye çevir
                 var actualStatus = statusMapping.ContainsKey(newStatus) ? statusMapping[newStatus] : newStatus;
 
                 var validStatuses = new[] { "Unassigned", "Assigned", "Under Maintenance", "Lost" };
@@ -480,9 +513,8 @@ namespace WebApplication1.Controllers
                 }
 
                 var oldStatus = product.AssignmentStatus;
-                product.AssignmentStatus = actualStatus;  // İngilizce değer kaydet
+                product.AssignmentStatus = actualStatus;
 
-                // Eğer durumu "Unassigned" yapılıyorsa zimmet bilgilerini temizle
                 if (actualStatus == "Unassigned")
                 {
                     product.AssignedPersonnel = null;
@@ -490,6 +522,22 @@ namespace WebApplication1.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                // ✅ LOG EKLENDİ
+                string? userId = _context.Users
+                    .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                    .Select(u => u.Id)
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
+                                 $"Kategori: {product.Category}\n" +
+                                 $"Durum: {oldStatus} → {newStatus}\n" +
+                                 $"Açıklama: {reason}\n" +
+                                 $"Tarih: {DateTime.Now:dd.MM.yyyy HH:mm}";
+                    await _activityLogger.LogAsync(userId, "Durum güncellendi", "Item", product.Id, detail);
+                }
 
                 return Json(new
                 {
@@ -508,6 +556,7 @@ namespace WebApplication1.Controllers
                 return Json(new { success = false, message = $"Durum değiştirme işleminde hata: {ex.Message}" });
             }
         }
+
         // Validasyon metodları
         private ValidationResult ValidateReturnSimple(ItemModel product)
         {

@@ -3,16 +3,18 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using System.Text;
-
+using WebApplication1.Services;
 namespace WebApplication1.Controllers
 {
     public class PoolController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IActivityLogger _activityLogger;
 
-        public PoolController(AppDbContext context)
+        public PoolController(AppDbContext context, IActivityLogger activityLogger)
         {
-            _context = context;
+        _context = context;
+        _activityLogger = activityLogger;
         }
 
         // GET: Pool
@@ -133,60 +135,76 @@ namespace WebApplication1.Controllers
         }
 
         // POST: Pool/AssignMultiple
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignMultiple(List<int> computerIds, int employeeId, DateTime assignmentDate, string? notes)
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> AssignMultiple(List<int> computerIds, int employeeId, DateTime assignmentDate, string? notes)
+{
+    try
+    {
+        if (!computerIds.Any())
         {
-            try
+            TempData["Error"] = "Zimmetlenecek ekipman seçilmedi.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var employee = await _context.Employees
+            .Include(e => e.Company)
+            .FirstOrDefaultAsync(e => e.Id == employeeId && e.IsActive);
+
+        if (employee == null)
+        {
+            TempData["Error"] = "Seçilen çalışan bulunamadı veya aktif değil.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var computers = await _context.Computers
+            .Where(c => computerIds.Contains(c.Id) && c.Status == ComputerStatus.Havuzda)
+            .ToListAsync();
+
+        if (!computers.Any())
+        {
+            TempData["Error"] = "Zimmetlenebilir ekipman bulunamadı.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        string? userId = _context.Users
+            .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+            .Select(u => u.Id)
+            .FirstOrDefault();
+
+        var fullName = $"{employee.FirstName} {employee.LastName}";
+        var companyName = employee.Company?.Name ?? "-";
+
+        foreach (var computer in computers)
+        {
+            computer.AssignedEmployeeId = employeeId;
+            computer.Status = ComputerStatus.Zimmetli;
+            computer.LastUpdatedDate = DateTime.UtcNow;
+            computer.LastUpdatedBy = User.Identity?.Name ?? "System";
+
+            // ✅ LOG EKLENDİ
+            if (!string.IsNullOrEmpty(userId))
             {
-                if (!computerIds.Any())
-                {
-                    TempData["Error"] = "Zimmetlenecek ekipman seçilmedi.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                var employee = await _context.Employees
-                    .Include(e => e.Company)
-                    .FirstOrDefaultAsync(e => e.Id == employeeId && e.IsActive);
-
-                if (employee == null)
-                {
-                    TempData["Error"] = "Seçilen çalışan bulunamadı veya aktif değil.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                var computers = await _context.Computers
-                    .Where(c => computerIds.Contains(c.Id) && c.Status == ComputerStatus.Havuzda)
-                    .ToListAsync();
-
-                if (!computers.Any())
-                {
-                    TempData["Error"] = "Zimmetlenebilir ekipman bulunamadı.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                // Zimmetleme işlemi
-                foreach (var computer in computers)
-                {
-                    computer.AssignedEmployeeId = employeeId;
-                    computer.Status = ComputerStatus.Zimmetli;
-                    computer.LastUpdatedDate = DateTime.UtcNow;
-                    computer.LastUpdatedBy = User.Identity?.Name ?? "System";
-                }
-
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = $"{computers.Count} adet ekipman {employee.FirstName} {employee.LastName} ({employee.Company?.Name}) adlı çalışana başarıyla zimmetlendi.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Zimmetleme işlemi sırasında hata oluştu: " + ex.Message;
-                return RedirectToAction(nameof(Index));
+                var detail = $"Bilgisayar: {computer.Name} ({computer.AssetTag})\n" +
+                             $"Firma: {companyName}\n" +
+                             $"Zimmetlenen: {fullName} (ID: {employee.Id})\n" +
+                             $"Tarih: {assignmentDate:dd.MM.yyyy HH:mm}";
+                await _activityLogger.LogAsync(userId, "Havuzdan zimmet verildi", "Computer", computer.Id, detail);
             }
         }
 
-       
+        await _context.SaveChangesAsync();
+
+        TempData["Success"] = $"{computers.Count} adet ekipman {fullName} ({companyName}) adlı çalışana başarıyla zimmetlendi.";
+        return RedirectToAction(nameof(Index));
+    }
+    catch (Exception ex)
+    {
+        TempData["Error"] = "Zimmetleme işlemi sırasında hata oluştu: " + ex.Message;
+        return RedirectToAction(nameof(Index));
+    }
+}
+
         
         
 

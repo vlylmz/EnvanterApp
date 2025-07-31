@@ -26,6 +26,7 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Index()
         {
             var computers = await _context.Computers
+                .Where(c => c.IsActive) 
                 .Include(c => c.Company)
                 .Include(c => c.AssignedEmployee)
                 .ToListAsync();
@@ -236,7 +237,11 @@ public async Task<IActionResult> DeleteConfirmed(int id)
     var computer = await _context.Computers.FindAsync(id);
     if (computer != null)
     {
-        _context.Computers.Remove(computer);
+        // Soft delete
+        computer.IsActive = false;
+        computer.LastUpdatedDate = DateTime.UtcNow;
+        computer.LastUpdatedBy = User.Identity?.Name ?? "System";
+
         await _context.SaveChangesAsync();
 
         string? userId = _context.Users
@@ -246,15 +251,16 @@ public async Task<IActionResult> DeleteConfirmed(int id)
 
         if (!string.IsNullOrEmpty(userId))
         {
-            var detail = LogHelper.GetSummary(computer);
-            await _activityLogger.LogAsync(userId, "Bilgisayar silindi", "Computer", id, detail);
+            var detail = $"Bilgisayar pasife alındı (ID: {computer.Id}, Ad: {computer.Name})";
+            await _activityLogger.LogAsync(userId, "Bilgisayar pasife alındı", "Computer", computer.Id, detail);
         }
 
-        TempData["Success"] = "Bilgisayar başarıyla silindi.";
+        TempData["Success"] = "Bilgisayar başarıyla pasif duruma alındı.";
     }
 
     return RedirectToAction(nameof(Index));
 }
+
 private bool ComputerExists(int id)
 {
     return _context.Computers.Any(e => e.Id == id);

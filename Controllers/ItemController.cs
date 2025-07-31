@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using WebApplication1.Data;
 using WebApplication1.Services;
-using System.Security.Claims;
 
 namespace WebApplication1.Controllers
 {
@@ -18,35 +17,37 @@ namespace WebApplication1.Controllers
             _activityLogger = activityLogger;
 
         }
-
         // GET: Items
-        public async Task<IActionResult> Index(string searchString, string category)
-        {
-            ViewBag.Kategoriler = await _context.Items
-                .Select(i => i.Category)
-                .Distinct()
-                .OrderBy(k => k)
-                .ToListAsync();
+       public async Task<IActionResult> Index(string searchString, string category)
+{
+    ViewBag.Kategoriler = await _context.Items
+        .Where(i => i.IsActive) // 👈 Sadece aktif olanlar
+        .Select(i => i.Category)
+        .Distinct()
+        .OrderBy(k => k)
+        .ToListAsync();
 
-            var items = from i in _context.Items
-                        select i;
+    var items = _context.Items
+        .Where(i => i.IsActive) // 👈 Aktif ürünler filtreleniyor
+        .AsQueryable();
 
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                items = items.Where(s => s.Name!.Contains(searchString) ||
-                                        s.Description!.Contains(searchString) ||
-                                        s.SystemBarcode!.Contains(searchString));
-                ViewBag.SearchString = searchString;
-            }
+    if (!string.IsNullOrEmpty(searchString))
+    {
+        items = items.Where(s => s.Name!.Contains(searchString) ||
+                                s.Description!.Contains(searchString) ||
+                                s.SystemBarcode!.Contains(searchString));
+        ViewBag.SearchString = searchString;
+    }
 
-            if (!string.IsNullOrEmpty(category))
-            {
-                items = items.Where(x => x.Category == category);
-                ViewBag.SelectedCategory = category;
-            }
+    if (!string.IsNullOrEmpty(category))
+    {
+        items = items.Where(x => x.Category == category);
+        ViewBag.SelectedCategory = category;
+    }
 
-            return View(await items.OrderByDescending(i => i.CreatedDate).ToListAsync());
-        }
+    return View(await items.OrderByDescending(i => i.CreatedDate).ToListAsync());
+}
+
 
         // GET: Items/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -253,41 +254,44 @@ namespace WebApplication1.Controllers
         }
 
         // POST: Items/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+[HttpPost, ActionName("Delete")]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> DeleteConfirmed(int id)
+{
+    try
+    {
+        var item = await _context.Items.FindAsync(id);
+
+        if (item != null)
         {
-            try
+            item.IsActive = false; // 👈 Artık fiziksel silme yok
+            item.UpdatedDate = DateTime.Now;
+            item.UpdatedBy = User.Identity?.Name ?? "System";
+            await _context.SaveChangesAsync();
+
+            // LOG EKLENDİ
+            string? userId = _context.Users
+                .Where(u => u.UserName == HttpContext.Session.GetString("user"))
+                .Select(u => u.Id)
+                .FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(userId))
             {
-                var item = await _context.Items.FirstOrDefaultAsync(i => i.Id == id);
-
-                if (item != null)
-                {
-                    _context.Items.Remove(item);
-                    await _context.SaveChangesAsync();
-
-                    // LOG EKLENDİ
-                    string? userId = _context.Users
-                        .Where(u => u.UserName == HttpContext.Session.GetString("user"))
-                        .Select(u => u.Id)
-                        .FirstOrDefault();
-
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        await _activityLogger.LogAsync(userId, "Ürün silindi", "Item", item.Id);
-                    }
-
-                    TempData["Success"] = "Urun basariyla silindi!";
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Delete Error: {ex.Message}");
-                TempData["Error"] = "Ürün silinirken hata oluştu: " + ex.Message;
+                await _activityLogger.LogAsync(userId, "Ürün pasif hale getirildi (soft delete)", "Item", item.Id);
             }
 
-            return RedirectToAction(nameof(Index));
+            TempData["Success"] = "Ürün başarıyla pasif hale getirildi!";
         }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Delete Error: {ex.Message}");
+        TempData["Error"] = "Ürün silinirken hata oluştu: " + ex.Message;
+    }
+
+    return RedirectToAction(nameof(Index));
+}
+
         // POST: Items/AssignToPersonnel/5
         [HttpPost]
         [ValidateAntiForgeryToken]

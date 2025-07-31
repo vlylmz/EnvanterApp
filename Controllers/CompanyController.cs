@@ -6,7 +6,6 @@ using WebApplication1.Models;
 using WebApplication1.Services;
 using WebApplication1.ViewModels;
 using System.Security.Claims;
-using WebApplication1.Services;
 
 // Bu sınıf, şirket envanterini yönetmek için gerekli işlemleri içerir LOGLAMA EKLENMİŞTİR
 
@@ -203,7 +202,10 @@ namespace WebApplication1.Controllers
             var company = await _context.Companies.FindAsync(id);
             if (company != null)
             {
-                _context.Companies.Remove(company);
+                company.IsActive = false;
+                company.UpdatedDate = DateTime.Now;
+                company.UpdatedBy = User.Identity?.Name ?? "System";
+
                 await _context.SaveChangesAsync();
 
                 string? userId = _context.Users
@@ -214,10 +216,10 @@ namespace WebApplication1.Controllers
                 if (!string.IsNullOrEmpty(userId))
                 {
                     var detail = LogHelper.GetSummary(company);
-                    await _activityLogger.LogAsync(userId, "Firma silindi", "Company", id, detail);
+                    await _activityLogger.LogAsync(userId, "Firma pasife alındı", "Company", id, detail);
                 }
 
-                HttpContext.Session.SetString("successMessage", "Şirket başarıyla silindi.");
+                HttpContext.Session.SetString("successMessage", "Şirket başarıyla pasife alındı.");
             }
 
             return RedirectToAction(nameof(Index));
