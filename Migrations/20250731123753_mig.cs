@@ -127,6 +127,7 @@ namespace WebApplication1.Migrations
                     EntityType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     EntityId = table.Column<int>(type: "int", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Detail = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     UserId1 = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -198,6 +199,7 @@ namespace WebApplication1.Migrations
                     PurchaseDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     WarrantyEndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastUpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     LastUpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -241,7 +243,8 @@ namespace WebApplication1.Migrations
                     SerialNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

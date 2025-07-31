@@ -43,7 +43,7 @@
                         }
                         else
                         {
-                            <span class="badge bg-secondary">Pasif</span>
+                            <span class="badge bg-warning">Devre Dışı</span>
                         }
                     </div>
                 </div>
@@ -66,6 +66,15 @@
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-circle me-2"></i>
                     @TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["Info"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    @TempData["Info"]
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             }
@@ -155,11 +164,11 @@
                             <p class="text-muted mb-0">
                                 @if (Model.TwoFactorEnabled)
                                 {
-                                    <text>2FA aktif. Devre dışı bırakmak kalıcıdır ve geri alınamaz.</text>
+                                    <text>2FA aktif. Hesabınız ekstra güvenlik katmanı ile korunuyor.</text>
                                 }
                                 else
                                 {
-                                    <text>2FA kalıcı olarak devre dışı bırakıldı.</text>
+                                    <text>2FA devre dışı. Hesabınızı daha güvenli hale getirin.</text>
                                 }
                             </p>
                         </div>
@@ -167,14 +176,14 @@
                             @if (Model.TwoFactorEnabled)
                             {
                                 <button type="button" class="btn btn-danger btn-sm" onclick="disable2FA()">
-                                    <i class="fas fa-times me-1"></i> Kalıcı Olarak Kapat
+                                    <i class="fas fa-shield-slash me-1"></i> 2FA'yı Kapat
                                 </button>
                             }
                             else
                             {
-                                <span class="badge bg-secondary">
-                                    <i class="fas fa-times me-1"></i> Kalıcı Olarak Kapalı
-                                </span>
+                                <a asp-controller="Login" asp-action="QrRegister" class="btn btn-success btn-sm">
+                                    <i class="fas fa-shield-alt me-1"></i> 2FA'yı Etkinleştir
+                                </a>
                             }
                         </div>
                     </div>
@@ -280,16 +289,16 @@
             }, 5000);
         });
 
-        // Disable 2FA (one-way only)
+        // Disable 2FA
         async function disable2FA() {
             const result = await Swal.fire({
                 title: 'Emin misiniz?',
-                text: '2FA\'yı devre dışı bırakmak kalıcıdır ve geri alınamaz!',
+                text: '2FA\'yı devre dışı bırakmak istediğinizden emin misiniz?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc3545',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="fas fa-times me-1"></i> Evet, Kalıcı Olarak Kapat',
+                confirmButtonText: '<i class="fas fa-shield-slash me-1"></i> Evet, Kapat',
                 cancelButtonText: '<i class="fas fa-arrow-left me-1"></i> İptal',
                 reverseButtons: true
             });

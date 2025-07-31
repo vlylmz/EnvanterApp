@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.IO;
+using WebApplication1.Services;
 using WebApplication1.EnvanterLib;
 
 namespace WebApplication1.Controllers
@@ -17,11 +18,14 @@ namespace WebApplication1.Controllers
     public class AssignmentController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IActivityLogger _activityLogger;
 
-        public AssignmentController(AppDbContext context)
+        public AssignmentController(AppDbContext context, IActivityLogger activityLogger)
         {
             _context = context;
+            _activityLogger = activityLogger;
         }
+
 
         // GET: Assignment/Index - Ana zimmetleme sayfası
         public async Task<IActionResult> Index(string searchString, string status, string personnel, string productType)
@@ -53,8 +57,8 @@ namespace WebApplication1.Controllers
             // Arama filtresi
             if (!string.IsNullOrEmpty(searchString))
             {
-                items = items.Where(s => s.Name.Contains(searchString) ||
-                                        s.SystemBarcode.Contains(searchString) ||
+                items = items.Where(s => s.Name!.Contains(searchString) ||
+                                        s.SystemBarcode!.Contains(searchString) ||
                                         (s.AssignedPersonnel != null && s.AssignedPersonnel.Contains(searchString)));
                 ViewBag.SearchString = searchString;
             }
@@ -88,15 +92,15 @@ namespace WebApplication1.Controllers
             var itemViewModels = itemList.Select(item => new ItemDisplayViewModel
             {
                 Id = item.Id,
-                Name = item.Name,
-                SystemBarcode = item.SystemBarcode,
-                Category = item.Category,
-                AssignmentStatus = item.AssignmentStatus,
-                AssignedPersonnel = item.AssignedPersonnel,
+                Name = item.Name!,
+                SystemBarcode = item.SystemBarcode!,
+                Category = item.Category!,
+                AssignmentStatus = item.AssignmentStatus!,
+                AssignedPersonnel = item.AssignedPersonnel!,
                 AssignmentDate = item.AssignmentDate,
                 UnitPrice = item.UnitPrice,
                 IsCriticalLevel = item.IsCriticalLevel,
-                Description = item.Description,
+                Description = item.Description!,
                 IsActive = item.IsActive,
                 // Company bilgisini ViewBag'den al (basit çözüm - şimdilik boş)
                 CompanyName = "N/A" // ItemModel'de CompanyId olmadığı için şimdilik sabit
@@ -242,9 +246,9 @@ namespace WebApplication1.Controllers
 
                 if (!string.IsNullOrEmpty(searchTerm))
                 {
-                    query = query.Where(i => i.Name.Contains(searchTerm) ||
-                                           i.SystemBarcode.Contains(searchTerm) ||
-                                           i.AssignedPersonnel.Contains(searchTerm));
+                    query = query.Where(i => i.Name!.Contains(searchTerm) ||
+                                           i.SystemBarcode!.Contains(searchTerm) ||
+                                           i.AssignedPersonnel!.Contains(searchTerm));
                 }
 
                 var products = await query
@@ -277,32 +281,35 @@ namespace WebApplication1.Controllers
         {
             try
             {
-                // Ürün ve çalışan bilgilerini al
                 var product = await _context.Items.FirstOrDefaultAsync(i => i.Id == productId);
                 var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == employeeId);
 
                 if (product == null)
-                {
                     return Json(new { success = false, message = "Ürün bulunamadı!" });
-                }
 
                 if (employee == null)
-                {
                     return Json(new { success = false, message = "Çalışan bulunamadı!" });
-                }
 
-                // Basit kontroller
                 var validationResult = ValidateAssignmentSimple(product, employee);
                 if (!validationResult.IsValid)
-                {
                     return Json(new { success = false, message = validationResult.ErrorMessage });
-                }
 
-                // Zimmet işlemi
                 var personnelName = $"{employee.FirstName} {employee.LastName}";
-                product.AssignToPersonnel(personnelName, this.GetUserFromHttpContext()!.Email ?? "System");
+                product.AssignToPersonnel(personnelName, this.GetUserFromHttpContext()?.Email ?? "Unknown");
 
                 await _context.SaveChangesAsync();
+
+                // ✅ LOG EKLENDİ
+                string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
+                                 $"Kategori: {product.Category}\n" +
+                                 $"Zimmet Edilen: {personnelName}\n" +
+                                 $"Zimmet Tarihi: {DateTime.Now:dd.MM.yyyy HH:mm}";
+                    await _activityLogger.LogAsync(userId, "Zimmet verildi", "Item", product.Id, detail);
+                }
 
                 return Json(new
                 {
@@ -336,23 +343,30 @@ namespace WebApplication1.Controllers
                 var product = await _context.Items.FirstOrDefaultAsync(i => i.Id == productId);
 
                 if (product == null)
-                {
                     return Json(new { success = false, message = "Ürün bulunamadı!" });
-                }
 
-                // İade validasyonu
                 var validationResult = ValidateReturnSimple(product);
                 if (!validationResult.IsValid)
-                {
                     return Json(new { success = false, message = validationResult.ErrorMessage });
-                }
 
                 var previousPersonnel = product.AssignedPersonnel;
 
-                // İade işlemi
-                product.ReturnFromAssignment(this.GetUserFromHttpContext()!.Email ?? "System");
+                product.ReturnFromAssignment(this.GetUserFromHttpContext()?.Email ?? "Unknown");
 
                 await _context.SaveChangesAsync();
+
+                // ✅ LOG EKLENDİ
+                string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
+                                 $"Kategori: {product.Category}\n" +
+                                 $"İade Eden: {previousPersonnel}\n" +
+                                 $"İade Nedeni: {returnReason}\n" +
+                                 $"İade Tarihi: {DateTime.Now:dd.MM.yyyy HH:mm}";
+                    await _activityLogger.LogAsync(userId, "Zimmet iade alındı", "Item", product.Id, detail);
+                }
 
                 return Json(new
                 {
@@ -406,6 +420,8 @@ namespace WebApplication1.Controllers
                 var errors = new List<string>();
                 var successProducts = new List<string>();
 
+                string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
                 foreach (var product in products)
                 {
                     var validationResult = ValidateAssignmentSimple(product, employee);
@@ -419,6 +435,16 @@ namespace WebApplication1.Controllers
                     product.AssignToPersonnel(personnelName, this.GetUserFromHttpContext()!.Email ?? "System");
                     successProducts.Add(product.Name!);
                     successCount++;
+
+                    // ✅ LOG EKLENDİ
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
+                                     $"Kategori: {product.Category}\n" +
+                                     $"Zimmet Edilen: {personnelName}\n" +
+                                     $"Zimmet Tarihi: {DateTime.Now:dd.MM.yyyy HH:mm}";
+                        await _activityLogger.LogAsync(userId, "Toplu zimmet verildi", "Item", product.Id, detail);
+                    }
                 }
 
                 await _context.SaveChangesAsync();
@@ -456,7 +482,6 @@ namespace WebApplication1.Controllers
         {
             try
             {
-                // İngilizce durum mapping'i ekleyin
                 var statusMapping = new Dictionary<string, string>
         {
             { "Zimmet Dışı", "Unassigned" },
@@ -465,7 +490,6 @@ namespace WebApplication1.Controllers
             { "Kayıp", "Lost" }
         };
 
-                // Türkçe gelirse İngilizce'ye çevir
                 var actualStatus = statusMapping.ContainsKey(newStatus) ? statusMapping[newStatus] : newStatus;
 
                 var validStatuses = new[] { "Unassigned", "Assigned", "Under Maintenance", "Lost" };
@@ -481,9 +505,8 @@ namespace WebApplication1.Controllers
                 }
 
                 var oldStatus = product.AssignmentStatus;
-                product.AssignmentStatus = actualStatus;  // İngilizce değer kaydet
+                product.AssignmentStatus = actualStatus;
 
-                // Eğer durumu "Unassigned" yapılıyorsa zimmet bilgilerini temizle
                 if (actualStatus == "Unassigned")
                 {
                     product.AssignedPersonnel = null;
@@ -491,6 +514,19 @@ namespace WebApplication1.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                // ✅ LOG EKLENDİ
+                string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
+                                 $"Kategori: {product.Category}\n" +
+                                 $"Durum: {oldStatus} → {newStatus}\n" +
+                                 $"Açıklama: {reason}\n" +
+                                 $"Tarih: {DateTime.Now:dd.MM.yyyy HH:mm}";
+                    await _activityLogger.LogAsync(userId, "Durum güncellendi", "Item", product.Id, detail);
+                }
 
                 return Json(new
                 {
@@ -509,6 +545,7 @@ namespace WebApplication1.Controllers
                 return Json(new { success = false, message = $"Durum değiştirme işleminde hata: {ex.Message}" });
             }
         }
+
         // Validasyon metodları
         private ValidationResult ValidateReturnSimple(ItemModel product)
         {
@@ -591,7 +628,7 @@ namespace WebApplication1.Controllers
                     ProductName = i.Name!,
                     SystemBarcode = i.SystemBarcode!,
                     AssignedPersonnel = i.AssignedPersonnel!,
-                    AssignmentDate = i.AssignmentDate,
+                    AssignmentDate = i.AssignmentDate!,
                     AssignmentStatus = i.AssignmentStatus!,
                     Category = i.Category!
                 })

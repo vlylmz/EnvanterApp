@@ -86,6 +86,10 @@ public string? ProcessorIdentity { get; set; }
     [StringLength(1000)]
     public string? Description { get; set; }
 
+    [Display(Name = "Aktif mi?")]
+    public bool IsActive { get; set; } = true;
+
+
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public DateTime? LastUpdatedDate { get; set; }
     public string? LastUpdatedBy { get; set; }

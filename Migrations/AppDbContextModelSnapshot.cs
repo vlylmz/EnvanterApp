@@ -38,6 +38,10 @@ namespace WebApplication1.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Detail")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<int?>("EntityId")
                         .HasColumnType("int");
 
@@ -240,6 +244,9 @@ namespace WebApplication1.Migrations
                     b.Property<string>("GraphicsCard")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LastUpdatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -508,6 +515,9 @@ namespace WebApplication1.Migrations
 
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LicenseKey")
                         .HasColumnType("nvarchar(max)");

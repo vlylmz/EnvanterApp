@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using WebApplication1.Data;
+using WebApplication1.Services;
 using WebApplication1.EnvanterLib;
 
 namespace WebApplication1.Controllers
@@ -9,40 +10,45 @@ namespace WebApplication1.Controllers
     public class ItemsController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IActivityLogger _activityLogger;
 
-        public ItemsController(AppDbContext context)
+        public ItemsController(AppDbContext context, IActivityLogger activityLogger)
         {
             _context = context;
-        }
+            _activityLogger = activityLogger;
 
+        }
         // GET: Items
-        public async Task<IActionResult> Index(string searchString, string category)
-        {
-            ViewBag.Kategoriler = await _context.Items
-                .Select(i => i.Category)
-                .Distinct()
-                .OrderBy(k => k)
-                .ToListAsync();
+       public async Task<IActionResult> Index(string searchString, string category)
+{
+    ViewBag.Kategoriler = await _context.Items
+        .Where(i => i.IsActive) // 👈 Sadece aktif olanlar
+        .Select(i => i.Category)
+        .Distinct()
+        .OrderBy(k => k)
+        .ToListAsync();
 
-            var items = from i in _context.Items
-                        select i;
+    var items = _context.Items
+        .Where(i => i.IsActive) // 👈 Aktif ürünler filtreleniyor
+        .AsQueryable();
 
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                items = items.Where(s => s.Name!.Contains(searchString) || 
-                                        s.Description!.Contains(searchString) ||
-                                        s.SystemBarcode!.Contains(searchString));
-                ViewBag.SearchString = searchString;
-            }
+    if (!string.IsNullOrEmpty(searchString))
+    {
+        items = items.Where(s => s.Name!.Contains(searchString) ||
+                                s.Description!.Contains(searchString) ||
+                                s.SystemBarcode!.Contains(searchString));
+        ViewBag.SearchString = searchString;
+    }
 
-            if (!string.IsNullOrEmpty(category))
-            {
-                items = items.Where(x => x.Category == category);
-                ViewBag.SelectedCategory = category;
-            }
+    if (!string.IsNullOrEmpty(category))
+    {
+        items = items.Where(x => x.Category == category);
+        ViewBag.SelectedCategory = category;
+    }
 
-            return View(await items.OrderByDescending(i => i.CreatedDate).ToListAsync());
-        }
+    return View(await items.OrderByDescending(i => i.CreatedDate).ToListAsync());
+}
+
 
         // GET: Items/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -70,7 +76,6 @@ namespace WebApplication1.Controllers
             return View();
         }
 
-        // POST: Items/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ItemModel item)
@@ -78,7 +83,6 @@ namespace WebApplication1.Controllers
             // Debug: ModelState kontrolü
             if (!ModelState.IsValid)
             {
-                // Hataları logla
                 foreach (var error in ModelState)
                 {
                     Console.WriteLine($"Field: {error.Key}, Errors: {string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage))}");
@@ -89,7 +93,7 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    // Check if barcode already exists
+                    // Barkod kontrolü
                     if (await _context.Items.AnyAsync(i => i.SystemBarcode == item.SystemBarcode))
                     {
                         ModelState.AddModelError("SystemBarcode", "Bu barkod zaten kullanılmaktadır. Lütfen farklı bir barkod giriniz.");
@@ -97,22 +101,28 @@ namespace WebApplication1.Controllers
                         return View(item);
                     }
 
-                    // Set audit fields
-                    item.CreatedBy = this.GetUserFromHttpContext()!.Email ?? "Unknown";
+                    // Oluşturma bilgileri
+                    item.CreatedBy = User.Identity!.Name ?? "System";
                     item.CreatedDate = DateTime.Now;
-                    
-                    // Check critical level
+
                     item.CheckCriticalLevel();
 
                     _context.Items.Add(item);
                     await _context.SaveChangesAsync();
+
+                    // LOG EKLENDİ
+                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, "Ürün oluşturuldu", "Item", item.Id);
+                    }
 
                     TempData["Success"] = "Urun basariyla olusturuldu!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    // Hata logla
                     Console.WriteLine($"Create Error: {ex.Message}");
                     TempData["Error"] = "Ürün kaydedilirken hata oluştu: " + ex.Message;
                 }
@@ -138,11 +148,10 @@ namespace WebApplication1.Controllers
 
             ViewBag.Kategoriler = GetCategories();
             ViewBag.ZimmetDurumlari = new[] { "Zimmet Dışı", "Zimmetli", "Bakımda", "Kayıp" };
-            
+
             return View(item);
         }
 
-        // POST: Items/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ItemModel item)
@@ -165,7 +174,7 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    // Check if barcode already exists (excluding current item)
+                    // Aynı barkod başka üründe var mı kontrol et
                     if (await _context.Items.AnyAsync(i => i.SystemBarcode == item.SystemBarcode && i.Id != item.Id))
                     {
                         ModelState.AddModelError("SystemBarcode", "Bu barkod zaten kullanılmaktadır. Lütfen farklı bir barkod giriniz.");
@@ -175,19 +184,26 @@ namespace WebApplication1.Controllers
                     }
 
                     var originalItem = await _context.Items.AsNoTracking().FirstOrDefaultAsync(i => i.Id == id);
-                    
-                    // Preserve original values
+
+                    // Orijinal alanları koru
                     item.UpdatedDate = DateTime.Now;
-                    item.UpdatedBy = this.GetUserFromHttpContext()!.Email ?? "Unknown";
+                    item.UpdatedBy = User.Identity!.Name ?? "System";
                     item.CreatedDate = originalItem!.CreatedDate;
                     item.CreatedBy = originalItem.CreatedBy;
-                    
-                    // Check critical level
+
                     item.CheckCriticalLevel();
 
                     _context.Update(item);
                     await _context.SaveChangesAsync();
-                    
+
+                    // LOG EKLENDİ
+                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, "Ürün güncellendi", "Item", item.Id);
+                    }
+
                     TempData["Success"] = "Urun basariyla guncellendi!";
                     return RedirectToAction(nameof(Index));
                 }
@@ -233,30 +249,40 @@ namespace WebApplication1.Controllers
         }
 
         // POST: Items/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+[HttpPost, ActionName("Delete")]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> DeleteConfirmed(int id)
+{
+    try
+    {
+        var item = await _context.Items.FindAsync(id);
+
+        if (item != null)
         {
-            try
-            {
-                var item = await _context.Items.FirstOrDefaultAsync(i => i.Id == id);
+            item.IsActive = false; // 👈 Artık fiziksel silme yok
+            item.UpdatedDate = DateTime.Now;
+            item.UpdatedBy = User.Identity?.Name ?? "System";
+            await _context.SaveChangesAsync();
 
-                if (item != null)
-                {
-                    _context.Items.Remove(item);
-                    await _context.SaveChangesAsync();
-                    
-                    TempData["Success"] = "Urun basariyla silindi!";
-                }
-            }
-            catch (Exception ex)
+            // LOG EKLENDİ
+            string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+            if (!string.IsNullOrEmpty(userId))
             {
-                Console.WriteLine($"Delete Error: {ex.Message}");
-                TempData["Error"] = "Ürün silinirken hata oluştu: " + ex.Message;
+                await _activityLogger.LogAsync(userId, "Ürün pasif hale getirildi (soft delete)", "Item", item.Id);
             }
 
-            return RedirectToAction(nameof(Index));
+            TempData["Success"] = "Ürün başarıyla pasif hale getirildi!";
         }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Delete Error: {ex.Message}");
+        TempData["Error"] = "Ürün silinirken hata oluştu: " + ex.Message;
+    }
+
+    return RedirectToAction(nameof(Index));
+}
 
         // POST: Items/AssignToPersonnel/5
         [HttpPost]
@@ -268,8 +294,17 @@ namespace WebApplication1.Controllers
                 var item = await _context.Items.FindAsync(id);
                 if (item != null && !string.IsNullOrEmpty(personnel))
                 {
-                    item.AssignToPersonnel(personnel, this.GetUserFromHttpContext()!.Email ?? "Unknown");
+                    item.AssignToPersonnel(personnel, User.Identity!.Name ?? "System");
                     await _context.SaveChangesAsync();
+
+                    // ✅ LOG EKLENDİ
+                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, $"Ürün {personnel} adlı personele zimmetlendi", "Item", item.Id);
+                    }
+
                     TempData["Success"] = $"Ürün {personnel} adlı personele zimmet verildi!";
                 }
             }
@@ -281,7 +316,6 @@ namespace WebApplication1.Controllers
 
             return RedirectToAction(nameof(Details), new { id = id });
         }
-
         // POST: Items/ReturnFromAssignment/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -293,8 +327,17 @@ namespace WebApplication1.Controllers
                 if (item != null)
                 {
                     var previousPersonnel = item.AssignedPersonnel;
-                    item.ReturnFromAssignment(this.GetUserFromHttpContext()!.Email ?? "Unknown");
+                    item.ReturnFromAssignment(User.Identity!.Name ?? "System");
                     await _context.SaveChangesAsync();
+
+                    // ✅ LOG EKLENDİ
+                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, $"Ürün {previousPersonnel} adlı personelden iade alındı", "Item", item.Id);
+                    }
+
                     TempData["Success"] = "Ürün zimmet iadesi yapıldı!";
                 }
             }
@@ -314,7 +357,7 @@ namespace WebApplication1.Controllers
 
         private string[] GetCategories()
         {
-            return new string[] 
+            return new string[]
             {
                 "Bilgisayar Malzemeleri",
                 "Kırtasiye Malzemeleri",

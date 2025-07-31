@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+
 namespace WebApplication1.Models
 {
     public class ActivityLog
@@ -6,8 +7,8 @@ namespace WebApplication1.Models
         public int Id { get; set; }
 
         [Required]
-        public string UserId { get; set; } = null!; 
-        
+        public string UserId { get; set; } = null!;
+
         [Required]
         [StringLength(200)]
         public string Action { get; set; } = string.Empty;
@@ -19,6 +20,9 @@ namespace WebApplication1.Models
         public int? EntityId { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+
+        [StringLength(1000)] 
+        public string? Detail { get; set; }
 
         public ApplicationUser? User { get; set; }  // Navigation property
     }

@@ -3,14 +3,23 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
-
+using WebApplication1.Services;
+using System.Security.Claims;
+using WebApplication1.EnvanterLib;
 
 namespace WebApplication1.Controllers
 {
-    public class EmployeeController(AppDbContext context) : Controller
-
+    public class EmployeeController : Controller
     {
-        private readonly AppDbContext _context = context;
+        private readonly AppDbContext _context;
+        private readonly IActivityLogger _activityLogger;
+
+        public EmployeeController(AppDbContext context, IActivityLogger activityLogger)
+        {
+            _context = context;
+            _activityLogger = activityLogger;
+
+        }
 
         public async Task<IActionResult> Index(string searchName, int? companyId, string status)
         {
@@ -51,7 +60,7 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Create(Employee model)
         {
             Console.WriteLine(">>> Create POST çağrıldı");
-            // ModelState debug için
+
             if (!ModelState.IsValid)
             {
                 foreach (var modelError in ModelState)
@@ -70,6 +79,15 @@ namespace WebApplication1.Controllers
                     model.CreatedDate = DateTime.UtcNow;
                     _context.Employees.Add(model);
                     await _context.SaveChangesAsync();
+
+                    // LOG EKLENDİ
+                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, "Çalışan oluşturuldu", "Employee", model.Id);
+                    }
+
                     TempData["Success"] = "Calisan basariyla eklendi!";
                     return RedirectToAction("Index");
                 }
@@ -84,69 +102,43 @@ namespace WebApplication1.Controllers
                 .Where(c => c.IsActive)
                 .OrderBy(x => x.Name)
                 .ToListAsync();
+
             return View(model);
         }
 
-        //public async Task<IActionResult> Edit(int id)
-        //{
-        //    var emp = await _context.Employees.FindAsync(id);
-        //    if (emp == null) return NotFound();
-
-        //    // Edit için de ViewBag.Companies gerekli
-        //    ViewBag.Companies = await _context.Companies
-        //        .Where(c => c.IsActive)
-        //        .OrderBy(x => x.Name)
-        //        .ToListAsync();
-
-        //    return View(emp);
-        //}
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(Employee model)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            _context.Employees.Update(model);
-        //            await _context.SaveChangesAsync();
-        //            TempData["Success"] = "Çalışan başarıyla güncellendi!";
-        //            return RedirectToAction("Index");
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            TempData["Error"] = "Güncelleme sırasında hata oluştu: " + ex.Message;
-        //        }
-        //    }
-
-        //    // Hata durumunda ViewBag'i tekrar doldur
-        //    ViewBag.Companies = await _context.Companies
-        //        .Where(c => c.IsActive)
-        //        .OrderBy(x => x.Name)
-        //        .ToListAsync();
-        //    return View(model);
-        //}
-
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
+     [HttpPost]
+public async Task<IActionResult> Delete(int id)
+{
+    try
+    {
+        var emp = await _context.Employees.FindAsync(id);
+        if (emp != null)
         {
-            try
+            emp.IsActive = false;
+            emp.ActiveTime = DateTimeOffset.UtcNow;
+
+            _context.Employees.Update(emp);
+            await _context.SaveChangesAsync();
+
+            // LOG EKLENDİ
+            string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+            if (!string.IsNullOrEmpty(userId))
             {
-                var emp = await _context.Employees.FindAsync(id);
-                if (emp != null)
-                {
-                    _context.Employees.Remove(emp);
-                    await _context.SaveChangesAsync();
-                    TempData["Success"] = "Calisan basariyla silindi!";
-                }
+                var detail = $"Pasif duruma geçirildi: {emp.FirstName} {emp.LastName}, Email: {emp.Email}";
+                await _activityLogger.LogAsync(userId, "Çalışan pasifleştirildi", "Employee", emp.Id, detail);
             }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Silme işlemi sırasında hata oluştu: " + ex.Message;
-            }
-            return RedirectToAction("Index");
+
+            TempData["Success"] = "Çalışan başarıyla pasifleştirildi!";
         }
+    }
+    catch (Exception ex)
+    {
+        TempData["Error"] = "Silme işlemi sırasında hata oluştu: " + ex.Message;
+    }
+
+    return RedirectToAction("Index");
+}
 
 
         [HttpGet]
@@ -194,6 +186,15 @@ namespace WebApplication1.Controllers
                 {
                     _context.Update(model);
                     await _context.SaveChangesAsync();
+
+                    // LOG EKLENDİ
+                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _activityLogger.LogAsync(userId, "Çalışan güncellendi", "Employee", model.Id);
+                    }
+
                     TempData["Success"] = "Çalışan başarıyla güncellendi!";
                     return RedirectToAction("Index");
                 }
@@ -214,7 +215,5 @@ namespace WebApplication1.Controllers
             ViewBag.CompanyId = new SelectList(_context.Companies, "Id", "Name", model.CompanyId);
             return View(model);
         }
-
-
     }
 }

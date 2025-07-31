@@ -1,17 +1,26 @@
+// loglar eklendi tamamen tamamlandı
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using System.Diagnostics;
 using WebApplication1.Data;
+using WebApplication1.Services;
+using System.Security.Claims;
+using WebApplication1.EnvanterLib;
+
+
 namespace WebApplication1.Controllers
 {
     public class SoftwareController : Controller
     {
         private readonly AppDbContext _context;
-        
-        public SoftwareController(AppDbContext context)
+        private readonly IActivityLogger _activityLogger;
+
+        public SoftwareController(AppDbContext context, IActivityLogger activityLogger)
         {
             _context = context;
+            _activityLogger = activityLogger;
+
         }
 
         // Software listesi (GET)
@@ -19,10 +28,11 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> Index()
         {
             var softwareList = await _context.Software
+                .Where(s => s.IsActive)
                 .Include(s => s.AssignedEmployee)
                 .Include(s => s.Company)
                 .ToListAsync();
-                
+
             // Her yazılım için durumu güncelle
             foreach (var software in softwareList)
             {
@@ -30,7 +40,7 @@ namespace WebApplication1.Controllers
                 software.Status = DetermineStatus(software.ExpiryDate);
                 software.AlertColor = DetermineAlertColor(software.Status);
             }
-            
+
             return View(softwareList);
         }
 
@@ -42,36 +52,36 @@ namespace WebApplication1.Controllers
             return View();
         }
 
-        // Software ekleme işlemi (POST)
         [HttpPost]
         public async Task<IActionResult> Create(Software software)
         {
             if (ModelState.IsValid)
             {
-                // Kalan süreyi hesapla
                 software.RemainingTime = CalculateRemainingTime(software.ExpiryDate);
-                
-                // Durumu belirle
                 software.Status = DetermineStatus(software.ExpiryDate);
-                
-                // Görsel uyarı rengini belirle
                 software.AlertColor = DetermineAlertColor(software.Status);
-                
-                // Oluşturma tarihini set et
                 software.CreatedDate = DateTime.Now;
 
-                // Veritabanına kaydet
                 _context.Software.Add(software);
                 await _context.SaveChangesAsync();
-                
-                TempData["SuccessMessage"] = "Yazilim lisansi basariyla eklendi.";
+
+                // LOG
+                string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var detail = LogHelper.GetSummary(software);
+                    await _activityLogger.LogAsync(userId, "Yazılım oluşturuldu", "Software", software.Id, detail);
+                }
+
+                TempData["SuccessMessage"] = "Yazılım lisansı başarıyla eklendi.";
                 return RedirectToAction("Index");
             }
-            
-            // Model geçerli değilse dropdown verilerini tekrar yükle
+
             await LoadDropdownData();
             return View(software);
         }
+
 
         // Software düzenleme sayfası (GET)
         [HttpGet]
@@ -81,63 +91,80 @@ namespace WebApplication1.Controllers
                 .Include(s => s.AssignedEmployee)
                 .Include(s => s.Company)
                 .FirstOrDefaultAsync(s => s.Id == id);
-                
+
             if (software == null)
             {
                 TempData["ErrorMessage"] = "Yazılım lisansı bulunamadı.";
                 return RedirectToAction("Index");
             }
-            
+
             return View(software);
         }
 
-        // Software düzenleme işlemi (POST)
         [HttpPost]
         public async Task<IActionResult> Edit(Software software)
         {
             if (ModelState.IsValid)
             {
-                // Kalan süreyi hesapla
+                var original = await _context.Software.AsNoTracking().FirstOrDefaultAsync(s => s.Id == software.Id);
+                if (original == null)
+                {
+                    TempData["ErrorMessage"] = "Yazılım bulunamadı.";
+                    return RedirectToAction("Index");
+                }
+
                 software.RemainingTime = CalculateRemainingTime(software.ExpiryDate);
-                
-                // Durumu belirle
                 software.Status = DetermineStatus(software.ExpiryDate);
-                
-                // Görsel uyarı rengini belirle
                 software.AlertColor = DetermineAlertColor(software.Status);
-                
-                // Güncelleme tarihini set et
                 software.UpdatedDate = DateTime.Now;
 
-                // Veritabanında güncelle
                 _context.Software.Update(software);
                 await _context.SaveChangesAsync();
-                
-                TempData["SuccessMessage"] = "Yazilim lisansi basariyla guncellendi.";
+
+                string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var detail = LogHelper.GetDifferences(original, software);
+                    await _activityLogger.LogAsync(userId, "Yazılım güncellendi", "Software", software.Id, detail);
+                }
+
+                TempData["SuccessMessage"] = "Yazılım lisansı başarıyla güncellendi.";
                 return RedirectToAction("Index");
             }
-            
+
             return View(software);
         }
+      [HttpPost]
+public async Task<IActionResult> Delete(int id)
+{
+    var software = await _context.Software.FindAsync(id);
+    if (software == null)
+    {
+        TempData["ErrorMessage"] = "Yazılım lisansı bulunamadı.";
+        return RedirectToAction("Index");
+    }
 
-        // Software silme işlemi (POST)
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var software = await _context.Software.FindAsync(id);
-            if (software == null)
-            {
-                TempData["ErrorMessage"] = "Yazılım lisansı bulunamadı.";
-                return RedirectToAction("Index");
-            }
+    // Silmek yerine pasife al
+    software.IsActive = false;
+    software.UpdatedDate = DateTime.Now;
 
-            // Veritabanından sil
-            _context.Software.Remove(software);
-            await _context.SaveChangesAsync();
-            
-            TempData["SuccessMessage"] = "Yazilim lisansi basariyla silindi.";
-            return RedirectToAction("Index");
-        }
+    await _context.SaveChangesAsync();
+
+    // LOG
+    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+
+    if (!string.IsNullOrEmpty(userId))
+    {
+        var detail = LogHelper.GetSummary(software);
+        await _activityLogger.LogAsync(userId, "Yazılım silindi (pasife alındı)", "Software", software.Id, detail);
+    }
+
+    TempData["SuccessMessage"] = "Yazılım başarıyla pasif duruma alındı.";
+    return RedirectToAction("Index");
+}
+
+
 
         // Software detay sayfası (GET)
         [HttpGet]
@@ -147,18 +174,18 @@ namespace WebApplication1.Controllers
                 .Include(s => s.AssignedEmployee)
                 .Include(s => s.Company)
                 .FirstOrDefaultAsync(s => s.Id == id);
-                
+
             if (software == null)
             {
                 TempData["ErrorMessage"] = "Yazılım lisansı bulunamadı.";
                 return RedirectToAction("Index");
             }
-            
+
             // Durumu güncelle
             software.RemainingTime = CalculateRemainingTime(software.ExpiryDate);
             software.Status = DetermineStatus(software.ExpiryDate);
             software.AlertColor = DetermineAlertColor(software.Status);
-            
+
             return View(software);
         }
 
@@ -169,10 +196,10 @@ namespace WebApplication1.Controllers
             var expiringSoftware = await _context.Software
                 .Include(s => s.AssignedEmployee)
                 .Include(s => s.Company)
-                .Where(s => s.ExpiryDate > DateTime.Now && 
+                .Where(s => s.ExpiryDate > DateTime.Now &&
                            s.ExpiryDate <= DateTime.Now.AddDays(30))
                 .ToListAsync();
-                
+
             // Durumları güncelle
             foreach (var software in expiringSoftware)
             {
@@ -180,7 +207,7 @@ namespace WebApplication1.Controllers
                 software.Status = DetermineStatus(software.ExpiryDate);
                 software.AlertColor = DetermineAlertColor(software.Status);
             }
-            
+
             return View(expiringSoftware);
         }
 
@@ -193,7 +220,7 @@ namespace WebApplication1.Controllers
                 .Include(s => s.Company)
                 .Where(s => s.ExpiryDate < DateTime.Now)
                 .ToListAsync();
-                
+
             // Durumları güncelle
             foreach (var software in expiredSoftware)
             {
@@ -201,7 +228,7 @@ namespace WebApplication1.Controllers
                 software.Status = DetermineStatus(software.ExpiryDate);
                 software.AlertColor = DetermineAlertColor(software.Status);
             }
-            
+
             return View(expiredSoftware);
         }
 
@@ -217,7 +244,7 @@ namespace WebApplication1.Controllers
             // Arama filtresi
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                query = query.Where(s => s.Name!.Contains(searchTerm) || 
+                query = query.Where(s => s.Name!.Contains(searchTerm) ||
                                         s.Brand!.Contains(searchTerm) ||
                                         (s.Description != null && s.Description.Contains(searchTerm)));
             }
@@ -231,7 +258,7 @@ namespace WebApplication1.Controllers
                         query = query.Where(s => s.ExpiryDate > DateTime.Now.AddDays(30));
                         break;
                     case SoftwareStatus.Approaching:
-                        query = query.Where(s => s.ExpiryDate > DateTime.Now && 
+                        query = query.Where(s => s.ExpiryDate > DateTime.Now &&
                                                s.ExpiryDate <= DateTime.Now.AddDays(30));
                         break;
                     case SoftwareStatus.Expired:
@@ -241,7 +268,7 @@ namespace WebApplication1.Controllers
             }
 
             var filteredSoftware = await query.ToListAsync();
-            
+
             // Durumları güncelle
             foreach (var software in filteredSoftware)
             {
@@ -263,7 +290,7 @@ namespace WebApplication1.Controllers
         private string CalculateRemainingTime(DateTime expiryDate)
         {
             var remainingTime = expiryDate - DateTime.Now;
-            
+
             if (remainingTime.TotalDays < 0)
                 return $"{Math.Abs((int)remainingTime.TotalDays)} gün geçti";
             else if (remainingTime.TotalDays < 30)
@@ -277,7 +304,7 @@ namespace WebApplication1.Controllers
         private SoftwareStatus DetermineStatus(DateTime expiryDate)
         {
             var remainingDays = (expiryDate - DateTime.Now).TotalDays;
-            
+
             if (remainingDays < 0)
                 return SoftwareStatus.Expired;
             else if (remainingDays <= 30)
@@ -303,16 +330,17 @@ namespace WebApplication1.Controllers
             var companies = await _context.Companies
                 .OrderBy(c => c.Name)
                 .Select(c => new { c.Id, c.Name })
-                .ToListAsync();
+                .ToListAsync(); 
             ViewBag.Companies = companies;
 
             // Çalışanları yükle
             var employees = await _context.Employees
                 .OrderBy(e => e.FirstName)
                 .ThenBy(e => e.LastName)
-                .Select(e => new { 
-                    Id = e.Id, 
-                    Name = e.FirstName + " " + e.LastName 
+                .Select(e => new
+                {
+                    Id = e.Id,
+                    Name = e.FirstName + " " + e.LastName
                 })
                 .ToListAsync();
             ViewBag.Employees = employees;

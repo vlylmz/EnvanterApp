@@ -378,13 +378,13 @@
                                                     <span class="visually-hidden">Zimmetle</span>
                                                 </button>
                                             }
-                                            <a asp-controller="Computer" asp-action="Details" asp-route-id="@computer.Id"
+                                            <a asp-controller="Computers" asp-action="Details" asp-route-id="@computer.Id"
                                                class="btn btn-sm btn-outline-info"
                                                title="@computer.Name detaylarını görüntüle" data-bs-toggle="tooltip">
                                                 <i class="fas fa-eye" aria-hidden="true"></i>
                                                 <span class="visually-hidden">Detay</span>
                                             </a>
-                                            <a asp-controller="Computer" asp-action="Edit" asp-route-id="@computer.Id"
+                                            <a asp-controller="Computers" asp-action="Edit" asp-route-id="@computer.Id"
                                                class="btn btn-sm btn-outline-warning" title="@computer.Name bilgilerini düzenle"
                                                data-bs-toggle="tooltip">
                                                 <i class="fas fa-edit" aria-hidden="true"></i>
@@ -507,7 +507,7 @@
                                                    data-bs-toggle="tooltip">
                                                     <i class="fas fa-eye" aria-hidden="true"></i>
                                                 </a>
-                                                <a asp-controller="Computer" asp-action="Edit" asp-route-id="@computer.Id"
+                                                <a asp-controller="Computers" asp-action="Edit" asp-route-id="@computer.Id"
                                                    class="btn btn-outline-warning flex-fill" title="Düzenle"
                                                    data-bs-toggle="tooltip">
                                                     <i class="fas fa-edit" aria-hidden="true"></i>
@@ -679,7 +679,7 @@
                     // Create form and submit
                     const form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = `/Computer/Delete/${computerId}`;
+                    form.action = `/Computers/Delete/${computerId}`;
 
                     const token = document.querySelector('input[name="__RequestVerificationToken"]');
                     if (token) {
@@ -703,7 +703,7 @@
             const tableRadio = document.getElementById('tableViewRadio');
             const cardsRadio = document.getElementById('cardsViewRadio');
 
-            if (!tableView || !cardsView) {
+            if(!cardsView || !tableView) {
                 return;
             }
 
