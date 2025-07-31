@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.VisualBasic;
 using OtpNet;
 using WebApplication1.Data;
+using WebApplication1.EnvanterLib;
 
 namespace WebApplication1.Controllers
 {
@@ -14,88 +15,84 @@ namespace WebApplication1.Controllers
 
         public IActionResult Index()
         {
-            if (HttpContext.Session.GetString("user") == "admin")
+            if (this.GetUserFromHttpContext() != null)
+            {
+                Console.WriteLine("user is already logged in, redirecting to home");
                 return RedirectToAction("Index", "Home");
+            }
             return View();
         }
 
 
         [HttpPost]
-        public IActionResult Index(string username, string password)
+        public IActionResult Index(string email, string password)
         {
-            Console.WriteLine("username password entered: " + username + " " + password);
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("adminPassword")))
-                HttpContext.Session.SetString("adminPassword", "1234");
+            Console.WriteLine("email: " + email + " password: " + password);
 
-            if (username == "admin" && password == HttpContext.Session.GetString("adminPassword"))
+            var userResult = context.ApplicationUsers.Where(u =>
+                         u.Email == email &&
+                         u.Password == password
+                         ).ToList().FirstOrDefault();
+
+            if (userResult != null)
             {
-                if (HttpContext.Session.GetString("adminTotpSecretNew") != null)
+                if (userResult.TotpSecret != null)
                 {
-                    Console.WriteLine("adminTotpSecretNew isn't null, redirecting");
-                    TempData["allowRedirectToQrRegister"] = true;
-                    return RedirectToAction("QrRegister");
+                    Console.WriteLine("user has 2FA enabled, redirecting to qrvalidate");
+                    this.TwoFactorHoldUser(userResult);
+                    return View("QrValidate");
                 }
-
-                if (string.IsNullOrEmpty(HttpContext.Session.GetString("adminTotpSecret")))
+                else
                 {
-                    Console.WriteLine("adminTotpSecret is null, redirecting to qrregister");
-                    HttpContext.Session.SetString("adminTotpSecretNew", Convert.ToBase64String(KeyGeneration.GenerateRandomKey(16)));
-                    TempData["allowRedirectToQrRegister"] = true;
-                    return RedirectToAction("QrRegister");
+                    Console.WriteLine("user has no 2FA enabled, logging in directly");
+                    this.SaveUserToHttpContext(userResult);
+                    return RedirectToAction("Index", "Home");
                 }
-
-                Console.WriteLine("adminTotpSecret is not null, redirecting to qrvalidate");
-                TempData["allowRedirectToQrValidate"] = true;
-                return RedirectToAction("QrValidate");
             }
 
-            Console.WriteLine("wrong username or password");
-            ViewBag.Error = "Wrong username or password";
+            Console.WriteLine("user with specified password not found, returning to login");
+            ViewBag.Error = "Wrong email or password";
             return View();
         }
 
 
         public IActionResult Logout()
         {
-            ClearHContext();
+            HttpContext.Session.Clear();
             return RedirectToAction("Index");
         }
 
 
+        [Route("QrRegister")]
         [HttpPost]
         public IActionResult QrRegister(string code)
         {
             Console.WriteLine("qrregister code: " + code);
-            if (!string.IsNullOrEmpty(HttpContext.Session.GetString("user")))
-                return RedirectToAction("Index", "Home");
-
-
-            Console.WriteLine("register");
-            var sessionBase64Totp = HttpContext.Session.GetString("adminTotpSecretNew");
-
-            if (sessionBase64Totp == null)
+            
+            var loggedInUser = this.GetUserFromHttpContext();
+            if (loggedInUser == null)
             {
-                Console.WriteLine("null");
-                ViewBag.Error = "new secret is null";
+                Console.WriteLine("no user found in session, redirecting to index");
                 return RedirectToAction("Index");
             }
+            var TotpSecretRegisterKey = HttpContext.Session.Get("TotpSecretRegisterKey");
 
-            var sessionTotp = Convert.FromBase64String(sessionBase64Totp);
-            var trueTotp = new Totp(sessionTotp).ComputeTotp();
+            var trueTotp = new Totp(TotpSecretRegisterKey).ComputeTotp();
             if (code == trueTotp)
             {
-                Console.WriteLine("ok");
-                HttpContext.Session.SetString("adminTotpSecret", sessionBase64Totp);
-                ClearHContext();
-                HttpContext.Session.SetString("user", "admin");
+                Console.WriteLine("2fa ok");
+                loggedInUser.TotpSecret = TotpSecretRegisterKey;
+                this.SaveUserToHttpContext(loggedInUser);
+                context.Update(loggedInUser);
+                context.SaveChanges();
+                HttpContext.Session.Remove("TotpSecretRegisterKey");
                 return RedirectToAction("Index", "Home");
             }
-
             else
             {
-                Console.WriteLine("wrong");
+                Console.WriteLine("2fa wrong");
                 ViewBag.Error = "wrong 2FA code, true was: " + trueTotp + " you entered: " + code;
-                return View();
+                return View(TotpSecretRegisterKey);
             }
         }
 
@@ -104,15 +101,21 @@ namespace WebApplication1.Controllers
         public IActionResult QrValidate(string code)
         {
             Console.WriteLine("qrvalidate code: " + code);
-            if (!string.IsNullOrEmpty(HttpContext.Session.GetString("user")))
+            if (CheckIfAlreadyLoggedIn())
                 return RedirectToAction("Index", "Home");
 
+            var user = this.GetTwoFactorHoldUser();
+            if (user == null)
+            {
+                Console.WriteLine("no user found in 2fa hold, redirecting to index");
+                return RedirectToAction("Index");
+            }
 
-            var trueTotp = new Totp(Convert.FromBase64String(HttpContext.Session.GetString("adminTotpSecret")!)).ComputeTotp();
+            var trueTotp = new Totp(user.TotpSecret).ComputeTotp();
             if (code == trueTotp)
             {
-                ClearHContext();
-                HttpContext.Session.SetString("user", "admin");
+                this.SaveUserToHttpContext(user);
+                this.RemoveTwoFactorHoldUser();
                 return RedirectToAction("Index", "Home");
             }
 
@@ -120,36 +123,54 @@ namespace WebApplication1.Controllers
             return View();
         }
 
-        public IActionResult QrRegister()
-        {
-            var key = TempData["allowRedirectToQrRegister"];
-            if (key == null)
-                return RedirectToAction("Index");
-
-            return View("QrRegister");
-        }
 
         public IActionResult QrValidate()
         {
-            Console.WriteLine("qrvalidate private");
-            var key = TempData["allowRedirectToQrValidate"];
-            if (key == null)
+            if (CheckIfAlreadyLoggedIn())
+                return RedirectToAction("Index", "Home");
+            
+            var user = this.GetTwoFactorHoldUser();
+            if (user == null)
+            {
+                Console.WriteLine("no user found in 2fa hold, redirecting to index");
                 return RedirectToAction("Index");
+            }
 
-            return View("QrValidate");
+            return View();
         }
 
 
-        public IActionResult QrSkip()
+        [Route("QrRegister")]
+        public IActionResult QrRegister()
         {
-            ClearHContext();
-            HttpContext.Session.SetString("user", "admin");
-            return RedirectToAction("Index");
+            var loggedInUser = this.GetUserFromHttpContext();
+
+            if (loggedInUser == null)
+            {
+                Console.WriteLine("no user found in session, redirecting to index");
+                return RedirectToAction("Index");
+            }
+
+            HttpContext.Session.TryGetValue("TotpSecretRegisterKey", out var totpSecretRegisterKey);
+            if(totpSecretRegisterKey == null)
+                totpSecretRegisterKey = KeyGeneration.GenerateRandomKey(16);
+            
+
+            HttpContext.Session.Set("TotpSecretRegisterKey", totpSecretRegisterKey);
+
+            return View(totpSecretRegisterKey);
         }
 
-        private void ClearHContext()
+
+        private bool CheckIfAlreadyLoggedIn()
         {
-            HttpContext.Session.Keys.Where(key => key != "adminPassword" && key != "adminTotpSecret").ToList().ForEach(key => HttpContext.Session.Remove(key));
+            var user = this.GetUserFromHttpContext();
+            if (user != null)
+            {
+                Console.WriteLine("user is already logged in, redirecting...");
+                return true;
+            }
+            return false;
         }
 
     }

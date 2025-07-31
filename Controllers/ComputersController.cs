@@ -5,6 +5,7 @@ using WebApplication1.Models;
 using WebApplication1.Data;
 using System.Security.Claims;
 using WebApplication1.Services;
+using WebApplication1.EnvanterLib;
 
 // Bu sınıf, bilgisayar envanterini yönetmek için gerekli işlemleri içerir LOGLAMA EKLENMİŞTİR
 
@@ -97,13 +98,7 @@ namespace WebApplication1.Controllers
                     await _context.SaveChangesAsync();
 
                     // ✅ LOG EKLENDİ
-                    string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
-                            .Select(u => u.Id)
-                            .FirstOrDefault();
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        await _activityLogger.LogAsync(userId, "Bilgisayar oluşturuldu", "Computer", computer.Id);
-                    }
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id.ToString(), "Bilgisayar oluşturuldu", "Computer", computer.Id);
 
                     TempData["Success"] = "Bilgisayar basariyla eklendi.";
                     return RedirectToAction(nameof(Index));
@@ -188,13 +183,7 @@ namespace WebApplication1.Controllers
                     await _context.SaveChangesAsync();
 
                     // ✅ LOG EKLENDİ
-                    string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
-                            .Select(u => u.Id)
-                            .FirstOrDefault();
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        await _activityLogger.LogAsync(userId, "Bilgisayar güncellendi", "Computer", computer.Id);
-                    }
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id.ToString(), "Bilgisayar güncellendi", "Computer", computer.Id);
 
                     TempData["Success"] = "Bilgisayar basariyla guncellendi.";
                     return RedirectToAction(nameof(Index));
@@ -257,13 +246,7 @@ namespace WebApplication1.Controllers
                 await _context.SaveChangesAsync();
 
                 // ✅ LOG EKLENDİ
-                string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
-                            .Select(u => u.Id)
-                            .FirstOrDefault();
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    await _activityLogger.LogAsync(userId, "Bilgisayar silindi", "Computer", id);
-                }
+                await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id.ToString(), "Bilgisayar silindi", "Computer", id);
 
                 TempData["Success"] = "Bilgisayar basariyla silindi.";
             }

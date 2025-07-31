@@ -47,20 +47,25 @@ app.MapControllerRoute(
     pattern: "{controller=Login}/{action=Index}");
 
 
-var dbC = app.Services.CreateScope().ServiceProvider.GetRequiredService<AppDbContext>();
-if (dbC.Users.Any(u => u.UserName == "admin") == false)
+using (var dbC = app.Services.CreateScope().ServiceProvider.GetRequiredService<AppDbContext>())
 {
-    Console.WriteLine("Admin user not found, creating one...");
-    dbC.Users.Add(new ApplicationUser
+    var user = dbC.ApplicationUsers.FirstOrDefault(u => u.UserRole == UserRoles.SuperAdmin);
+    if (user == null)
     {
-        FirstName = "Hakkı",
-        LastName = "Alkan",
-        Email = "",
-        UserName = "admin",
-        UserRole = ""
-    });
-
-    dbC.SaveChanges();
+        user = new ApplicationUser()
+        {
+            FirstName = "Hakkı",
+            LastName = "Ayman",
+            Email = "aymanhakki@example.org",
+            UserRole = UserRoles.SuperAdmin,
+            PhoneNumber = 905522302139,
+            CreatedDate = DateTime.Now,
+            Password = "manisa"
+        };
+        
+        dbC.ApplicationUsers.Add(user);
+        dbC.SaveChanges();
+    }
 }
 
 app.Run();

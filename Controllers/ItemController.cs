@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using WebApplication1.Data;
+using WebApplication1.EnvanterLib;
 
 namespace WebApplication1.Controllers
 {
@@ -97,7 +98,7 @@ namespace WebApplication1.Controllers
                     }
 
                     // Set audit fields
-                    item.CreatedBy = User.Identity!.Name ?? "System";
+                    item.CreatedBy = this.GetUserFromHttpContext()!.Email ?? "Unknown";
                     item.CreatedDate = DateTime.Now;
                     
                     // Check critical level
@@ -177,7 +178,7 @@ namespace WebApplication1.Controllers
                     
                     // Preserve original values
                     item.UpdatedDate = DateTime.Now;
-                    item.UpdatedBy = User.Identity!.Name ?? "System";
+                    item.UpdatedBy = this.GetUserFromHttpContext()!.Email ?? "Unknown";
                     item.CreatedDate = originalItem!.CreatedDate;
                     item.CreatedBy = originalItem.CreatedBy;
                     
@@ -267,7 +268,7 @@ namespace WebApplication1.Controllers
                 var item = await _context.Items.FindAsync(id);
                 if (item != null && !string.IsNullOrEmpty(personnel))
                 {
-                    item.AssignToPersonnel(personnel, User.Identity!.Name ?? "System");
+                    item.AssignToPersonnel(personnel, this.GetUserFromHttpContext()!.Email ?? "Unknown");
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Ürün {personnel} adlı personele zimmet verildi!";
                 }
@@ -292,7 +293,7 @@ namespace WebApplication1.Controllers
                 if (item != null)
                 {
                     var previousPersonnel = item.AssignedPersonnel;
-                    item.ReturnFromAssignment(User.Identity!.Name ?? "System");
+                    item.ReturnFromAssignment(this.GetUserFromHttpContext()!.Email ?? "Unknown");
                     await _context.SaveChangesAsync();
                     TempData["Success"] = "Ürün zimmet iadesi yapıldı!";
                 }

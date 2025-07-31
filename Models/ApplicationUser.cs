@@ -1,10 +1,20 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Identity;
 
 namespace WebApplication1.Models
 {
-    public class ApplicationUser : IdentityUser
+    public enum UserRoles
     {
+        SuperAdmin,
+        Admin,
+        User
+    }
+
+    public class ApplicationUser
+    {
+        [Required]
+        public int Id { get; set; }
+
+
         [Required]
         [MaxLength(50)]
         public string? FirstName { get; set; }
@@ -15,14 +25,23 @@ namespace WebApplication1.Models
 
         [Required]
         [MaxLength(100)]
-        public override string? Email { get; set; }
+        public string? Email { get; set; }
 
-        // IdentityUser zaten PasswordHash içeriyor, tekrar tanımlamaya gerek yok
-        public override bool TwoFactorEnabled { get; set; }
+
+        [Required]
+        [MinLength(6)]
+        public string Password { get; set; } = null!;
+
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         [Required]
-        public string? UserRole { get; set; } // "Süper Admin", "Admin", "Employee"
+        public UserRoles? UserRole { get; set; }
+
+
+        public long PhoneNumber { get; set; }
+
+
+        public byte[]? TotpSecret { get; set; }
     }
 }

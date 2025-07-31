@@ -7,6 +7,7 @@ using WebApplication1.Services;
 using WebApplication1.ViewModels;
 using System.Security.Claims;
 using WebApplication1.Services;
+using WebApplication1.EnvanterLib;
 
 // Bu sınıf, şirket envanterini yönetmek için gerekli işlemleri içerir LOGLAMA EKLENMİŞTİR
 
@@ -97,15 +98,7 @@ namespace WebApplication1.Controllers
                     if (result > 0)
                     {
                         // ✅ LOG EKLENDİ
-                        string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
-                            .Select(u => u.Id)
-                            .FirstOrDefault();
-                        Console.WriteLine("asdasd2");
-                        if (!string.IsNullOrEmpty(userId))
-                        {
-                            Console.WriteLine("asdasd3");
-                            await _activityLogger.LogAsync(userId, "Firma oluşturuldu", "Company", model.Id);
-                        }
+                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id.ToString(), "Firma oluşturuldu", "Company", model.Id);
 
                         HttpContext.Session.SetString("successMessage", "Sirket basariyla eklendi.");
                         return RedirectToAction(nameof(Index));
@@ -159,14 +152,8 @@ namespace WebApplication1.Controllers
                     await _context.SaveChangesAsync();
 
                     // ✅ LOG EKLENDİ
-                    string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
-                            .Select(u => u.Id)
-                            .FirstOrDefault();
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        await _activityLogger.LogAsync(userId, "Firma güncellendi", "Company", model.Id);
-                    }
-
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id.ToString(), "Firma güncellendi", "Company", model.Id);
+                    
                     TempData["Success"] = "Sirket basariyla guncellendi.";
                 }
                 catch (DbUpdateConcurrencyException)
@@ -203,13 +190,7 @@ namespace WebApplication1.Controllers
                 await _context.SaveChangesAsync();
 
                 // ✅ LOG EKLENDİ
-                string? userId = _context.Users.Where(u => u.UserName == HttpContext.Session.GetString("user"))
-                            .Select(u => u.Id)
-                            .FirstOrDefault();
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    await _activityLogger.LogAsync(userId, "Firma silindi", "Company", id);
-                }
+                await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id.ToString(), "Firma silindi", "Company", id);
 
                 HttpContext.Session.SetString("successMessage", "Sirket basariyla silindi.");
             }

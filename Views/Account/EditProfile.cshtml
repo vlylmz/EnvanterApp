@@ -1,6 +1,8 @@
 @model WebApplication1.Controllers.EditProfileViewModel
 @{
     ViewData["Title"] = "Profili Düzenle";
+    // Add this to check 2FA status
+    bool has2FA = Model.TotpEnabled;
 }
 
 <div class="container-fluid mt-4">
@@ -54,17 +56,28 @@
                             </div>
                         </div>
                         
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <div class="form-check form-switch">
-                                    <input asp-for="TwoFactorEnabled" class="form-check-input" />
-                                    <label asp-for="TwoFactorEnabled" class="form-check-label"></label>
+                        <!-- ADD THIS SECTION FOR 2FA STATUS DISPLAY -->
+                        <div class="mb-3">
+                            <label class="form-label">İki Faktörlü Doğrulama Durumu</label>
+                            <div class="alert @(has2FA ? "alert-success" : "alert-warning") d-flex align-items-center justify-content-between p-2">
+                                <div>
+                                    @if (has2FA)
+                                    {
+                                        <i class="fas fa-shield-alt text-success me-2"></i>
+                                        <strong>Aktif</strong>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                        <strong>Devre Dışı</strong>
+                                    }
                                 </div>
-                                <small class="text-muted">
-                                    İki faktörlü doğrulama, hesabınızı daha güvenli hale getirir.
-                                </small>
+                                <a href="@Url.Action("QrRegister", "Login")" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-cog"></i> 2FA Ayarları
+                                </a>
                             </div>
                         </div>
+                        <!-- END OF 2FA STATUS SECTION -->
                         
                         <hr>
                         
@@ -79,10 +92,77 @@
                     </form>
                 </div>
             </div>
+            
+            <!-- OPTIONAL: ADD PASSWORD CHANGE CARD -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-key me-2"></i> Şifre Değiştir
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="passwordChangeForm">
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Mevcut Şifre</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">Yeni Şifre</label>
+                            <input type="password" class="form-control" id="newPassword" required minlength="6">
+                            <small class="text-muted">En az 6 karakter olmalıdır</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Yeni Şifre (Tekrar)</label>
+                            <input type="password" class="form-control" id="confirmPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-sync-alt me-1"></i> Şifreyi Değiştir
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <!-- END OF PASSWORD CHANGE CARD -->
         </div>
     </div>
 </div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <!-- ADD THIS SCRIPT FOR PASSWORD CHANGE -->
+    <script>
+        $('#passwordChangeForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            var currentPassword = $('#currentPassword').val();
+            var newPassword = $('#newPassword').val();
+            var confirmPassword = $('#confirmPassword').val();
+            
+            if (newPassword !== confirmPassword) {
+                alert('Yeni şifreler eşleşmiyor!');
+                return;
+            }
+            
+            $.ajax({
+                url: '@Url.Action("QuickPasswordChange", "Account")',
+                type: 'POST',
+                data: {
+                    currentPassword: currentPassword,
+                    newPassword: newPassword,
+                    __RequestVerificationToken: $('[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        $('#passwordChangeForm')[0].reset();
+                    } else {
+                        alert('Hata: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+                }
+            });
+        });
+    </script>
 }

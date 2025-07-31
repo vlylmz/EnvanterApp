@@ -1,28 +1,40 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using WebApplication1.Data;
+using WebApplication1.EnvanterLib;
+using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
 {
     public class AccountController : Controller
     {
+        AppDbContext _context;
+
+        public AccountController(AppDbContext context)
+        {
+            _context = context;
+        }
+
         // GET: Account/Profile
         public IActionResult Profile()
-        {         
-            // Check 2FA status from session - only active if secret exists
-            var totpSecret = HttpContext.Session.GetString("adminTotpSecret");
-            var has2FA = !string.IsNullOrEmpty(totpSecret);
-            
+        {
+            var user = this.GetUserFromHttpContext();
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             var model = new UserProfileViewModel
             {
-                Id = "mock-admin-001",
-                UserName = "admin",
-                FirstName = "Admin",
-                LastName = "User",
-                Email = "admin@example.com",
-                PhoneNumber = "+90 555 123 4567",
-                UserRole = "Süper Admin",
-                CreatedDate = new DateTime(2024, 1, 1),
-                TwoFactorEnabled = has2FA
+                Id = user.Id.ToString(),
+                UserName = user.Email, // Using email as username
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber > 0 ? $"+90 {user.PhoneNumber}" : "",
+                UserRole = user.UserRole?.ToString() ?? "User",
+                CreatedDate = user.CreatedDate,
+                TwoFactorEnabled = user.TotpSecret != null && user.TotpSecret.Length > 0
             };
 
             return View(model);
@@ -31,17 +43,19 @@ namespace WebApplication1.Controllers
         // GET: Account/EditProfile
         public IActionResult EditProfile()
         {
-            // Check 2FA status from session
-            var totpSecret = HttpContext.Session.GetString("adminTotpSecret");
-            var has2FA = !string.IsNullOrEmpty(totpSecret);
+            var user = this.GetUserFromHttpContext();
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             
             var model = new EditProfileViewModel
             {
-                FirstName = "Admin",
-                LastName = "User",
-                Email = "admin@example.com",
-                PhoneNumber = "+90 555 123 4567",
-                TwoFactorEnabled = has2FA
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber > 0 ? user.PhoneNumber.ToString() : "",
+                TotpEnabled = user.TotpSecret != null && user.TotpSecret.Length > 0
             };
 
             return View(model);
@@ -57,27 +71,36 @@ namespace WebApplication1.Controllers
                 return View(model);
             }
 
-            // Handle 2FA toggle - can only be disabled, not re-enabled
-            var currentTotpSecret = HttpContext.Session.GetString("adminTotpSecret");
-            var current2FA = !string.IsNullOrEmpty(currentTotpSecret);
-            
-            if (!model.TwoFactorEnabled && current2FA)
+            var user = this.GetUserFromHttpContext();
+            if (user == null)
             {
-                // Disable 2FA - permanent action
-                HttpContext.Session.Remove("adminTotpSecret");
-                TempData["Success"] = "İki faktörlü doğrulama kalıcı olarak devre dışı bırakıldı.";
-            }
-            else if (model.TwoFactorEnabled && !current2FA)
-            {
-                // Cannot re-enable 2FA once disabled
-                TempData["Error"] = "İki faktörlü doğrulama bir kez devre dışı bırakıldıktan sonra tekrar etkinleştirilemez.";
-                return RedirectToAction(nameof(Profile));
-            }
-            else
-            {
-                TempData["Success"] = "Profil bilgileriniz başarıyla güncellendi.";
+                return RedirectToAction("Index", "Home");
             }
 
+            // Update user properties
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            user.Email = model.Email;
+            
+            // Parse phone number
+            if (!string.IsNullOrEmpty(model.PhoneNumber))
+            {
+                // Remove all non-numeric characters
+                var cleanPhone = new string(model.PhoneNumber.Where(char.IsDigit).ToArray());
+                if (long.TryParse(cleanPhone, out long phoneNumber))
+                {
+                    user.PhoneNumber = phoneNumber;
+                }
+            }
+
+            // Save to database
+            _context.ApplicationUsers.Update(user);
+            _context.SaveChanges();
+
+            // Update session
+            this.SaveUserToHttpContext(user);
+
+            TempData["Success"] = "Profil bilgileriniz başarıyla güncellendi.";
             return RedirectToAction(nameof(Profile));
         }
 
@@ -86,20 +109,22 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Logout()
         {
-            HttpContext.Session.Keys.Where(key => key != "adminPassword" && key != "adminTotpSecret").ToList().ForEach(key => HttpContext.Session.Remove(key));
+            HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
         }
 
         // GET: Account/Settings
         public IActionResult Settings()
         {
-            // Check 2FA status from session
-            var totpSecret = HttpContext.Session.GetString("adminTotpSecret");
-            var has2FA = !string.IsNullOrEmpty(totpSecret);
+            var user = this.GetUserFromHttpContext();
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             
             var model = new UserSettingsViewModel
             {
-                TwoFactorEnabled = has2FA,
+                TwoFactorEnabled = user.TotpSecret != null && user.TotpSecret.Length > 0,
                 EmailNotifications = true,
                 SmsNotifications = false
             };
@@ -107,18 +132,108 @@ namespace WebApplication1.Controllers
             return View(model);
         }
 
+        // POST: Account/Toggle2FA - Toggle 2FA on/off
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Toggle2FA()
+        {
+            var user = this.GetUserFromHttpContext();
+            if (user == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Check current 2FA status
+            bool has2FA = user.TotpSecret != null && user.TotpSecret.Length > 0;
+
+            if (has2FA)
+            {
+                // Disable 2FA
+                user.TotpSecret = null;
+                
+                // Save to database
+                _context.ApplicationUsers.Update(user);
+                _context.SaveChanges();
+                
+                // Update session
+                this.SaveUserToHttpContext(user);
+                
+                TempData["Success"] = "İki faktörlü doğrulama devre dışı bırakıldı.";
+                return RedirectToAction(nameof(Profile));
+            }
+            else
+            {
+                // Redirect to 2FA registration
+                return RedirectToAction("2FA_Register", "Home");
+            }
+        }
+
+        // POST: Account/Toggle2FAAsync - AJAX endpoint for toggling 2FA
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Toggle2FAAsync()
+        {
+            var user = this.GetUserFromHttpContext();
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Oturum bulunamadı." });
+            }
+
+            // Check current 2FA status
+            bool has2FA = user.TotpSecret != null && user.TotpSecret.Length > 0;
+
+            if (has2FA)
+            {
+                // Disable 2FA
+                user.TotpSecret = null;
+                
+                // Save to database
+                _context.ApplicationUsers.Update(user);
+                _context.SaveChanges();
+                
+                // Update session
+                this.SaveUserToHttpContext(user);
+                
+                return Json(new { 
+                    success = true, 
+                    message = "İki faktörlü doğrulama devre dışı bırakıldı.",
+                    twoFactorEnabled = false 
+                });
+            }
+            else
+            {
+                // Return redirect URL for 2FA registration
+                return Json(new { 
+                    success = true, 
+                    redirect = Url.Action("2FA_Register", "Home"),
+                    message = "2FA kayıt sayfasına yönlendiriliyorsunuz..."
+                });
+            }
+        }
+
         // POST: Account/Disable2FA - AJAX endpoint for disabling 2FA (one-way only)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Disable2FA()
         {
-            var current2FA = HttpContext.Session.GetString("adminTotpSecret");
+            var user = this.GetUserFromHttpContext();
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Oturum bulunamadı." });
+            }
             
-            if (!string.IsNullOrEmpty(current2FA))
+            if (user.TotpSecret != null && user.TotpSecret.Length > 0)
             {
                 // Disable 2FA - one way only
-                HttpContext.Session.Remove("adminTotpSecret");
-                HttpContext.Session.SetString("2FADisabled", "true");
+                user.TotpSecret = null;
+                
+                // Save to database
+                _context.ApplicationUsers.Update(user);
+                _context.SaveChanges();
+                
+                // Update session
+                this.SaveUserToHttpContext(user);
+                
                 return Json(new { success = true, message = "İki faktörlü doğrulama kalıcı olarak devre dışı bırakıldı." });
             }
             else
@@ -127,15 +242,36 @@ namespace WebApplication1.Controllers
             }
         }
 
+        // GET: Account/Check2FAStatus - AJAX endpoint to check 2FA status
+        [HttpGet]
+        public IActionResult Check2FAStatus()
+        {
+            var user = this.GetUserFromHttpContext();
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Oturum bulunamadı." });
+            }
+
+            bool has2FA = user.TotpSecret != null && user.TotpSecret.Length > 0;
+            
+            return Json(new { 
+                success = true, 
+                twoFactorEnabled = has2FA 
+            });
+        }
+
         // POST: Account/QuickPasswordChange - AJAX endpoint for password change
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult QuickPasswordChange(string currentPassword, string newPassword)
         {
-            // Get current password from session or use default
-            var storedPassword = HttpContext.Session.GetString("adminPassword") ?? "admin123";
+            var user = this.GetUserFromHttpContext();
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Oturum bulunamadı." });
+            }
 
-            if (currentPassword != storedPassword)
+            if (currentPassword != user.Password)
             {
                 return Json(new { success = false, message = "Mevcut şifre yanlış." });
             }
@@ -145,14 +281,21 @@ namespace WebApplication1.Controllers
                 return Json(new { success = false, message = "Yeni şifre en az 6 karakter olmalıdır." });
             }
 
-            // Save new password to session
-            HttpContext.Session.SetString("adminPassword", newPassword);
+            // Update password
+            user.Password = newPassword;
+            
+            // Save to database
+            _context.ApplicationUsers.Update(user);
+            _context.SaveChanges();
+            
+            // Update session
+            this.SaveUserToHttpContext(user);
 
             return Json(new { success = true, message = "Şifreniz başarıyla değiştirildi." });
         }
     }
 
-    // ViewModels
+    // ViewModels remain the same
     public class UserProfileViewModel
     {
         public string Id { get; set; }
@@ -186,12 +329,10 @@ namespace WebApplication1.Controllers
         [Display(Name = "E-posta")]
         public string Email { get; set; }
 
-        [Phone(ErrorMessage = "Geçerli bir telefon numarası giriniz.")]
         [Display(Name = "Telefon Numarası")]
         public string PhoneNumber { get; set; }
 
-        [Display(Name = "İki Faktörlü Doğrulama")]
-        public bool TwoFactorEnabled { get; set; }
+        public bool TotpEnabled { get; set; }
     }
 
     public class ChangePasswordViewModel

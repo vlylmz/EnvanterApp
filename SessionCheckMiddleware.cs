@@ -1,3 +1,5 @@
+using WebApplication1.EnvanterLib;
+
 public class SessionCheckMiddleware
 {
     private readonly RequestDelegate _next;
@@ -11,15 +13,17 @@ public class SessionCheckMiddleware
     {
         var routeData = context.GetRouteData();
         var controller = routeData.Values["controller"]?.ToString()?.ToLower();
-        //var action = routeData.Values["action"]?.ToString()?.ToLower();
+        var action = routeData.Values["action"]?.ToString()?.ToLower();
 
-        if (controller == "login")
+        Console.WriteLine(controller + ":" + action);
+
+        if (controller == "login" && (action == "index" || action == "qrvalidate"))
         {
             await _next(context);
             return;
         }
 
-        if (context.Session.GetString("user") != "admin")
+        if (EnvanterLib.GetUserFromHttpContext(context) == null)
         {
             context.Response.Redirect("/Login/Index");
             return;

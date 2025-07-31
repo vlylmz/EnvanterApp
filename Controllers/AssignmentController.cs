@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.IO;
+using WebApplication1.EnvanterLib;
 
 namespace WebApplication1.Controllers
 {
@@ -299,7 +300,7 @@ namespace WebApplication1.Controllers
 
                 // Zimmet işlemi
                 var personnelName = $"{employee.FirstName} {employee.LastName}";
-                product.AssignToPersonnel(personnelName, User.Identity.Name ?? "System");
+                product.AssignToPersonnel(personnelName, this.GetUserFromHttpContext()!.Email ?? "System");
 
                 await _context.SaveChangesAsync();
 
@@ -349,7 +350,7 @@ namespace WebApplication1.Controllers
                 var previousPersonnel = product.AssignedPersonnel;
 
                 // İade işlemi
-                product.ReturnFromAssignment(User.Identity.Name ?? "System");
+                product.ReturnFromAssignment(this.GetUserFromHttpContext()!.Email ?? "System");
 
                 await _context.SaveChangesAsync();
 
@@ -415,8 +416,8 @@ namespace WebApplication1.Controllers
                     }
 
                     // Zimmet ver
-                    product.AssignToPersonnel(personnelName, User.Identity.Name ?? "System");
-                    successProducts.Add(product.Name);
+                    product.AssignToPersonnel(personnelName, this.GetUserFromHttpContext()!.Email ?? "System");
+                    successProducts.Add(product.Name!);
                     successCount++;
                 }
 
@@ -587,12 +588,12 @@ namespace WebApplication1.Controllers
                 .Select(i => new AssignmentHistoryViewModel
                 {
                     Id = i.Id,
-                    ProductName = i.Name,
-                    SystemBarcode = i.SystemBarcode,
-                    AssignedPersonnel = i.AssignedPersonnel,
+                    ProductName = i.Name!,
+                    SystemBarcode = i.SystemBarcode!,
+                    AssignedPersonnel = i.AssignedPersonnel!,
                     AssignmentDate = i.AssignmentDate,
-                    AssignmentStatus = i.AssignmentStatus,
-                    Category = i.Category
+                    AssignmentStatus = i.AssignmentStatus!,
+                    Category = i.Category!
                 })
                 .ToListAsync();
 
@@ -650,10 +651,10 @@ namespace WebApplication1.Controllers
                 // Veri satırları
                 foreach (var item in items)
                 {
-                    csv.AppendLine($"{EscapeCsvField(item.Name)}," +
-                                  $"{EscapeCsvField(item.SystemBarcode)}," +
-                                  $"{EscapeCsvField(item.Category)}," +
-                                  $"{EscapeCsvField(item.AssignmentStatus)}," +
+                    csv.AppendLine($"{EscapeCsvField(item.Name!)}," +
+                                  $"{EscapeCsvField(item.SystemBarcode!)}," +
+                                  $"{EscapeCsvField(item.Category!)}," +
+                                  $"{EscapeCsvField(item.AssignmentStatus!)}," +
                                   $"{EscapeCsvField(item.AssignedPersonnel ?? "-")}," +
                                   $"{item.AssignmentDate?.ToString("dd.MM.yyyy") ?? "-"}," +
                                   $"{item.UnitPrice ?? 0}," +
@@ -691,7 +692,7 @@ namespace WebApplication1.Controllers
                 .GroupBy(i => i.AssignedPersonnel)
                 .Select(g => new PersonnelAssignmentViewModel
                 {
-                    PersonnelName = g.Key,
+                    PersonnelName = g.Key!,
                     AssignedItems = g.ToList(),
                     ItemCount = g.Count(),
                     TotalValue = g.Sum(i => i.UnitPrice ?? 0),
@@ -729,7 +730,7 @@ namespace WebApplication1.Controllers
                     .GroupBy(i => i.AssignedPersonnel)
                     .Select(g => new TopPersonnelViewModel
                     {
-                        PersonnelName = g.Key,
+                        PersonnelName = g.Key!,
                         ItemCount = g.Count(),
                         TotalValue = g.Sum(i => i.UnitPrice ?? 0)
                     })
@@ -742,7 +743,7 @@ namespace WebApplication1.Controllers
                     .GroupBy(i => i.Category)
                     .Select(g => new CategoryAssignmentViewModel
                     {
-                        Category = g.Key,
+                        Category = g.Key!,
                         AssignedCount = g.Count(),
                         TotalCount = _context.Items.Count(i => i.Category == g.Key && i.IsActive)
                     })
@@ -758,24 +759,24 @@ namespace WebApplication1.Controllers
     public class ValidationResult
     {
         public bool IsValid { get; set; }
-        public string ErrorMessage { get; set; }
+        public string ErrorMessage { get; set; } = null!;
     }
 
     // ViewModel sınıfları
     public class ItemDisplayViewModel
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string SystemBarcode { get; set; }
-        public string Category { get; set; }
-        public string AssignmentStatus { get; set; }
-        public string AssignedPersonnel { get; set; }
+        public string Name { get; set; } = null!;
+        public string SystemBarcode { get; set; } = null!;
+        public string Category { get; set; } = null!;
+        public string AssignmentStatus { get; set; } = null!;
+        public string AssignedPersonnel { get; set; } = null!;
         public DateTime? AssignmentDate { get; set; }
         public decimal? UnitPrice { get; set; }
         public bool IsCriticalLevel { get; set; }
-        public string Description { get; set; }
+        public string Description { get; set; } = null!;
         public bool IsActive { get; set; }
-        public string CompanyName { get; set; }
+        public string CompanyName { get; set; } = null!;
 
         // Company özelliği için mock obje
         public CompanyViewModel Company => new CompanyViewModel { Name = CompanyName };
@@ -783,24 +784,24 @@ namespace WebApplication1.Controllers
 
     public class CompanyViewModel
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
     }
 
     public class AssignmentHistoryViewModel
     {
         public int Id { get; set; }
-        public string ProductName { get; set; }
-        public string SystemBarcode { get; set; }
-        public string AssignedPersonnel { get; set; }
+        public string ProductName { get; set; } = null!;
+        public string SystemBarcode { get; set; } = null!;
+        public string AssignedPersonnel { get; set; } = null!;
         public DateTime? AssignmentDate { get; set; }
-        public string AssignmentStatus { get; set; }
-        public string Category { get; set; }
+        public string AssignmentStatus { get; set; } = null!;
+        public string Category { get; set; } = null!;
     }
 
     public class PersonnelAssignmentViewModel
     {
-        public string PersonnelName { get; set; }
-        public List<ItemModel> AssignedItems { get; set; }
+        public string PersonnelName { get; set; } = null!;
+        public List<ItemModel> AssignedItems { get; set; } = null!;
         public int ItemCount { get; set; }
         public decimal TotalValue { get; set; }
         public DateTime? LastAssignmentDate { get; set; }
@@ -815,22 +816,22 @@ namespace WebApplication1.Controllers
         public int LostItems { get; set; }
         public int ThisMonthAssignments { get; set; }
         public int CriticalAssignedItems { get; set; }
-        public List<TopPersonnelViewModel> TopPersonnel { get; set; }
-        public List<CategoryAssignmentViewModel> CategoryAssignments { get; set; }
+        public List<TopPersonnelViewModel> TopPersonnel { get; set; } = null!;
+        public List<CategoryAssignmentViewModel> CategoryAssignments { get; set; } = null!;
 
         public double AssignmentRate => TotalItems > 0 ? (double)AssignedItems / TotalItems * 100 : 0;
     }
 
     public class TopPersonnelViewModel
     {
-        public string PersonnelName { get; set; }
+        public string PersonnelName { get; set; } = null!;
         public int ItemCount { get; set; }
         public decimal TotalValue { get; set; }
     }
 
     public class CategoryAssignmentViewModel
     {
-        public string Category { get; set; }
+        public string Category { get; set; } = null!;
         public int AssignedCount { get; set; }
         public int TotalCount { get; set; }
         public double AssignmentRate => TotalCount > 0 ? (double)AssignedCount / TotalCount * 100 : 0;
@@ -840,18 +841,18 @@ namespace WebApplication1.Controllers
 public class AssignmentHistoryViewModel
 {
     public int Id { get; set; }
-    public string ProductName { get; set; }
-    public string SystemBarcode { get; set; }
-    public string AssignedPersonnel { get; set; }
+    public string ProductName { get; set; } = null!;
+    public string SystemBarcode { get; set; } = null!;
+    public string AssignedPersonnel { get; set; } = null!;
     public DateTime? AssignmentDate { get; set; }
-    public string AssignmentStatus { get; set; }
-    public string Category { get; set; }
+    public string AssignmentStatus { get; set; } = null!;
+    public string Category { get; set; } = null!;
 }
 
 public class PersonnelAssignmentViewModel
 {
-    public string PersonnelName { get; set; }
-    public List<ItemModel> AssignedItems { get; set; }
+    public string PersonnelName { get; set; } = null!;
+    public List<ItemModel> AssignedItems { get; set; } = null!;
     public int ItemCount { get; set; }
     public decimal TotalValue { get; set; }
     public DateTime? LastAssignmentDate { get; set; }
@@ -866,22 +867,22 @@ public class AssignmentReportViewModel
     public int LostItems { get; set; }
     public int ThisMonthAssignments { get; set; }
     public int CriticalAssignedItems { get; set; }
-    public List<TopPersonnelViewModel> TopPersonnel { get; set; }
-    public List<CategoryAssignmentViewModel> CategoryAssignments { get; set; }
+    public List<TopPersonnelViewModel> TopPersonnel { get; set; } = null!;
+    public List<CategoryAssignmentViewModel> CategoryAssignments { get; set; } = null!;
 
     public double AssignmentRate => TotalItems > 0 ? (double)AssignedItems / TotalItems * 100 : 0;
 }
 
 public class TopPersonnelViewModel
 {
-    public string PersonnelName { get; set; }
+    public string PersonnelName { get; set; } = null!;
     public int ItemCount { get; set; }
     public decimal TotalValue { get; set; }
 }
 
 public class CategoryAssignmentViewModel
 {
-    public string Category { get; set; }
+    public string Category { get; set; } = null!;
     public int AssignedCount { get; set; }
     public int TotalCount { get; set; }
     public double AssignmentRate => TotalCount > 0 ? (double)AssignedCount / TotalCount * 100 : 0;

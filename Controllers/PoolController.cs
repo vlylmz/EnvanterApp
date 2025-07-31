@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using System.Text;
+using WebApplication1.EnvanterLib;
 
 namespace WebApplication1.Controllers
 {
@@ -171,7 +172,7 @@ namespace WebApplication1.Controllers
                     computer.AssignedEmployeeId = employeeId;
                     computer.Status = ComputerStatus.Zimmetli;
                     computer.LastUpdatedDate = DateTime.UtcNow;
-                    computer.LastUpdatedBy = User.Identity?.Name ?? "System";
+                    computer.LastUpdatedBy = this.GetUserFromHttpContext()!.Email ?? "Unknown";
                 }
 
                 await _context.SaveChangesAsync();
