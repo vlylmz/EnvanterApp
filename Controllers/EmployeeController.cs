@@ -173,18 +173,20 @@ public async Task<IActionResult> Delete(int id)
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Employee model)
+        public async Task<IActionResult> Edit(int id, Employee employeeEditForm)
         {
-            if (id != model.Id)
+            if (id != employeeEditForm.Id)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
+
+
                 try
                 {
-                    _context.Update(model);
+                    _context.Update(employeeEditForm);
                     await _context.SaveChangesAsync();
 
                     // LOG EKLENDİ
@@ -192,7 +194,8 @@ public async Task<IActionResult> Delete(int id)
 
                     if (!string.IsNullOrEmpty(userId))
                     {
-                        await _activityLogger.LogAsync(userId, "Çalışan güncellendi", "Employee", model.Id);
+
+                        await _activityLogger.LogAsync(userId, "Çalışan güncellendi", "Employee", employeeEditForm.Id);
                     }
 
                     TempData["Success"] = "Çalışan başarıyla güncellendi!";
@@ -200,7 +203,7 @@ public async Task<IActionResult> Delete(int id)
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!_context.Employees.Any(e => e.Id == model.Id))
+                    if (!_context.Employees.Any(e => e.Id == employeeEditForm.Id))
                     {
                         return NotFound();
                     }
@@ -210,10 +213,9 @@ public async Task<IActionResult> Delete(int id)
                     }
                 }
             }
-
             // Re-populate dropdown on error
-            ViewBag.CompanyId = new SelectList(_context.Companies, "Id", "Name", model.CompanyId);
-            return View(model);
+            ViewBag.CompanyId = new SelectList(_context.Companies, "Id", "Name", employeeEditForm.CompanyId);
+            return View(employeeEditForm);
         }
     }
 }

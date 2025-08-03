@@ -305,6 +305,7 @@
                                     <div class="user-avatar">
                                         @((log.User?.Email ?? "?").Substring(0, 1).ToUpper())
                                     </div>
+                                    @(log.User?.FirstName ?? "fn Bilinmiyor") @(log.User?.LastName ?? "ln bilinmiyor") @(log.User?.UserRole.ToString() ?? "Rol Bilinmiyor") 
                                     @(log.User?.Email ?? "Bilinmiyor")
                                 </div>
                             </td>
