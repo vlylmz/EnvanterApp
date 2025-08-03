@@ -103,7 +103,7 @@ public async Task<IActionResult> Create(Computer computer)
             if (!string.IsNullOrEmpty(userId))
             {
                 var detail = LogHelper.GetSummary(computer);
-                await _activityLogger.LogAsync(userId, "Bilgisayar oluşturuldu", "Computer", computer.Id, detail);
+                await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Bilgisayar oluşturuldu", "Computer", computer.Id, detail);
             }
 
             TempData["Success"] = "Bilgisayar başarıyla eklendi.";
@@ -181,7 +181,7 @@ public async Task<IActionResult> Edit(int id, Computer computer)
             if (!string.IsNullOrEmpty(userId))
             {
                 var detail = LogHelper.GetDifferences(original, computer);
-                await _activityLogger.LogAsync(userId, "Bilgisayar güncellendi", "Computer", computer.Id, detail);
+                await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Bilgisayar güncellendi", "Computer", computer.Id, detail);
             }
 
             TempData["Success"] = "Bilgisayar başarıyla güncellendi.";
@@ -244,7 +244,7 @@ public async Task<IActionResult> DeleteConfirmed(int id)
         if (!string.IsNullOrEmpty(userId))
         {
             var detail = $"Bilgisayar pasife alındı (ID: {computer.Id}, Ad: {computer.Name})";
-            await _activityLogger.LogAsync(userId, "Bilgisayar pasife alındı", "Computer", computer.Id, detail);
+            await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Bilgisayar pasife alındı", "Computer", computer.Id, detail);
         }
 
         TempData["Success"] = "Bilgisayar başarıyla pasif duruma alındı.";

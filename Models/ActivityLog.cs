@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebApplication1.Models
 {
@@ -7,7 +8,7 @@ namespace WebApplication1.Models
         public int Id { get; set; }
 
         [Required]
-        public string UserId { get; set; } = null!;
+        public int UserId { get; set; }
 
         [Required]
         [StringLength(200)]
@@ -24,6 +25,7 @@ namespace WebApplication1.Models
         [StringLength(1000)] 
         public string? Detail { get; set; }
 
+        [ForeignKey("UserId")]
         public ApplicationUser? User { get; set; }  // Navigation property
     }
 }

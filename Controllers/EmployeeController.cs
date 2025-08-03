@@ -85,7 +85,7 @@ namespace WebApplication1.Controllers
 
                     if (!string.IsNullOrEmpty(userId))
                     {
-                        await _activityLogger.LogAsync(userId, "Çalışan oluşturuldu", "Employee", model.Id);
+                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan oluşturuldu", "Employee", model.Id);
                     }
 
                     TempData["Success"] = "Calisan basariyla eklendi!";
@@ -126,7 +126,7 @@ public async Task<IActionResult> Delete(int id)
             if (!string.IsNullOrEmpty(userId))
             {
                 var detail = $"Pasif duruma geçirildi: {emp.FirstName} {emp.LastName}, Email: {emp.Email}";
-                await _activityLogger.LogAsync(userId, "Çalışan pasifleştirildi", "Employee", emp.Id, detail);
+                await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan pasifleştirildi", "Employee", emp.Id, detail);
             }
 
             TempData["Success"] = "Çalışan başarıyla pasifleştirildi!";
@@ -195,7 +195,7 @@ public async Task<IActionResult> Delete(int id)
                     if (!string.IsNullOrEmpty(userId))
                     {
 
-                        await _activityLogger.LogAsync(userId, "Çalışan güncellendi", "Employee", employeeEditForm.Id);
+                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan güncellendi", "Employee", employeeEditForm.Id);
                     }
 
                     TempData["Success"] = "Çalışan başarıyla güncellendi!";

@@ -308,7 +308,7 @@ namespace WebApplication1.Controllers
                                  $"Kategori: {product.Category}\n" +
                                  $"Zimmet Edilen: {personnelName}\n" +
                                  $"Zimmet Tarihi: {DateTime.Now:dd.MM.yyyy HH:mm}";
-                    await _activityLogger.LogAsync(userId, "Zimmet verildi", "Item", product.Id, detail);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Zimmet verildi", "Item", product.Id, detail);
                 }
 
                 return Json(new
@@ -365,7 +365,7 @@ namespace WebApplication1.Controllers
                                  $"İade Eden: {previousPersonnel}\n" +
                                  $"İade Nedeni: {returnReason}\n" +
                                  $"İade Tarihi: {DateTime.Now:dd.MM.yyyy HH:mm}";
-                    await _activityLogger.LogAsync(userId, "Zimmet iade alındı", "Item", product.Id, detail);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Zimmet iade alındı", "Item", product.Id, detail);
                 }
 
                 return Json(new
@@ -443,7 +443,7 @@ namespace WebApplication1.Controllers
                                      $"Kategori: {product.Category}\n" +
                                      $"Zimmet Edilen: {personnelName}\n" +
                                      $"Zimmet Tarihi: {DateTime.Now:dd.MM.yyyy HH:mm}";
-                        await _activityLogger.LogAsync(userId, "Toplu zimmet verildi", "Item", product.Id, detail);
+                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception()   , "Toplu zimmet verildi", "Item", product.Id, detail);
                     }
                 }
 
@@ -525,7 +525,7 @@ namespace WebApplication1.Controllers
                                  $"Durum: {oldStatus} → {newStatus}\n" +
                                  $"Açıklama: {reason}\n" +
                                  $"Tarih: {DateTime.Now:dd.MM.yyyy HH:mm}";
-                    await _activityLogger.LogAsync(userId, "Durum güncellendi", "Item", product.Id, detail);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Durum güncellendi", "Item", product.Id, detail);
                 }
 
                 return Json(new

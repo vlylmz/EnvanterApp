@@ -27,10 +27,10 @@ namespace WebApplication1.Controllers
             var model = new UserProfileViewModel
             {
                 Id = user.Id.ToString(),
-                UserName = user.Email, // Using email as username
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
+                UserName = user.Email!, // Using email as username
+                FirstName = user.FirstName!,
+                LastName = user.LastName!,
+                Email = user.Email!,
                 PhoneNumber = user.PhoneNumber > 0 ? $"+90 {user.PhoneNumber}" : "",
                 UserRole = user.UserRole?.ToString() ?? "User",
                 CreatedDate = user.CreatedDate,
@@ -51,9 +51,9 @@ namespace WebApplication1.Controllers
             
             var model = new EditProfileViewModel
             {
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
+                FirstName = user.FirstName!,
+                LastName = user.LastName!,
+                Email = user.Email!,
                 PhoneNumber = user.PhoneNumber > 0 ? user.PhoneNumber.ToString() : "",
                 TotpEnabled = user.TotpSecret != null && user.TotpSecret.Length > 0
             };
@@ -298,13 +298,13 @@ namespace WebApplication1.Controllers
     // ViewModels remain the same
     public class UserProfileViewModel
     {
-        public string Id { get; set; }
-        public string UserName { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string PhoneNumber { get; set; }
-        public string UserRole { get; set; }
+        public string? Id { get; set; }
+        public string? UserName { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? UserRole { get; set; }
         public DateTime CreatedDate { get; set; }
         public bool TwoFactorEnabled { get; set; }
 
@@ -316,21 +316,21 @@ namespace WebApplication1.Controllers
         [Required(ErrorMessage = "Ad alanı zorunludur.")]
         [MaxLength(50)]
         [Display(Name = "Ad")]
-        public string FirstName { get; set; }
+        public string? FirstName { get; set; }
 
         [Required(ErrorMessage = "Soyad alanı zorunludur.")]
         [MaxLength(50)]
         [Display(Name = "Soyad")]
-        public string LastName { get; set; }
+        public string? LastName { get; set; }
 
         [Required(ErrorMessage = "E-posta alanı zorunludur.")]
         [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi giriniz.")]
         [MaxLength(100)]
         [Display(Name = "E-posta")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Display(Name = "Telefon Numarası")]
-        public string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
 
         public bool TotpEnabled { get; set; }
     }
@@ -340,18 +340,18 @@ namespace WebApplication1.Controllers
         [Required(ErrorMessage = "Mevcut şifre alanı zorunludur.")]
         [DataType(DataType.Password)]
         [Display(Name = "Mevcut Şifre")]
-        public string CurrentPassword { get; set; }
+        public string? CurrentPassword { get; set; }
 
         [Required(ErrorMessage = "Yeni şifre alanı zorunludur.")]
         [StringLength(100, ErrorMessage = "{0} en az {2} ve en fazla {1} karakter uzunluğunda olmalıdır.", MinimumLength = 6)]
         [DataType(DataType.Password)]
         [Display(Name = "Yeni Şifre")]
-        public string NewPassword { get; set; }
+        public string? NewPassword { get; set; }
 
         [DataType(DataType.Password)]
         [Display(Name = "Yeni Şifre (Tekrar)")]
         [Compare("NewPassword", ErrorMessage = "Yeni şifre ve onay şifresi eşleşmiyor.")]
-        public string ConfirmPassword { get; set; }
+        public string? ConfirmPassword { get; set; }
     }
 
     public class UserSettingsViewModel

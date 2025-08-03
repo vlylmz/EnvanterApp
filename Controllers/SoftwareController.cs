@@ -71,7 +71,7 @@ namespace WebApplication1.Controllers
                 if (!string.IsNullOrEmpty(userId))
                 {
                     var detail = LogHelper.GetSummary(software);
-                    await _activityLogger.LogAsync(userId, "Yazılım oluşturuldu", "Software", software.Id, detail);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Yazılım oluşturuldu", "Software", software.Id, detail);
                 }
 
                 TempData["SuccessMessage"] = "Yazılım lisansı başarıyla eklendi.";
@@ -126,7 +126,7 @@ namespace WebApplication1.Controllers
                 if (!string.IsNullOrEmpty(userId))
                 {
                     var detail = LogHelper.GetDifferences(original, software);
-                    await _activityLogger.LogAsync(userId, "Yazılım güncellendi", "Software", software.Id, detail);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Yazılım güncellendi", "Software", software.Id, detail);
                 }
 
                 TempData["SuccessMessage"] = "Yazılım lisansı başarıyla güncellendi.";
@@ -157,7 +157,7 @@ public async Task<IActionResult> Delete(int id)
     if (!string.IsNullOrEmpty(userId))
     {
         var detail = LogHelper.GetSummary(software);
-        await _activityLogger.LogAsync(userId, "Yazılım silindi (pasife alındı)", "Software", software.Id, detail);
+        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Yazılım silindi (pasife alındı)", "Software", software.Id, detail);
     }
 
     TempData["SuccessMessage"] = "Yazılım başarıyla pasif duruma alındı.";

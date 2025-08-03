@@ -115,7 +115,7 @@ namespace WebApplication1.Controllers
 
                     if (!string.IsNullOrEmpty(userId))
                     {
-                        await _activityLogger.LogAsync(userId, "Ürün oluşturuldu", "Item", item.Id);
+                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Ürün oluşturuldu", "Item", item.Id);
                     }
 
                     TempData["Success"] = "Urun basariyla olusturuldu!";
@@ -201,7 +201,7 @@ namespace WebApplication1.Controllers
 
                     if (!string.IsNullOrEmpty(userId))
                     {
-                        await _activityLogger.LogAsync(userId, "Ürün güncellendi", "Item", item.Id);
+                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Ürün güncellendi", "Item", item.Id);
                     }
 
                     TempData["Success"] = "Urun basariyla guncellendi!";
@@ -269,7 +269,7 @@ public async Task<IActionResult> DeleteConfirmed(int id)
 
             if (!string.IsNullOrEmpty(userId))
             {
-                await _activityLogger.LogAsync(userId, "Ürün pasif hale getirildi (soft delete)", "Item", item.Id);
+                await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Ürün pasif hale getirildi (soft delete)", "Item", item.Id);
             }
 
             TempData["Success"] = "Ürün başarıyla pasif hale getirildi!";
@@ -302,7 +302,7 @@ public async Task<IActionResult> DeleteConfirmed(int id)
 
                     if (!string.IsNullOrEmpty(userId))
                     {
-                        await _activityLogger.LogAsync(userId, $"Ürün {personnel} adlı personele zimmetlendi", "Item", item.Id);
+                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), $"Ürün {personnel} adlı personele zimmetlendi", "Item", item.Id);
                     }
 
                     TempData["Success"] = $"Ürün {personnel} adlı personele zimmet verildi!";
@@ -335,7 +335,7 @@ public async Task<IActionResult> DeleteConfirmed(int id)
 
                     if (!string.IsNullOrEmpty(userId))
                     {
-                        await _activityLogger.LogAsync(userId, $"Ürün {previousPersonnel} adlı personelden iade alındı", "Item", item.Id);
+                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), $"Ürün {previousPersonnel} adlı personelden iade alındı", "Item", item.Id);
                     }
 
                     TempData["Success"] = "Ürün zimmet iadesi yapıldı!";

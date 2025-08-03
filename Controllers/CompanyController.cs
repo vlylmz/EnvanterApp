@@ -96,7 +96,7 @@ namespace WebApplication1.Controllers
                         if (!string.IsNullOrEmpty(userId))
                         {
                             var detail = LogHelper.GetSummary(model);
-                            await _activityLogger.LogAsync(userId, "Firma oluşturuldu", "Company", model.Id, detail);
+                            await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Firma oluşturuldu", "Company", model.Id, detail);
                         }
 
                         HttpContext.Session.SetString("successMessage", "Şirket başarıyla eklendi.");
@@ -156,7 +156,7 @@ namespace WebApplication1.Controllers
                     if (!string.IsNullOrEmpty(userId))
                     {
                         var detail = LogHelper.GetDifferences(original, model);
-                        await _activityLogger.LogAsync(userId, "Firma güncellendi", "Company", model.Id, detail);
+                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Firma güncellendi", "Company", model.Id, detail);
                     }
 
                     TempData["Success"] = "Şirket başarıyla güncellendi.";
@@ -208,7 +208,7 @@ namespace WebApplication1.Controllers
                 if (!string.IsNullOrEmpty(userId))
                 {
                     var detail = LogHelper.GetSummary(company);
-                    await _activityLogger.LogAsync(userId, "Firma pasife alındı", "Company", id, detail);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Firma pasife alındı", "Company", id, detail);
                 }
 
                 HttpContext.Session.SetString("successMessage", "Şirket başarıyla pasife alındı.");
