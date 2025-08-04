@@ -26,11 +26,17 @@ namespace WebApplication1.Controllers
         // GET: Computers
         public async Task<IActionResult> Index()
         {
-            var computers = await _context.Computers
+            /*var computers = await _context.Computers
                 .Where(c => c.IsActive) 
                 .Include(c => c.Company)
                 .Include(c => c.AssignedEmployee)
+                .ToListAsync();*/
+
+            var computers = await _context.Computers
+                .Include(c => c.Company)
+                .Include(c => c.AssignedEmployee)
                 .ToListAsync();
+
 
             return View(computers);
         }

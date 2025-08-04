@@ -4,6 +4,7 @@
     ViewData["Title"] = "Firma Detayları";
     ViewBag.Title = "Firma";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    int computerCount = 0;
 }
 
 <div class="container-fluid mt-4">
@@ -455,7 +456,15 @@
                 aria-expanded="false" aria-controls="collapseComputers">
             <i class="fas fa-laptop me-2 text-success"></i>
             <strong>Bilgisayarlar</strong>
-            <span class="badge bg-success rounded-pill ms-2">@Model.Computers.Count</span>
+            @if(Model.Computers.Any())
+            {
+                computerCount = 0;
+                @foreach(var computer in Model.Computers)
+                {
+                    if(computer.IsActive == true) computerCount++;
+                }
+            }
+            <span class="badge bg-success rounded-pill ms-2">@computerCount</span>
         </button>
         <a asp-controller="Computers" asp-action="Index" asp-route-companyId="@Model.Company.Id"
            class="btn btn-outline-primary btn-sm ms-3">
@@ -479,8 +488,10 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach (var computer in Model.Computers.Take(5))
+                                                    @foreach (var computer in Model.Computers.TakeLast(5))
                                                     {
+                                                        if(computer.IsActive == false) continue;
+
                                                         <tr>
                                                             <td><strong>@computer.Name</strong></td>
                                                             <td><code>@computer.AssetTag</code></td>
@@ -689,76 +700,129 @@
             </div>
 
             <!-- Activity Timeline - UPDATED SECTION -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0">
-                        <i class="fas fa-history text-primary me-2"></i>
-                        Firma Aktiviteleri
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="timeline-logs px-3 py-2">
-                        @if (Model.ActivityLogs != null && Model.ActivityLogs.Any())
-                        {
-                            @foreach (var log in Model.ActivityLogs)
-                            {
-                                <div class="log-entry border-bottom pb-2 mb-2">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <div class="fw-bold">
-                                                <i class="fas fa-info-circle text-secondary me-1"></i>
-                                                        <span>@log.Action</span>
-                                            </div>
-                                            @*@if (!string.IsNullOrEmpty(log.Detail))
-                                            {
-                                                <div class="text-muted small mt-1" style="white-space: pre-line;">@log.Detail</div>
-                                            }*@
-                                        </div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-1">
-                                        <div class="text-muted small">
-                                            <i class="fas fa-user me-1"></i>
-                                            @(log.User?.Email ?? "Bilinmiyor")
-                                        </div>
-                                        <div class="text-muted small">
-                                            <i class="fas fa-clock me-1"></i>
-                                            @log.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                                        </div>
-                                    </div>
+            <!-- Activity Timeline - Simplest Version -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0">
+            <i class="fas fa-history text-primary me-2"></i>
+            Firma Aktiviteleri
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="timeline-logs px-3 py-2">
+            @if (Model.ActivityLogs != null && Model.ActivityLogs.Any())
+            {
+                @foreach (var log in Model.ActivityLogs)
+                {
+                    var uniqueId = Guid.NewGuid().ToString("N");
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">
+                                    @switch(log.Action.ToUpper())
+                                    {
+                                        case "CREATE":
+                                            <i class="fas fa-plus-circle text-success me-1"></i>
+                                            <span>Firma oluşturuldu</span>
+                                            break;
+                                        case "UPDATE":
+                                            <i class="fas fa-edit text-warning me-1"></i>
+                                            <span>Firma güncellendi</span>
+                                            break;
+                                        case "DELETE":
+                                            <i class="fas fa-trash text-danger me-1"></i>
+                                            <span>Firma silindi</span>
+                                            break;
+                                        case "ACTIVATE":
+                                            <i class="fas fa-check-circle text-success me-1"></i>
+                                            <span>Firma aktif edildi</span>
+                                            break;
+                                        case "DEACTIVATE":
+                                            <i class="fas fa-times-circle text-secondary me-1"></i>
+                                            <span>Firma pasif edildi</span>
+                                            break;
+                                        case "ADD_EMPLOYEE":
+                                            <i class="fas fa-user-plus text-info me-1"></i>
+                                            <span>Çalışan eklendi</span>
+                                            break;
+                                        case "REMOVE_EMPLOYEE":
+                                            <i class="fas fa-user-minus text-warning me-1"></i>
+                                            <span>Çalışan çıkarıldı</span>
+                                            break;
+                                        case "ADD_COMPUTER":
+                                            <i class="fas fa-laptop text-primary me-1"></i>
+                                            <span>Bilgisayar eklendi</span>
+                                            break;
+                                        case "REMOVE_COMPUTER":
+                                            <i class="fas fa-laptop text-danger me-1"></i>
+                                            <span>Bilgisayar çıkarıldı</span>
+                                            break;
+                                        default:
+                                            <i class="fas fa-info-circle text-secondary me-1"></i>
+                                            <span>@log.Action</span>
+                                            break;
+                                    }
                                 </div>
-                            }
-                        }
-                        else
-                        {
-                            <!-- Fallback to showing basic information if no activity logs exist -->
-                            <div class="log-entry border-bottom pb-2 mb-2">
-                                <div class="fw-bold">Firma kaydı oluşturuldu</div>
-                                <div class="text-muted small">@Model.Company.CreatedDate.ToString("dd.MM.yyyy HH:mm")</div>
                             </div>
-                            @if (Model.Company.UpdatedDate != default(DateTime))
-                            {
-                                <div class="log-entry border-bottom pb-2 mb-2">
-                                    <div class="fw-bold">Firma bilgileri güncellendi</div>
-                                    <div class="text-muted small">@Model.Company.UpdatedDate.ToString("dd.MM.yyyy HH:mm")</div>
-                                </div>
-                            }
-                            <div class="log-entry pb-2 mb-2">
-                                <div class="fw-bold">Durum: @(Model.Company.IsActive ? "Aktif" : "Pasif")</div>
-                                <div class="text-muted small">Mevcut durum</div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <div class="text-muted small">
+                                <i class="fas fa-user me-1"></i>
+                                @(log.User?.Email ?? "Bilinmiyor")
+                            </div>
+                            <div class="text-muted small">
+                                <i class="fas fa-clock me-1"></i>
+                                @log.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(log.Detail))
+                        {
+                            <div class="mt-1">
+                                <a href="#" class="text-primary small" onclick="document.getElementById('@uniqueId').style.display='block'; this.style.display='none'; document.getElementById('hide-@uniqueId').style.display='inline'; return false;">
+                                    <i class="fas fa-eye me-1"></i>Detayları göster
+                                </a>
+                                <a href="#" id="hide-@uniqueId" class="text-primary small" style="display:none;" onclick="document.getElementById('@uniqueId').style.display='none'; this.style.display='none'; this.previousElementSibling.style.display='inline'; return false;">
+                                    <i class="fas fa-eye-slash me-1"></i>Detayları gizle
+                                </a>
+                            </div>
+                            <div id="@uniqueId" class="mt-2 p-2 bg-light rounded" style="display: none; border-left: 3px solid #007bff;">
+                                <small class="text-muted" style="white-space: pre-line;">@log.Detail</small>
                             </div>
                         }
                     </div>
-                    @if (Model.ActivityLogs != null && Model.ActivityLogs.Count >= 10)
-                    {
-                        <div class="text-center py-2 bg-light">
-                            <a asp-controller="ActivityLog" asp-action="Index" asp-route-entityType="Company" asp-route-entityId="@Model.Company.Id" 
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-list me-1"></i>Tüm Aktiviteleri Gör
-                            </a>
-                        </div>
-                    }
+                }
+            }
+            else
+            {
+                <!-- Fallback content remains the same -->
+                <div class="log-entry border-bottom pb-2 mb-2">
+                    <div class="fw-bold">Firma kaydı oluşturuldu</div>
+                    <div class="text-muted small">@Model.Company.CreatedDate.ToString("dd.MM.yyyy HH:mm")</div>
                 </div>
+                @if (Model.Company.UpdatedDate != default(DateTime))
+                {
+                    <div class="log-entry border-bottom pb-2 mb-2">
+                        <div class="fw-bold">Firma bilgileri güncellendi</div>
+                        <div class="text-muted small">@Model.Company.UpdatedDate.ToString("dd.MM.yyyy HH:mm")</div>
+                    </div>
+                }
+                <div class="log-entry pb-2 mb-2">
+                    <div class="fw-bold">Durum: @(Model.Company.IsActive ? "Aktif" : "Pasif")</div>
+                    <div class="text-muted small">Mevcut durum</div>
+                </div>
+            }
+        </div>
+        @if (Model.ActivityLogs != null && Model.ActivityLogs.Count >= 10)
+        {
+            <div class="text-center py-2 bg-light">
+                <a asp-controller="ActivityLog" asp-action="Index" asp-route-entityType="Company" asp-route-entityId="@Model.Company.Id" 
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i>Tüm Aktiviteleri Gör
+                </a>
             </div>
+        }
+    </div>
+</div>
 
             <!-- System Information -->
             <div class="card shadow-sm border-0 mb-4">
@@ -863,6 +927,18 @@
                     window.open('/Company/SummaryReport/@Model.Company.Id', '_blank');
                 }
             });
+        }
+
+        // Toggle detail function for activity logs
+        function toggleDetail(detailId) {
+            var element = document.getElementById(detailId);
+            if (element) {
+                if (element.style.display === 'none') {
+                    element.style.display = 'block';
+                } else {
+                    element.style.display = 'none';
+                }
+            }
         }
 
         // Auto expand first accordion if there are items
@@ -1005,6 +1081,16 @@
 
     .log-entry {
         animation: slideIn 0.3s ease-out;
+    }
+
+    /* Simple styles for clickable logs */
+    .log-entry.has-detail:hover {
+        background: #e3ebf6 !important;
+    }
+
+    .log-detail-content {
+        border-left: 3px solid #007bff;
+        background: #f0f4f8 !important;
     }
 
     .stat-item {
