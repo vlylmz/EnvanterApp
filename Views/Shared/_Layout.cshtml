@@ -13,12 +13,46 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.1/dist/sweetalert2.min.css" rel="stylesheet" />
     <link href="~/css/custom.css" rel="stylesheet" asp-append-version="true" />
+    
+    <style>
+        /* Ensure full height layout */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .layout-container {
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        .sidebar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 250px; /* Adjust this to match your sidebar width */
+            min-height: 100vh;
+        }
+        
+        /* If your sidebar has a different width, adjust the margin-left above */
+        /* Common sidebar widths are 200px, 250px, or 280px */
+    </style>
 </head>
 <body>
-    <div class="d-flex">
-        <partial name="~/Views/Shared/Partials/Sidebar.cshtml" />
+    <div class="layout-container">
+        <div class="sidebar-container">
+            <partial name="~/Views/Shared/Partials/Sidebar.cshtml" />
+        </div>
 
-        <div class="flex-grow-1">
+        <div class="main-content">
             <partial name="~/Views/Shared/Partials/Navbar.cshtml" />
 
             <main class="p-4">
