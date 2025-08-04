@@ -1,9 +1,11 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using WebApplication1.Data;
+using WebApplication1.Services;
 
 namespace WebApplication1.Models
 {
-    public class Company
+    public class Company : IHasLogs
     {
         public int Id { get; set; }
 
@@ -107,12 +109,19 @@ namespace WebApplication1.Models
         [MaxLength(20)]
         [Display(Name = "Yetkili Telefon")]
         public string? ContactPhone { get; set; }
-        
-        
+
+        public List<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
 
         // İlişkisel veriler için navigation properties
         // public virtual ICollection<Employee> Employees { get; set; }
         // public virtual ICollection<Product> Products { get; set; }
         // public virtual ICollection<Order> Orders { get; set; }
+
+        public void AddtoOwnLogs(ActivityLog log)
+        {
+            ActivityLogs.Add(log);
+        }
+
+
     }
 }

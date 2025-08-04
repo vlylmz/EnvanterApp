@@ -66,7 +66,12 @@ namespace WebApplication1.Controllers
                 Employees = await _context.Employees.Where(e => e.CompanyId == id).ToListAsync(),
                 Computers = await _context.Computers.Where(c => c.CompanyId == id).ToListAsync(),
                 Software = await _context.Software.Where(s => s.CompanyId == id).ToListAsync(),
-                Supplies = await _context.Supplies.Where(s => s.CompanyId == id).ToListAsync()
+                Supplies = await _context.Supplies.Where(s => s.CompanyId == id).ToListAsync(),
+                ActivityLogs = await _context.ActivityLogs
+                    .Where(l => l.EntityType == "Company" && l.EntityId == id)
+                    .Include(l => l.User)
+                    .OrderByDescending(l => l.CreatedDate)
+                    .ToListAsync()
             };
 
             return View(viewModel); // ← sadece bunu düzelt!
@@ -97,6 +102,7 @@ namespace WebApplication1.Controllers
                         {
                             var detail = LogHelper.GetSummary(model);
                             await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Firma oluşturuldu", "Company", model.Id, detail);
+
                         }
 
                         HttpContext.Session.SetString("successMessage", "Şirket başarıyla eklendi.");

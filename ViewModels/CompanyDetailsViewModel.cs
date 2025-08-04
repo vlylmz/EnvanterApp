@@ -10,5 +10,6 @@ namespace WebApplication1.ViewModels
         public List<Computer>? Computers { get; set; }
         public List<Software>? Software { get; set; }
         public List<Supply>? Supplies { get; set; }
+        public List<ActivityLog>? ActivityLogs { get; set; }
     }
 }

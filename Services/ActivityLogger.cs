@@ -14,7 +14,7 @@ namespace WebApplication1.Services
             _context = context;
         }
 
-        public async Task LogAsync(int userId, string action, string entityType, int entityId, string? detail = null)
+        public async Task LogAsync(int userId, string action, string entityType, int entityId, string? detail = null, IHasLogs? logToThisToo = null)
         {
             var log = new ActivityLog
             {
@@ -27,6 +27,7 @@ namespace WebApplication1.Services
             };
 
             _context.ActivityLogs.Add(log);
+            logToThisToo?.AddtoOwnLogs(log);
             await _context.SaveChangesAsync();
         }
     }

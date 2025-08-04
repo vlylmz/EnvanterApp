@@ -35,6 +35,9 @@ namespace WebApplication1.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
@@ -54,6 +57,8 @@ namespace WebApplication1.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("UserId");
 
@@ -576,6 +581,10 @@ namespace WebApplication1.Migrations
 
             modelBuilder.Entity("WebApplication1.Models.ActivityLog", b =>
                 {
+                    b.HasOne("WebApplication1.Models.Company", null)
+                        .WithMany("ActivityLogs")
+                        .HasForeignKey("CompanyId");
+
                     b.HasOne("WebApplication1.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -626,6 +635,11 @@ namespace WebApplication1.Migrations
                     b.Navigation("AssignedEmployee");
 
                     b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Company", b =>
+                {
+                    b.Navigation("ActivityLogs");
                 });
 #pragma warning restore 612, 618
         }
