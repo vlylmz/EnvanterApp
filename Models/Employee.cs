@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using WebApplication1.Services;
 
 namespace WebApplication1.Models
 {
-    public class Employee
+    public class Employee : IHasLogs
     {
         public int Id { get; set; }
 
@@ -46,5 +47,13 @@ namespace WebApplication1.Models
         [StringLength(100)]
         [Display(Name = "Pozisyon")]
         public string? Position { get; set; }
+
+        /*public List<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
+
+        public void AddtoOwnLogs(ActivityLog log)
+        {
+            ActivityLogs.Add(log);
+        }*/
+
     }
 }

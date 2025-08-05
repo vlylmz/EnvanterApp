@@ -22,10 +22,18 @@ namespace WebApplication1.Models
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
-        [StringLength(1000)] 
+        [StringLength(1000)]
         public string? Detail { get; set; }
 
         [ForeignKey("UserId")]
         public ApplicationUser? User { get; set; }  // Navigation property
+
+
+        public void print()
+        {
+            Console.WriteLine("Action: " + Action + " Email: " + User!.Email);
+        }
+
+
     }
 }

@@ -66,13 +66,8 @@ namespace WebApplication1.Controllers
                 await _context.SaveChangesAsync();
 
                 // LOG
-                string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    var detail = LogHelper.GetSummary(software);
-                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Yazılım oluşturuldu", "Software", software.Id, detail);
-                }
+                var detail = LogHelper.GetSummary(software);
+                await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Yazılım oluşturuldu", "Software", software.Id, detail, software);
 
                 TempData["SuccessMessage"] = "Yazılım lisansı başarıyla eklendi.";
                 return RedirectToAction("Index");
@@ -121,13 +116,8 @@ namespace WebApplication1.Controllers
                 _context.Software.Update(software);
                 await _context.SaveChangesAsync();
 
-                string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    var detail = LogHelper.GetDifferences(original, software);
-                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Yazılım güncellendi", "Software", software.Id, detail);
-                }
+                var detail = LogHelper.GetDifferences(original, software);
+                await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Yazılım güncellendi", "Software", software.Id, detail, software);
 
                 TempData["SuccessMessage"] = "Yazılım lisansı başarıyla güncellendi.";
                 return RedirectToAction("Index");
@@ -152,13 +142,8 @@ public async Task<IActionResult> Delete(int id)
     await _context.SaveChangesAsync();
 
     // LOG
-    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-    if (!string.IsNullOrEmpty(userId))
-    {
-        var detail = LogHelper.GetSummary(software);
-        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Yazılım silindi (pasife alındı)", "Software", software.Id, detail);
-    }
+    var detail = LogHelper.GetSummary(software);
+    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Yazılım silindi (pasife alındı)", "Software", software.Id, detail, software);
 
     TempData["SuccessMessage"] = "Yazılım başarıyla pasif duruma alındı.";
     return RedirectToAction("Index");
@@ -173,6 +158,8 @@ public async Task<IActionResult> Delete(int id)
             var software = await _context.Software
                 .Include(s => s.AssignedEmployee)
                 .Include(s => s.Company)
+                .Include(c => c.ActivityLogs)
+                .ThenInclude(ct => ct.User)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (software == null)

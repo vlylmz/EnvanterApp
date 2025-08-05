@@ -110,17 +110,13 @@ namespace WebApplication1.Models
         [Display(Name = "Yetkili Telefon")]
         public string? ContactPhone { get; set; }
 
-        public List<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
+        /*public List<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
 
-        // İlişkisel veriler için navigation properties
-        // public virtual ICollection<Employee> Employees { get; set; }
-        // public virtual ICollection<Product> Products { get; set; }
-        // public virtual ICollection<Order> Orders { get; set; }
 
         public void AddtoOwnLogs(ActivityLog log)
         {
             ActivityLogs.Add(log);
-        }
+        }*/
 
 
     }

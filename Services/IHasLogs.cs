@@ -2,8 +2,12 @@ using WebApplication1.Models;
 
 namespace WebApplication1.Services
 {
-    public interface IHasLogs
+    public class IHasLogs
     {
-        void AddtoOwnLogs(ActivityLog log);
+        public List<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
+        public void AddtoOwnLogs(ActivityLog log)
+        {
+            ActivityLogs.Add(log);
+        }
     }
 }

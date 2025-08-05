@@ -1,10 +1,11 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WebApplication1.Services;
 
 namespace WebApplication1.Models
 {
-    public class Software
+    public class Software : IHasLogs
     {
         public int Id { get; set; }
 

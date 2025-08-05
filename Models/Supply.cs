@@ -1,7 +1,8 @@
 ﻿using System;
+using WebApplication1.Services;
 namespace WebApplication1.Models
 { 
-public class Supply
+public class Supply : IHasLogs
 {
     public int Id { get; set; }
 

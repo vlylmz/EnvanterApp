@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using WebApplication1.Services;
 
 namespace WebApplication1.Models;
 
-public class Computer
+public class Computer : IHasLogs
 {
     public int Id { get; set; }
 

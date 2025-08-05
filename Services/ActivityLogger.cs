@@ -2,6 +2,8 @@ using WebApplication1.Data;
 using WebApplication1.Models;
 using System.Threading.Tasks;
 using System.Text.Json;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace WebApplication1.Services
 {
@@ -14,7 +16,7 @@ namespace WebApplication1.Services
             _context = context;
         }
 
-        public async Task LogAsync(int userId, string action, string entityType, int entityId, string? detail = null, IHasLogs? logToThisToo = null)
+        public async Task LogAsync<T>(int userId, string action, string entityType, int entityId, string? detail = null, T? logToThisToo = null) where T : IHasLogs
         {
             var log = new ActivityLog
             {
@@ -27,8 +29,19 @@ namespace WebApplication1.Services
             };
 
             _context.ActivityLogs.Add(log);
-            logToThisToo?.AddtoOwnLogs(log);
+            if (logToThisToo != null)
+            {
+                logToThisToo.AddtoOwnLogs(log);
+                _context.Set<T>().Update(logToThisToo);
+            }
+            else Debug.Assert(false);
+
             await _context.SaveChangesAsync();
+        }
+
+        public async Task LogAsync(int userId, string action, string entityType, int entityId, string? detail = null)
+        {
+            await LogAsync(userId, action, entityType, entityId, detail, (IHasLogs?) null);
         }
     }
 

@@ -792,25 +792,6 @@
                     </div>
                 }
             }
-            else
-            {
-                <!-- Fallback content remains the same -->
-                <div class="log-entry border-bottom pb-2 mb-2">
-                    <div class="fw-bold">Firma kaydı oluşturuldu</div>
-                    <div class="text-muted small">@Model.Company.CreatedDate.ToString("dd.MM.yyyy HH:mm")</div>
-                </div>
-                @if (Model.Company.UpdatedDate != default(DateTime))
-                {
-                    <div class="log-entry border-bottom pb-2 mb-2">
-                        <div class="fw-bold">Firma bilgileri güncellendi</div>
-                        <div class="text-muted small">@Model.Company.UpdatedDate.ToString("dd.MM.yyyy HH:mm")</div>
-                    </div>
-                }
-                <div class="log-entry pb-2 mb-2">
-                    <div class="fw-bold">Durum: @(Model.Company.IsActive ? "Aktif" : "Pasif")</div>
-                    <div class="text-muted small">Mevcut durum</div>
-                </div>
-            }
         </div>
         @if (Model.ActivityLogs != null && Model.ActivityLogs.Count >= 10)
         {

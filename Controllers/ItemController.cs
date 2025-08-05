@@ -59,6 +59,8 @@ namespace WebApplication1.Controllers
             }
 
             var item = await _context.Items
+                .Include(c => c.ActivityLogs)
+                .ThenInclude(ct => ct.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (item == null)
@@ -102,7 +104,7 @@ namespace WebApplication1.Controllers
                     }
 
                     // Oluşturma bilgileri
-                    item.CreatedBy = User.Identity!.Name ?? "System";
+                    item.CreatedBy = User.Identity!.Name ?? "Bilinmiyor";
                     item.CreatedDate = DateTime.Now;
 
                     item.CheckCriticalLevel();
@@ -111,12 +113,7 @@ namespace WebApplication1.Controllers
                     await _context.SaveChangesAsync();
 
                     // LOG EKLENDİ
-                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Ürün oluşturuldu", "Item", item.Id);
-                    }
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Ürün oluşturuldu", "Item", item.Id, null, item);
 
                     TempData["Success"] = "Urun basariyla olusturuldu!";
                     return RedirectToAction(nameof(Index));
@@ -197,12 +194,7 @@ namespace WebApplication1.Controllers
                     await _context.SaveChangesAsync();
 
                     // LOG EKLENDİ
-                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Ürün güncellendi", "Item", item.Id);
-                    }
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Ürün güncellendi", "Item", item.Id, null, item);
 
                     TempData["Success"] = "Urun basariyla guncellendi!";
                     return RedirectToAction(nameof(Index));
@@ -265,12 +257,7 @@ public async Task<IActionResult> DeleteConfirmed(int id)
             await _context.SaveChangesAsync();
 
             // LOG EKLENDİ
-            string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-            if (!string.IsNullOrEmpty(userId))
-            {
-                await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Ürün pasif hale getirildi (soft delete)", "Item", item.Id);
-            }
+            await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Ürün pasif hale getirildi (soft delete)", "Item", item.Id, null, item);
 
             TempData["Success"] = "Ürün başarıyla pasif hale getirildi!";
         }
@@ -298,12 +285,7 @@ public async Task<IActionResult> DeleteConfirmed(int id)
                     await _context.SaveChangesAsync();
 
                     // ✅ LOG EKLENDİ
-                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), $"Ürün {personnel} adlı personele zimmetlendi", "Item", item.Id);
-                    }
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, $"Ürün {personnel} adlı personele zimmetlendi", "Item", item.Id, null, item);
 
                     TempData["Success"] = $"Ürün {personnel} adlı personele zimmet verildi!";
                 }
@@ -331,12 +313,7 @@ public async Task<IActionResult> DeleteConfirmed(int id)
                     await _context.SaveChangesAsync();
 
                     // ✅ LOG EKLENDİ
-                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), $"Ürün {previousPersonnel} adlı personelden iade alındı", "Item", item.Id);
-                    }
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), $"Ürün {previousPersonnel} adlı personelden iade alındı", "Item", item.Id, null, item);
 
                     TempData["Success"] = "Ürün zimmet iadesi yapıldı!";
                 }

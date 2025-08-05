@@ -178,17 +178,14 @@ public async Task<IActionResult> AssignMultiple(List<int> computerIds, int emplo
             computer.AssignedEmployeeId = employeeId;
             computer.Status = ComputerStatus.Zimmetli;
             computer.LastUpdatedDate = DateTime.UtcNow;
-            computer.LastUpdatedBy = User.Identity?.Name ?? "System";
+            computer.LastUpdatedBy = User.Identity?.Name ?? "Bilinmiyor";
 
             // ✅ LOG EKLENDİ
-            if (!string.IsNullOrEmpty(userId))
-            {
-                var detail = $"Bilgisayar: {computer.Name} ({computer.AssetTag})\n" +
+            var detail = $"Bilgisayar: {computer.Name} ({computer.AssetTag})\n" +
                              $"Firma: {companyName}\n" +
                              $"Zimmetlenen: {fullName} (ID: {employee.Id})\n" +
                              $"Tarih: {assignmentDate:dd.MM.yyyy HH:mm}";
-                await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Havuzdan zimmet verildi", "Computer", computer.Id, detail);
-            }
+            await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Havuzdan zimmet verildi", "Computer", computer.Id, detail, computer);
         }
 
         await _context.SaveChangesAsync();

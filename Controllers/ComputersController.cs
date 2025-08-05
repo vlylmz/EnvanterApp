@@ -6,6 +6,7 @@ using WebApplication1.Data;
 using System.Security.Claims;
 using WebApplication1.Services;
 using WebApplication1.EnvanterLib;
+using System.Diagnostics;
 
 // Bu sınıf, bilgisayar envanterini yönetmek için gerekli işlemleri içerir LOGLAMA EKLENMİŞTİR
 
@@ -50,6 +51,8 @@ namespace WebApplication1.Controllers
             var computer = await _context.Computers
                 .Include(c => c.Company)
                 .Include(c => c.AssignedEmployee)
+                .Include(c => c.ActivityLogs)
+                .ThenInclude(ct => ct.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (computer == null)
@@ -98,27 +101,24 @@ public async Task<IActionResult> Create(Computer computer)
 {
     if (ModelState.IsValid)
     {
-        try
-        {
-            computer.CreatedDate = DateTime.UtcNow;
-            _context.Computers.Add(computer);
-            await _context.SaveChangesAsync();
+                try
+                {
+                    computer.CreatedDate = DateTime.UtcNow;
+                    _context.Computers.Add(computer);
+                    await _context.SaveChangesAsync();
 
-            string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+                    var detail = LogHelper.GetSummary(computer);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Bilgisayar oluşturuldu", "Computer", computer.Id, detail, computer);
 
-            if (!string.IsNullOrEmpty(userId))
-            {
-                var detail = LogHelper.GetSummary(computer);
-                await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Bilgisayar oluşturuldu", "Computer", computer.Id, detail);
-            }
+                    TempData["Success"] = "Bilgisayar başarıyla eklendi.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = "Bilgisayar eklenirken hata oluştu: " + ex.Message;
+                    Debug.Assert(false);
 
-            TempData["Success"] = "Bilgisayar başarıyla eklendi.";
-            return RedirectToAction(nameof(Index));
-        }
-        catch (Exception ex)
-        {
-            TempData["Error"] = "Bilgisayar eklenirken hata oluştu: " + ex.Message;
-        }
+                }
     }
 
     // Hata durumunda ViewBag verilerini tekrar doldur
@@ -182,13 +182,8 @@ public async Task<IActionResult> Edit(int id, Computer computer)
             _context.Update(computer);
             await _context.SaveChangesAsync();
 
-            string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-            if (!string.IsNullOrEmpty(userId))
-            {
-                var detail = LogHelper.GetDifferences(original, computer);
-                await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Bilgisayar güncellendi", "Computer", computer.Id, detail);
-            }
+            var detail = LogHelper.GetDifferences(original, computer);
+            await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Bilgisayar güncellendi", "Computer", computer.Id, detail, computer);
 
             TempData["Success"] = "Bilgisayar başarıyla güncellendi.";
             return RedirectToAction(nameof(Index));
@@ -245,13 +240,8 @@ public async Task<IActionResult> DeleteConfirmed(int id)
 
         await _context.SaveChangesAsync();
 
-        string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-        if (!string.IsNullOrEmpty(userId))
-        {
-            var detail = $"Bilgisayar pasife alındı (ID: {computer.Id}, Ad: {computer.Name})";
-            await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Bilgisayar pasife alındı", "Computer", computer.Id, detail);
-        }
+        var detail = $"Bilgisayar pasife alındı (ID: {computer.Id}, Ad: {computer.Name})";
+        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Bilgisayar pasife alındı", "Computer", computer.Id, detail, computer);
 
         TempData["Success"] = "Bilgisayar başarıyla pasif duruma alındı.";
     }

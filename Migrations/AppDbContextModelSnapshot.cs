@@ -38,12 +38,18 @@ namespace WebApplication1.Migrations
                     b.Property<int?>("CompanyId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ComputerId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Detail")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("EntityId")
                         .HasColumnType("int");
@@ -53,12 +59,31 @@ namespace WebApplication1.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("ItemModelId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SoftwareId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SupplyId")
+                        .HasColumnType("int");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("ComputerId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("ItemModelId");
+
+                    b.HasIndex("SoftwareId");
+
+                    b.HasIndex("SupplyId");
 
                     b.HasIndex("UserId");
 
@@ -585,6 +610,26 @@ namespace WebApplication1.Migrations
                         .WithMany("ActivityLogs")
                         .HasForeignKey("CompanyId");
 
+                    b.HasOne("WebApplication1.Models.Computer", null)
+                        .WithMany("ActivityLogs")
+                        .HasForeignKey("ComputerId");
+
+                    b.HasOne("WebApplication1.Models.Employee", null)
+                        .WithMany("ActivityLogs")
+                        .HasForeignKey("EmployeeId");
+
+                    b.HasOne("WebApplication1.Models.ItemModel", null)
+                        .WithMany("ActivityLogs")
+                        .HasForeignKey("ItemModelId");
+
+                    b.HasOne("WebApplication1.Models.Software", null)
+                        .WithMany("ActivityLogs")
+                        .HasForeignKey("SoftwareId");
+
+                    b.HasOne("WebApplication1.Models.Supply", null)
+                        .WithMany("ActivityLogs")
+                        .HasForeignKey("SupplyId");
+
                     b.HasOne("WebApplication1.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -638,6 +683,31 @@ namespace WebApplication1.Migrations
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Company", b =>
+                {
+                    b.Navigation("ActivityLogs");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Computer", b =>
+                {
+                    b.Navigation("ActivityLogs");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Employee", b =>
+                {
+                    b.Navigation("ActivityLogs");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.ItemModel", b =>
+                {
+                    b.Navigation("ActivityLogs");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Software", b =>
+                {
+                    b.Navigation("ActivityLogs");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Supply", b =>
                 {
                     b.Navigation("ActivityLogs");
                 });

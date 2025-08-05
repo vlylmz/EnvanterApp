@@ -7,6 +7,8 @@ using WebApplication1.Services;
 using WebApplication1.ViewModels;
 using System.Security.Claims;
 using WebApplication1.EnvanterLib;
+using Microsoft.Identity.Client;
+using System.Diagnostics;
 
 // Bu sınıf, şirket envanterini yönetmek için gerekli işlemleri içerir LOGLAMA EKLENMİŞTİR
 
@@ -56,7 +58,11 @@ namespace WebApplication1.Controllers
         // Detayları gösterme
         public async Task<IActionResult> Details(int id)
         {
-            var company = await _context.Companies.FindAsync(id);
+            var company = await _context.Companies
+            .Include(c => c.ActivityLogs)
+            .ThenInclude(ct => ct.User)
+            .FirstOrDefaultAsync(cm => cm.Id == id);
+
             if (company == null)
                 return NotFound();
 
@@ -67,12 +73,13 @@ namespace WebApplication1.Controllers
                 Computers = await _context.Computers.Where(c => c.CompanyId == id).ToListAsync(),
                 Software = await _context.Software.Where(s => s.CompanyId == id).ToListAsync(),
                 Supplies = await _context.Supplies.Where(s => s.CompanyId == id).ToListAsync(),
-                ActivityLogs = await _context.ActivityLogs
-                    .Where(l => l.EntityType == "Company" && l.EntityId == id)
-                    .Include(l => l.User)
-                    .OrderByDescending(l => l.CreatedDate)
-                    .ToListAsync()
-            };
+                /* ActivityLogs = await _context.ActivityLogs
+                     .Where(l => l.EntityType == "Company" && l.EntityId == id)
+                     .Include(l => l.User)
+                     .OrderByDescending(l => l.CreatedDate)
+                     .ToListAsync()*/
+                ActivityLogs = company.ActivityLogs
+            };            
 
             return View(viewModel); // ← sadece bunu düzelt!
         }
@@ -88,41 +95,31 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                try
+                Console.WriteLine("valid model passed to create(model)");
+                model.CreatedDate = DateTime.Now;
+                var entity = _context.Companies.Add(model).Entity;
+                Debug.Assert(entity != null);
+
+                var result = await _context.SaveChangesAsync();
+
+                if (result > 0)
                 {
-                    model.CreatedDate = DateTime.Now;
-                    _context.Companies.Add(model);
-                    var result = await _context.SaveChangesAsync();
+                    var detail = LogHelper.GetSummary(model);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Firma oluşturuldu", "Company", model.Id, detail, entity);
 
-                    if (result > 0)
-                    {
-                        string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                        if (!string.IsNullOrEmpty(userId))
-                        {
-                            var detail = LogHelper.GetSummary(model);
-                            await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Firma oluşturuldu", "Company", model.Id, detail);
-
-                        }
-
-                        HttpContext.Session.SetString("successMessage", "Şirket başarıyla eklendi.");
-                        return RedirectToAction(nameof(Index));
-                    }
-                    else
-                    {
-                        TempData["Error"] = "Kayıt yapılamadı!";
-                    }
+                    HttpContext.Session.SetString("successMessage", "Şirket başarıyla eklendi.");
+                    return RedirectToAction("Index");
                 }
-                catch (Exception ex)
+                else
                 {
-                    TempData["Error"] = $"Hata: {ex.Message}";
-                    if (ex.InnerException != null)
-                        TempData["Error"] += $" - İç hata: {ex.InnerException.Message}";
+                    TempData["Error"] = "Kayıt yapılamadı!";
+                    Debug.Assert(false);
                 }
             }
             else
             {
                 TempData["Error"] = "Form validation hatası var!";
+                Debug.Assert(false);
             }
 
             return View(model);
@@ -162,7 +159,7 @@ namespace WebApplication1.Controllers
                     if (!string.IsNullOrEmpty(userId))
                     {
                         var detail = LogHelper.GetDifferences(original, model);
-                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Firma güncellendi", "Company", model.Id, detail);
+                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Firma güncellendi", "Company", model.Id, detail, original);
                     }
 
                     TempData["Success"] = "Şirket başarıyla güncellendi.";
@@ -214,7 +211,7 @@ namespace WebApplication1.Controllers
                 if (!string.IsNullOrEmpty(userId))
                 {
                     var detail = LogHelper.GetSummary(company);
-                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Firma pasife alındı", "Company", id, detail);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Firma pasife alındı", "Company", id, detail, company);
                 }
 
                 HttpContext.Session.SetString("successMessage", "Şirket başarıyla pasife alındı.");

@@ -77,16 +77,14 @@ namespace WebApplication1.Controllers
                 try
                 {
                     model.CreatedDate = DateTime.UtcNow;
-                    _context.Employees.Add(model);
+                    var entity = _context.Employees.Add(model).Entity;
+                    Console.WriteLine("returned employee hash: " + entity.GetHashCode());
                     await _context.SaveChangesAsync();
 
                     // LOG EKLENDİ
-                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan oluşturuldu", "Employee", model.Id, null, entity);
 
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan oluşturuldu", "Employee", model.Id);
-                    }
+                    Console.WriteLine("content of entity: " + entity.ActivityLogs.FirstOrDefault()!.Action);
 
                     TempData["Success"] = "Calisan basariyla eklendi!";
                     return RedirectToAction("Index");
@@ -117,17 +115,12 @@ public async Task<IActionResult> Delete(int id)
             emp.IsActive = false;
             emp.ActiveTime = DateTimeOffset.UtcNow;
 
-            _context.Employees.Update(emp);
+            var entity = _context.Employees.Update(emp).Entity;
             await _context.SaveChangesAsync();
 
             // LOG EKLENDİ
-            string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-            if (!string.IsNullOrEmpty(userId))
-            {
-                var detail = $"Pasif duruma geçirildi: {emp.FirstName} {emp.LastName}, Email: {emp.Email}";
-                await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan pasifleştirildi", "Employee", emp.Id, detail);
-            }
+            var detail = $"Pasif duruma geçirildi: {emp.FirstName} {emp.LastName}, Email: {emp.Email}";
+            await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan pasifleştirildi", "Employee", emp.Id, detail, entity);
 
             TempData["Success"] = "Çalışan başarıyla pasifleştirildi!";
         }
@@ -146,6 +139,8 @@ public async Task<IActionResult> Delete(int id)
         {
             var employee = await _context.Employees
                 .Include(e => e.Company)
+                .Include(e => e.ActivityLogs)
+                .ThenInclude(al => al.User)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (employee == null)
@@ -186,17 +181,11 @@ public async Task<IActionResult> Delete(int id)
 
                 try
                 {
-                    _context.Update(employeeEditForm);
+                    var entity = _context.Update(employeeEditForm).Entity;
                     await _context.SaveChangesAsync();
 
                     // LOG EKLENDİ
-                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-
-                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan güncellendi", "Employee", employeeEditForm.Id);
-                    }
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan güncellendi", "Employee", employeeEditForm.Id, null, entity);
 
                     TempData["Success"] = "Çalışan başarıyla güncellendi!";
                     return RedirectToAction("Index");
