@@ -17,7 +17,7 @@ public class SessionCheckMiddleware
 
         Console.WriteLine(controller + ":" + action);
 
-        if (controller == "login" && (action == "index" || action == "qrvalidate"))
+        if (controller == "login" && (action == "ındex" || action == "qrvalidate"))
         {
             await _next(context);
             return;

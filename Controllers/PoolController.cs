@@ -14,8 +14,8 @@ namespace WebApplication1.Controllers
 
         public PoolController(AppDbContext context, IActivityLogger activityLogger)
         {
-        _context = context;
-        _activityLogger = activityLogger;
+            _context = context;
+            _activityLogger = activityLogger;
         }
 
         // GET: Pool
@@ -72,11 +72,43 @@ namespace WebApplication1.Controllers
 
                 var computers = await query.ToListAsync();
 
+                // ItemModel verilerini de çek
+                var itemModelQuery = _context.Items.AsQueryable();
+
+                // ItemModel için arama filtresi
+                if (!string.IsNullOrEmpty(search))
+                {
+                    itemModelQuery = itemModelQuery.Where(i => i.Name.Contains(search) ||
+                                             (i.Category != null && i.Category.Contains(search)) ||
+                                             (i.SystemBarcode != null && i.SystemBarcode.Contains(search)) ||
+                                             (i.Supplier != null && i.Supplier.Contains(search)) ||
+                                             (i.AssignedPersonnel != null && i.AssignedPersonnel.Contains(search)));
+                }
+
+                // ItemModel için kategori filtresi
+                if (!string.IsNullOrEmpty(category) && category != "Computer")
+                {
+                    itemModelQuery = itemModelQuery.Where(i => i.Category == category);
+                }
+
+                // Sadece aktif ItemModel'leri getir
+                itemModelQuery = itemModelQuery.Where(i => i.IsActive);
+
+                // Zimmet durumuna göre filtreleme (showOnlyAvailable varsa)
+                if (showOnlyAvailable)
+                {
+                    itemModelQuery = itemModelQuery.Where(i => i.AssignmentStatus == "Unassigned");
+                }
+
+                var itemModels = await itemModelQuery.OrderByDescending(i => i.CreatedDate).ToListAsync();
+
                 // ViewBag verileri
                 ViewBag.Search = search;
                 ViewBag.Category = category;
                 ViewBag.CompanyId = companyId?.ToString();
                 ViewBag.ShowOnlyAvailable = showOnlyAvailable;
+                ViewBag.Computers = computers;
+                ViewBag.ItemModels = itemModels;
                 ViewBag.Companies = await _context.Companies
                     .Where(c => c.IsActive)
                     .OrderBy(c => c.Name)
@@ -136,75 +168,75 @@ namespace WebApplication1.Controllers
         }
 
         // POST: Pool/AssignMultiple
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> AssignMultiple(List<int> computerIds, int employeeId, DateTime assignmentDate, string? notes)
-{
-    try
-    {
-        if (!computerIds.Any())
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignMultiple(List<int> computerIds, int employeeId, DateTime assignmentDate, string? notes)
         {
-            TempData["Error"] = "Zimmetlenecek ekipman seçilmedi.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        var employee = await _context.Employees
-            .Include(e => e.Company)
-            .FirstOrDefaultAsync(e => e.Id == employeeId && e.IsActive);
-
-        if (employee == null)
-        {
-            TempData["Error"] = "Seçilen çalışan bulunamadı veya aktif değil.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        var computers = await _context.Computers
-            .Where(c => computerIds.Contains(c.Id) && c.Status == ComputerStatus.Havuzda)
-            .ToListAsync();
-
-        if (!computers.Any())
-        {
-            TempData["Error"] = "Zimmetlenebilir ekipman bulunamadı.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        string? userId = this.GetUserFromHttpContext()!.Id.ToString();
-
-        var fullName = $"{employee.FirstName} {employee.LastName}";
-        var companyName = employee.Company?.Name ?? "-";
-
-        foreach (var computer in computers)
-        {
-            computer.AssignedEmployeeId = employeeId;
-            computer.Status = ComputerStatus.Zimmetli;
-            computer.LastUpdatedDate = DateTime.UtcNow;
-            computer.LastUpdatedBy = User.Identity?.Name ?? "System";
-
-            // ✅ LOG EKLENDİ
-            if (!string.IsNullOrEmpty(userId))
+            try
             {
-                var detail = $"Bilgisayar: {computer.Name} ({computer.AssetTag})\n" +
-                             $"Firma: {companyName}\n" +
-                             $"Zimmetlenen: {fullName} (ID: {employee.Id})\n" +
-                             $"Tarih: {assignmentDate:dd.MM.yyyy HH:mm}";
-                await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Havuzdan zimmet verildi", "Computer", computer.Id, detail);
+                if (!computerIds.Any())
+                {
+                    TempData["Error"] = "Zimmetlenecek ekipman seçilmedi.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var employee = await _context.Employees
+                    .Include(e => e.Company)
+                    .FirstOrDefaultAsync(e => e.Id == employeeId && e.IsActive);
+
+                if (employee == null)
+                {
+                    TempData["Error"] = "Seçilen çalışan bulunamadı veya aktif değil.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var computers = await _context.Computers
+                    .Where(c => computerIds.Contains(c.Id) && c.Status == ComputerStatus.Havuzda)
+                    .ToListAsync();
+
+                if (!computers.Any())
+                {
+                    TempData["Error"] = "Zimmetlenebilir ekipman bulunamadı.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                string? userId = this.GetUserFromHttpContext()!.Id.ToString();
+
+                var fullName = $"{employee.FirstName} {employee.LastName}";
+                var companyName = employee.Company?.Name ?? "-";
+
+                foreach (var computer in computers)
+                {
+                    computer.AssignedEmployeeId = employeeId;
+                    computer.Status = ComputerStatus.Zimmetli;
+                    computer.LastUpdatedDate = DateTime.UtcNow;
+                    computer.LastUpdatedBy = User.Identity?.Name ?? "System";
+
+                    // ✅ LOG EKLENDİ
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        var detail = $"Bilgisayar: {computer.Name} ({computer.AssetTag})\n" +
+                                     $"Firma: {companyName}\n" +
+                                     $"Zimmetlenen: {fullName} (ID: {employee.Id})\n" +
+                                     $"Tarih: {assignmentDate:dd.MM.yyyy HH:mm}";
+                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Havuzdan zimmet verildi", "Computer", computer.Id, detail);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"{computers.Count} adet ekipman {fullName} ({companyName}) adlı çalışana başarıyla zimmetlendi.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Zimmetleme işlemi sırasında hata oluştu: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
         }
 
-        await _context.SaveChangesAsync();
 
-        TempData["Success"] = $"{computers.Count} adet ekipman {fullName} ({companyName}) adlı çalışana başarıyla zimmetlendi.";
-        return RedirectToAction(nameof(Index));
-    }
-    catch (Exception ex)
-    {
-        TempData["Error"] = "Zimmetleme işlemi sırasında hata oluştu: " + ex.Message;
-        return RedirectToAction(nameof(Index));
-    }
-}
 
-        
-        
 
         // Helper method for status display
         private string GetStatusDisplayName(ComputerStatus status)

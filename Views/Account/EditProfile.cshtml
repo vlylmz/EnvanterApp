@@ -83,7 +83,7 @@
                         
                         <div class="d-flex justify-content-between">
                             <a asp-action="Profile" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-1"></i> İptal
+                                <i class="fas fa-arrow-left me-1"></i> Profile Geri Dön
                             </a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i> Değişiklikleri Kaydet
@@ -128,9 +128,10 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
-    <!-- ADD THIS SCRIPT FOR PASSWORD CHANGE -->
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Şifre değişiminde SweetAlert2 kullan
         $('#passwordChangeForm').on('submit', function(e) {
             e.preventDefault();
             
@@ -139,7 +140,12 @@
             var confirmPassword = $('#confirmPassword').val();
             
             if (newPassword !== confirmPassword) {
-                alert('Yeni şifreler eşleşmiyor!');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Uyarı',
+                    text: 'Yeni şifreler eşleşmiyor!',
+                    confirmButtonColor: '#f59e42'
+                });
                 return;
             }
             
@@ -153,16 +159,55 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        alert(response.message);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı',
+                            text: response.message,
+                            confirmButtonColor: '#198754'
+                        });
                         $('#passwordChangeForm')[0].reset();
                     } else {
-                        alert('Hata: ' + response.message);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Hata',
+                            text: response.message,
+                            confirmButtonColor: '#dc3545'
+                        });
                     }
                 },
                 error: function() {
-                    alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata',
+                        text: 'Bir hata oluştu. Lütfen tekrar deneyin.',
+                        confirmButtonColor: '#dc3545'
+                    });
                 }
             });
         });
+
+        // Sayfanın başka yerinde TempData ile başarı/hata gelirse onları da SweetAlert2 ile göster
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı',
+                    text: '@TempData["Success"]',
+                    confirmButtonColor: '#198754'
+                });
+            </text>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hata',
+                    text: '@TempData["Error"]',
+                    confirmButtonColor: '#dc3545'
+                });
+            </text>
+        }
     </script>
 }
