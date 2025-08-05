@@ -377,8 +377,103 @@
         </div>
     </form>
 </div>
-
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Modal Success / Error SweetAlert2
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı',
+                    text: '@TempData["Success"]',
+                    confirmButtonText: 'Kapat',
+                    confirmButtonColor: '#3085d6'
+                });
+            </text>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hata',
+                    text: '@TempData["Error"]',
+                    confirmButtonText: 'Kapat',
+                    confirmButtonColor: '#dc3545'
+                });
+            </text>
+        }
+
+        // **ALTERNATİF: Toast şeklinde başarı/hata bildirimi**
+        /*
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: '@TempData["Success"]',
+                    showConfirmButton: false,
+                    timer: 3500,
+                    timerProgressBar: true
+                });
+            </text>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: '@TempData["Error"]',
+                    showConfirmButton: false,
+                    timer: 4000,
+                    timerProgressBar: true
+                });
+            </text>
+        }
+        */
+
+        // Silme işlemi için onay SweetAlert2 (zaten senin kodun)
+        function confirmDelete(event, itemName) {
+            event.preventDefault();
+            const form = event.target;
+            Swal.fire({
+                title: 'Ürünü Sil?',
+                html: `<strong>${itemName}</strong> adlı ürün kalıcı olarak silinecektir.<br>Bu işlem geri alınamaz!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-trash"></i> Evet, Sil',
+                cancelButtonText: '<i class="fas fa-times"></i> İptal',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Siliniyor...',
+                        html: 'Lütfen bekleyin...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    form.submit();
+                }
+            });
+            return false;
+        }
+    </script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>

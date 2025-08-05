@@ -21,28 +21,6 @@
             </a>
         </div>
     </div>
-
-    <!-- Success/Error Messages -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    
-
     <!-- Summary Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
@@ -342,12 +320,38 @@
 </div>
 
 @section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // SweetAlert2 Success/Error
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı',
+                    text: '@TempData["Success"]',
+                    confirmButtonText: 'Kapat',
+                    confirmButtonColor: '#198754'
+                });
+            </text>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hata',
+                    text: '@TempData["Error"]',
+                    confirmButtonText: 'Kapat',
+                    confirmButtonColor: '#dc3545'
+                });
+            </text>
+        }
+
         function confirmDelete(event, itemName) {
             event.preventDefault();
             const form = event.target;
-            
             Swal.fire({
                 title: 'Ürünü Sil?',
                 html: `<strong>${itemName}</strong> adlı ürün kalıcı olarak silinecektir.<br>Bu işlem geri alınamaz!`,
@@ -364,7 +368,6 @@
                 buttonsStyling: false
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Show loading
                     Swal.fire({
                         title: 'Siliniyor...',
                         html: 'Lütfen bekleyin...',
@@ -374,28 +377,36 @@
                             Swal.showLoading();
                         }
                     });
-                    
-                    // Submit the form
                     form.submit();
                 }
             });
-            
             return false;
-        }
+             // Form doğrulama
+        document.getElementById('createForm').addEventListener('submit', function(e) {
+            const requiredFields = ['Name', 'Category', 'SystemBarcode'];
+            let hasError = false;
 
-        // Auto-hide alerts after 5 seconds
-        setTimeout(function() {
-            var alerts = document.querySelectorAll('.alert-dismissible');
-            alerts.forEach(function(alert) {
-                var bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
+            requiredFields.forEach(fieldName => {
+                const field = document.getElementById(fieldName);
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    hasError = true;
+                } else {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                }
             });
-        }, 5000);
 
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
+            if (hasError) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Eksik Alan',
+                    text: 'Lütfen zorunlu alanları doldurunuz!',
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#f59e42'
+                });
+            }
         });
     </script>
 }

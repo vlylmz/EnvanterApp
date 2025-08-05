@@ -274,26 +274,50 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Auto-hide alerts after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(function(alert) {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
+        // Sayfa açılışında TempData varsa SweetAlert2 ile göster
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı',
+                    text: '@TempData["Success"]',
+                    confirmButtonColor: '#198754'
                 });
-            }, 5000);
-        });
+            </text>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hata',
+                    text: '@TempData["Error"]',
+                    confirmButtonColor: '#dc3545'
+                });
+            </text>
+        }
+        @if (TempData["Info"] != null)
+        {
+            <text>
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Bilgi',
+                    text: '@TempData["Info"]',
+                    confirmButtonColor: '#3085d6'
+                });
+            </text>
+        }
+
 
         // Disable 2FA
         async function disable2FA() {
             const result = await Swal.fire({
                 title: 'Emin misiniz?',
-                text: '2FA\'yı devre dışı bırakmak istediğinizden emin misiniz?',
+                text: "2FA'yı devre dışı bırakmak istediğinizden emin misiniz?",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc3545',
@@ -367,12 +391,22 @@
             const newPassword = document.getElementById('quickNewPassword').value;
             
             if (!currentPassword || !newPassword) {
-                alert('Lütfen tüm alanları doldurun.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Uyarı',
+                    text: 'Lütfen tüm alanları doldurun.',
+                    confirmButtonColor: '#f59e42'
+                });
                 return;
             }
             
             if (newPassword.length < 6) {
-                alert('Yeni şifre en az 6 karakter olmalıdır.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Uyarı',
+                    text: 'Yeni şifre en az 6 karakter olmalıdır.',
+                    confirmButtonColor: '#f59e42'
+                });
                 return;
             }
             
@@ -388,7 +422,12 @@
                 if (token) {
                     form.append('__RequestVerificationToken', token.value);
                 } else {
-                    alert('Güvenlik tokeni bulunamadı!');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata',
+                        text: 'Güvenlik tokeni bulunamadı!',
+                        confirmButtonColor: '#dc3545'
+                    });
                     return;
                 }
                 
@@ -404,15 +443,29 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert('Başarılı! ' + result.message);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Başarılı!',
+                        text: result.message,
+                        confirmButtonColor: '#198754'
+                    });
                     // Clear the form
                     document.getElementById('quickPasswordForm').reset();
                 } else {
-                    alert('Hata! ' + result.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata!',
+                        text: result.message,
+                        confirmButtonColor: '#dc3545'
+                    });
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Bir hata oluştu: ' + error.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hata!',
+                    text: 'Bir hata oluştu: ' + error.message,
+                    confirmButtonColor: '#dc3545'
+                });
             }
         }
     </script>

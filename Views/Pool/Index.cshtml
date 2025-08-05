@@ -1,4 +1,5 @@
-﻿@model List<WebApplication1.Models.Computer>
+﻿
+@model List<WebApplication1.Models.Computer>
 @{
     ViewData["Title"] = "Havuz Envanteri";
     var successMessage = TempData["Success"] as string;
@@ -6,11 +7,14 @@
     var searchValue = ViewBag.Search as string;
     var companyIdValue = ViewBag.CompanyId as string;
     var categoryValue = ViewBag.Category as string;
-    var totalPoolItems = Model.Count;
+    var itemModels = ViewBag.ItemModels as List<WebApplication1.Models.ItemModel> ?? new List<WebApplication1.Models.ItemModel>();
+    var totalPoolItems = Model.Count + itemModels.Count;
     var availableComputers = Model.Count(c => c.Status == ComputerStatus.Havuzda);
+    var availableItemModels = itemModels.Count(i => i.AssignmentStatus == "Unassigned" || i.AssignmentStatus == null);
     var maintenanceComputers = Model.Count(c => c.Status == ComputerStatus.Bakim);
     var brokenComputers = Model.Count(c => c.Status == ComputerStatus.Bozuk || c.Status == ComputerStatus.Arızalı);
-    var thisMonthItems = Model.Count(c => c.CreatedDate.Month == DateTime.Now.Month && c.CreatedDate.Year == DateTime.Now.Year);
+    var thisMonthItems = Model.Count(c => c.CreatedDate.Month == DateTime.Now.Month && c.CreatedDate.Year == DateTime.Now.Year) + 
+                        itemModels.Count(i => i.CreatedDate.Month == DateTime.Now.Month && i.CreatedDate.Year == DateTime.Now.Year);
 }
 
 <!-- Success/Error Messages -->
@@ -60,14 +64,43 @@
                     </h1>
                     <p class="text-muted mb-0">Havuzda bulunan malzemeleri yönetin</p>
                 </div>
-                <div class="d-flex gap-2 flex-wrap"><a href="#"></a>
-                    <a asp-controller="Computers" asp-action="Create" class="btn btn-primary">
-                        <i class="fas fa-plus me-1" aria-hidden="true"></i> Yeni Ekipman Ekle
-                    </a>
-                    <button type="button" class="btn btn-outline-success" onclick="assignSelectedItems()">
-                        <i class="fas fa-user-plus me-1" aria-hidden="true"></i> Seçilenleri Zimmetle
-                    </button>
-                </div>
+               <div class="d-flex gap-2 flex-wrap">
+<div class="d-flex gap-2 flex-wrap">
+    <div class="dropdown">
+        <button class="btn btn-primary rounded-3 px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
+                type="button" id="addDropdownButton" data-bs-toggle="dropdown" aria-expanded="false"
+                style="font-size: 1rem; font-weight: 600;">
+            <i class="fas fa-plus"></i>
+            Yeni Ürün Ekle
+            <i class="fas fa-caret-down ms-2"></i>
+        </button>
+        <ul class="dropdown-menu shadow-lg rounded-3 p-2 mt-2" aria-labelledby="addDropdownButton" style="min-width: 210px;">
+            <li>
+                <a class="dropdown-item d-flex align-items-center gap-2 py-2" asp-controller="Computers" asp-action="Create" style="font-size: 1rem;">
+                    <i class="fas fa-desktop text-primary"></i> Bilgisayar Ekle
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item d-flex align-items-center gap-2 py-2" asp-controller="Items" asp-action="Create" style="font-size: 1rem;">
+                    <i class="fas fa-box-open text-success"></i> Sarf Malzeme Ekle
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item d-flex align-items-center gap-2 py-2" asp-controller="Software" asp-action="Create" style="font-size: 1rem;">
+                    <i class="fas fa-mouse text-warning"></i> Yazılım Ekle
+                </a>
+            </li>
+        </ul>
+    </div>
+    <button type="button" class="btn btn-outline-success rounded-3 px-4 py-2 d-flex align-items-center gap-2 shadow-sm"
+            style="font-size: 1rem; font-weight: 600;"
+            onclick="assignSelectedItems()">
+        <i class="fas fa-user-plus"></i>
+        Seçilenleri Zimmetle
+    </button>
+</div>
+
+
             </div>
         </div>
     </div>
@@ -81,6 +114,7 @@
                         <div>
                             <h5 class="card-title mb-1">Toplam Havuz</h5>
                             <h3 class="mb-0 fw-bold">@totalPoolItems</h3>
+                            <small>@Model.Count Bilgisayar + @itemModels.Count Ürün</small>
                         </div>
                         <div>
                             <i class="fas fa-box archive fa-2x opacity-75" aria-hidden="true"></i>
@@ -95,7 +129,8 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="card-title mb-1">Kullanıma Hazır</h5>
-                            <h3 class="mb-0 fw-bold">@availableComputers</h3>
+                            <h3 class="mb-0 fw-bold">@(availableComputers + availableItemModels)</h3>
+                            <small>@availableComputers Bilgisayar + @availableItemModels Ürün</small>
                         </div>
                         <div>
                             <i class="fas fa-check-circle fa-2x opacity-75" aria-hidden="true"></i>
@@ -156,10 +191,10 @@
                         <div class="col-lg-3 col-md-6">
                             <label for="search" class="form-label">
                                 <i class="fas fa-desktop text-muted me-1" aria-hidden="true"></i>
-                                Ekipman Adı veya Varlık Etiketi
+                                Ürün Adı veya Barkod
                             </label>
                             <input type="text" name="search" id="search" value="@searchValue" class="form-control"
-                                   placeholder="Ekipman ara..." aria-describedby="searchHelp">
+                                   placeholder="Ürün ara..." aria-describedby="searchHelp">
                         </div>
                         <div class="col-lg-2 col-md-6">
                             <label for="category" class="form-label">
@@ -168,12 +203,11 @@
                             <select name="category" id="category" class="form-select">
                                 <option value="">Tüm Kategoriler</option>
                                 <option value="Computer" selected="@(categoryValue == "Computer")">Bilgisayar</option>
-                                <option value="Monitor" selected="@(categoryValue == "Monitor")">Monitör</option>
-                                <option value="Printer" selected="@(categoryValue == "Printer")">Yazıcı</option>
-                                <option value="Laptop" selected="@(categoryValue == "Laptop")">Laptop</option>
-                                <option value="Tablet" selected="@(categoryValue == "Tablet")">Tablet</option>
-                                <option value="Phone" selected="@(categoryValue == "Phone")">Telefon</option>
-                                <option value="Other" selected="@(categoryValue == "Other")">Diğer</option>
+                                <!-- ItemModel kategorileri dinamik olarak yüklenebilir -->
+                                @foreach (var category in itemModels.Where(i => !string.IsNullOrEmpty(i.Category)).Select(i => i.Category).Distinct())
+                                {
+                                    <option value="@category" selected="@(categoryValue == category)">@category</option>
+                                }
                             </select>
                         </div>
                         <div class="col-lg-2 col-md-6">
@@ -246,7 +280,7 @@
             </div>
         </div>
         <div class="card-body p-0">
-            @if (Model.Any())
+            @if (Model.Any() || itemModels.Any())
             {
                 <!-- Table View -->
                 <div id="tableView" class="table-responsive">
@@ -257,19 +291,19 @@
                                     <i class="fas fa-check-square text-muted" aria-hidden="true"></i>
                                 </th>
                                 <th scope="col">
-                                    <i class="fas fa-desktop me-1" aria-hidden="true"></i> Ekipman Bilgileri
+                                    <i class="fas fa-desktop me-1" aria-hidden="true"></i> Ürün Bilgileri
                                 </th>
                                 <th scope="col">
                                     <i class="fas fa-tags me-1" aria-hidden="true"></i> Kategori
                                 </th>
                                 <th scope="col">
-                                    <i class="fas fa-building me-1" aria-hidden="true"></i> Firma
+                                    <i class="fas fa-building me-1" aria-hidden="true"></i> Durum/Zimmet
                                 </th>
                                 <th scope="col">
-                                    <i class="fas fa-circle me-1" aria-hidden="true"></i> Durum
+                                    <i class="fas fa-circle me-1" aria-hidden="true"></i> Tür
                                 </th>
                                 <th scope="col">
-                                    <i class="fas fa-calendar me-1" aria-hidden="true"></i> Havuza Giriş
+                                    <i class="fas fa-calendar me-1" aria-hidden="true"></i> Oluşturma Tarihi
                                 </th>
                                 <th scope="col" style="width: 200px;">
                                     <i class="fas fa-cogs me-1" aria-hidden="true"></i> İşlemler
@@ -277,13 +311,14 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Computer kayıtları -->
                             @foreach (var computer in Model)
                             {
                                 <tr class="@(computer.Status == ComputerStatus.Havuzda ? "table-success-light" : "")">
                                     <td>
                                         @if (computer.Status == ComputerStatus.Havuzda)
                                         {
-                                            <input type="checkbox" class="form-check-input item-checkbox" value="@computer.Id"
+                                            <input type="checkbox" class="form-check-input item-checkbox" value="computer_@computer.Id"
                                                    name="selectedItems" id="item_@computer.Id">
                                         }
                                         else
@@ -294,11 +329,7 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="equipment-icon me-3" aria-hidden="true">
-                                                @{
-                                                    var iconClass = "fas fa-desktop";
-                                                    // Burada Category alanına göre icon belirlenebilir
-                                                }
-                                                <i class="@iconClass fa-2x text-primary"></i>
+                                                <i class="fas fa-desktop fa-2x text-primary"></i>
                                             </div>
                                             <div>
                                                 <h6 class="mb-1 fw-bold">@computer.Name</h6>
@@ -320,8 +351,8 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">
-                                            <i class="fas fa-tag me-1" aria-hidden="true"></i>
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-desktop me-1" aria-hidden="true"></i>
                                             Bilgisayar
                                         </span>
                                     </td>
@@ -330,16 +361,20 @@
                                         {
                                             <span class="badge bg-info">@computer.Company.Name</span>
                                         }
+                                        else if (computer.AssignedEmployee != null)
+                                        {
+                                            <span class="badge bg-warning">@computer.AssignedEmployee.FirstName</span>
+                                        }
                                         else
                                         {
-                                            <em class="text-muted">Firma atanmamış</em>
+                                            <em class="text-muted">Atanmamış</em>
                                         }
                                     </td>
                                     <td>
                                         @if (computer.Status == ComputerStatus.Havuzda)
                                         {
                                             <span class="badge bg-success">
-                                                <i class="fas fa-swimming-pool me-1" aria-hidden="true"></i> Havuzda
+                                                <i class="fas fa-desktop" aria-hidden="true"></i> Havuzda
                                             </span>
                                         }
                                         else if (computer.Status == ComputerStatus.Bakim)
@@ -372,33 +407,145 @@
                                             @if (computer.Status == ComputerStatus.Havuzda)
                                             {
                                                 <button type="button" class="btn btn-sm btn-outline-success"
-                                                        onclick="assignToEmployee(@computer.Id, '@computer.Name')"
+                                                        onclick="assignToEmployee('computer', @computer.Id, '@computer.Name')"
                                                         title="Çalışana zimmetle" data-bs-toggle="tooltip">
                                                     <i class="fas fa-user-plus" aria-hidden="true"></i>
-                                                    <span class="visually-hidden">Zimmetle</span>
                                                 </button>
                                             }
                                             <a asp-controller="Computers" asp-action="Details" asp-route-id="@computer.Id"
                                                class="btn btn-sm btn-outline-info"
                                                title="@computer.Name detaylarını görüntüle" data-bs-toggle="tooltip">
                                                 <i class="fas fa-eye" aria-hidden="true"></i>
-                                                <span class="visually-hidden">Detay</span>
                                             </a>
                                             <a asp-controller="Computers" asp-action="Edit" asp-route-id="@computer.Id"
                                                class="btn btn-sm btn-outline-warning" title="@computer.Name bilgilerini düzenle"
                                                data-bs-toggle="tooltip">
                                                 <i class="fas fa-edit" aria-hidden="true"></i>
-                                                <span class="visually-hidden">Düzenle</span>
                                             </a>
-                                            @if (computer.Status != ComputerStatus.Zimmetli && computer.Status != ComputerStatus.Kullanımda)
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+
+                            <!-- ItemModel kayıtları -->
+                            @foreach (var item in itemModels)
+                            {
+                                <tr class="@(item.AssignmentStatus == "Unassigned" || item.AssignmentStatus == null ? "table-info-light" : "")">
+                                    <td>
+                                        @if (item.AssignmentStatus == "Unassigned" || item.AssignmentStatus == null)
+                                        {
+                                            <input type="checkbox" class="form-check-input item-checkbox" value="item_@item.Id"
+                                                   name="selectedItems" id="item_model_@item.Id">
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-minus text-muted" aria-hidden="true"></i>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="equipment-icon me-3" aria-hidden="true">
+                                                @{
+                                                    var iconClass = "fas fa-box";
+                                                    if (!string.IsNullOrEmpty(item.Category))
+                                                    {
+                                                        iconClass = item.Category.ToLower() switch
+                                                        {
+                                                            "monitor" => "fas fa-tv",
+                                                            "keyboard" => "fas fa-keyboard",
+                                                            "mouse" => "fas fa-computer-mouse",
+                                                            "printer" => "fas fa-print",
+                                                            "phone" => "fas fa-phone",
+                                                            _ => "fas fa-box"
+                                                        };
+                                                    }
+                                                }
+                                                <i class="@iconClass fa-2x text-success"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-bold">@item.Name</h6>
+                                                @if (!string.IsNullOrEmpty(item.SystemBarcode))
+                                                {
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-barcode me-1" aria-hidden="true"></i>
+                                                        @item.SystemBarcode
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(item.Supplier))
+                                                {
+                                                    <div class="small text-muted">
+                                                        <i class="fas fa-truck me-1" aria-hidden="true"></i>
+                                                        @item.Supplier
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-tag me-1" aria-hidden="true"></i>
+                                            @(string.IsNullOrEmpty(item.Category) ? "Diğer" : item.Category)
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.AssignedPersonnel))
+                                        {
+                                            <span class="badge bg-warning">@item.AssignedPersonnel</span>
+                                        }
+                                        else
+                                        {
+                                            <em class="text-muted">Zimmetli değil</em>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.AssignmentStatus == "Unassigned" || item.AssignmentStatus == null)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1" aria-hidden="true"></i> Kullanılabilir
+                                            </span>
+                                        }
+                                        else if (item.AssignmentStatus == "Assigned")
+                                        {
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-user me-1" aria-hidden="true"></i> Zimmetli
+                                            </span>
+                                        }
+                                        else if (item.AssignmentStatus == "Under Maintenance")
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-tools me-1" aria-hidden="true"></i> Bakımda
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@item.AssignmentStatus</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <time datetime="@item.CreatedDate.ToString("yyyy-MM-dd")" class="small text-muted">
+                                            @item.CreatedDate.ToString("dd.MM.yyyy")
+                                        </time>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group" aria-label="Ürün işlemleri">
+                                            @if (item.AssignmentStatus == "Unassigned" || item.AssignmentStatus == null)
                                             {
-                                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                                        onclick="deletePoolItem(@computer.Id, '@computer.Name')"
-                                                        title="@computer.Name kaydını sil" data-bs-toggle="tooltip">
-                                                    <i class="fas fa-trash" aria-hidden="true"></i>
-                                                    <span class="visually-hidden">Sil</span>
+                                                <button type="button" class="btn btn-sm btn-outline-success"
+                                                        onclick="assignToEmployee('item', @item.Id, '@item.Name')"
+                                                        title="Çalışana zimmetle" data-bs-toggle="tooltip">
+                                                    <i class="fas fa-user-plus" aria-hidden="true"></i>
                                                 </button>
                                             }
+                                            <a asp-controller="Items" asp-action="Details" asp-route-id="@item.Id"
+                                               class="btn btn-sm btn-outline-info"
+                                               title="@item.Name detaylarını görüntüle" data-bs-toggle="tooltip">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                            </a>
+                                            <a asp-controller="Items" asp-action="Edit" asp-route-id="@item.Id"
+                                               class="btn btn-sm btn-outline-warning" title="@item.Name bilgilerini düzenle"
+                                               data-bs-toggle="tooltip">
+                                                <i class="fas fa-edit" aria-hidden="true"></i>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -406,147 +553,30 @@
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Cards View -->
-                <div id="cardsView" style="display: none;" class="p-3">
-                    <div class="row g-3">
-                        @foreach (var computer in Model)
-                        {
-                            <div class="col-lg-4 col-md-6 col-12">
-                                <div class="card h-100 pool-item-card @(computer.Status == ComputerStatus.Havuzda ? "border-success" : "")">
-                                    @if (computer.Status == ComputerStatus.Havuzda)
-                                    {
-                                        <div class="card-header bg-success-light p-2">
-                                            <div class="form-check">
-                                                <input type="checkbox" class="form-check-input item-checkbox" value="@computer.Id"
-                                                       name="selectedItems" id="card_item_@computer.Id">
-                                                <label class="form-check-label small" for="card_item_@computer.Id">
-                                                    Zimmetlemek için seç
-                                                </label>
-                                            </div>
-                                        </div>
-                                    }
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-start justify-content-between mb-3">
-                                            <div class="d-flex align-items-center">
-                                                <div class="equipment-icon-lg me-3" aria-hidden="true">
-                                                    <i class="fas fa-desktop fa-2x text-primary"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 class="card-title mb-1 fw-bold">@computer.Name</h6>
-                                                    <small class="text-muted">
-                                                        <time datetime="@computer.CreatedDate.ToString("yyyy-MM-dd")">
-                                                            @computer.CreatedDate.ToString("dd.MM.yyyy")
-                                                        </time>
-                                                    </small>
-                                                </div>
-                                            </div>
-                                            @if (computer.Status == ComputerStatus.Havuzda)
-                                            {
-                                                <span class="badge bg-success">Havuzda</span>
-                                            }
-                                            else if (computer.Status == ComputerStatus.Bakim)
-                                            {
-                                                <span class="badge bg-warning">Bakımda</span>
-                                            }
-                                            else if (computer.Status == ComputerStatus.Arızalı || computer.Status == ComputerStatus.Bozuk)
-                                            {
-                                                <span class="badge bg-danger">
-                                                    @(computer.Status == ComputerStatus.Arızalı ? "Arızalı" : "Bozuk")
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary">@computer.Status</span>
-                                            }
-                                        </div>
-
-                                        <div class="mb-3">
-                                            @if (!string.IsNullOrEmpty(computer.AssetTag))
-                                            {
-                                                <div class="small mb-1">
-                                                    <i class="fas fa-tag text-muted me-2" aria-hidden="true"></i>
-                                                    <code>@computer.AssetTag</code>
-                                                </div>
-                                            }
-                                            @if (!string.IsNullOrEmpty(computer.SerialNumber))
-                                            {
-                                                <div class="small mb-1">
-                                                    <i class="fas fa-barcode text-muted me-2" aria-hidden="true"></i>
-                                                    <code>@computer.SerialNumber</code>
-                                                </div>
-                                            }
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <div class="small mb-2">
-                                                <i class="fas fa-tags text-muted me-2" aria-hidden="true"></i>
-                                                <span class="badge bg-secondary">Bilgisayar</span>
-                                            </div>
-                                            @if (computer.Company != null)
-                                            {
-                                                <div class="small mb-1">
-                                                    <i class="fas fa-building text-muted me-2" aria-hidden="true"></i>
-                                                    <span class="badge bg-info">@computer.Company.Name</span>
-                                                </div>
-                                            }
-                                        </div>
-
-                                        <div class="d-flex justify-content-between align-items-center mt-auto">
-                                            <div class="btn-group btn-group-sm w-100" role="group" aria-label="Ekipman işlemleri">
-                                                @if (computer.Status == ComputerStatus.Havuzda)
-                                                {
-                                                    <button type="button" class="btn btn-outline-success flex-fill"
-                                                            onclick="assignToEmployee(@computer.Id, '@computer.Name')"
-                                                            title="Zimmetle" data-bs-toggle="tooltip">
-                                                        <i class="fas fa-user-plus" aria-hidden="true"></i>
-                                                    </button>
-                                                }
-                                                <a asp-controller="Computer" asp-action="Details" asp-route-id="@computer.Id"
-                                                   class="btn btn-outline-info flex-fill" title="Detayları görüntüle"
-                                                   data-bs-toggle="tooltip">
-                                                    <i class="fas fa-eye" aria-hidden="true"></i>
-                                                </a>
-                                                <a asp-controller="Computers" asp-action="Edit" asp-route-id="@computer.Id"
-                                                   class="btn btn-outline-warning flex-fill" title="Düzenle"
-                                                   data-bs-toggle="tooltip">
-                                                    <i class="fas fa-edit" aria-hidden="true"></i>
-                                                </a>
-                                                @if (computer.Status != ComputerStatus.Zimmetli && computer.Status != ComputerStatus.Kullanımda)
-                                                {
-                                                    <button type="button" class="btn btn-outline-danger flex-fill"
-                                                            onclick="deletePoolItem(@computer.Id, '@computer.Name')" title="Sil"
-                                                            data-bs-toggle="tooltip">
-                                                        <i class="fas fa-trash" aria-hidden="true"></i>
-                                                    </button>
-                                                }
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
             }
             else
             {
                 <div class="text-center py-5">
                     <i class="fa-solid fa-box-archive fa-3x text-muted mb-3" aria-hidden="true"></i>
-                    <h3 class="h5 text-muted">Havuzda Ekipman Bulunamadı</h3>
+                    <h3 class="h5 text-muted">Havuzda Ürün Bulunamadı</h3>
                     @if (!string.IsNullOrEmpty(searchValue) || !string.IsNullOrEmpty(companyIdValue) || !string.IsNullOrEmpty(categoryValue))
                     {
-                        <p class="text-muted">Arama kriterlerinize uygun ekipman bulunmuyor.</p>
+                        <p class="text-muted">Arama kriterlerinize uygun ürün bulunmuyor.</p>
                         <a href="@Url.Action("Index")" class="btn btn-outline-primary">
                             <i class="fas fa-times me-1" aria-hidden="true"></i> Filtreleri Temizle
                         </a>
                     }
                     else
                     {
-                        <p class="text-muted">Henüz havuzda ekipman bulunmuyor.</p>
-                        <a asp-controller="Computers" asp-action="Create" class="btn btn-primary">
-                            <i class="fas fa-plus me-1" aria-hidden="true"></i> İlk Ekipmanı Ekle
-                        </a>
+                        <p class="text-muted">Henüz havuzda ürün bulunmuyor.</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a asp-controller="Computers" asp-action="Create" class="btn btn-primary">
+                                <i class="fas fa-plus me-1" aria-hidden="true"></i> Bilgisayar Ekle
+                            </a>
+                            <a asp-controller="Items" asp-action="Create" class="btn btn-success">
+                                <i class="fas fa-plus me-1" aria-hidden="true"></i> Ürün Ekle
+                            </a>
+                        </div>
                     }
                 </div>
             }
