@@ -1,144 +1,531 @@
 ﻿<!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sade Navbar</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Modern Navbar</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --navbar-bg: rgba(255, 255, 255, 0.95);
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: rgba(229, 231, 235, 0.8);
+            --shadow-light: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --hover-bg: rgba(37, 99, 235, 0.08);
+            --bg-light: #f9fafb;
+            --bg-secondary: #f3f4f6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --warning-color: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            color: var(--text-primary);
         }
 
-        .clean-navbar {
-            background-color: #ffffff;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            border-bottom: 1px solid #e9ecef;
+        .modern-navbar {
+            background: var(--navbar-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-light);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Logo Styles */
         .brand-logo {
-            color: #2c3e50;
-            font-weight: 700;
-            font-size: 1.4rem;
+            font-size: 1.75rem;
+            font-weight: 800;
             text-decoration: none;
-            transition: color 0.3s ease;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .brand-logo::before {
+            content: '';
+            position: absolute;
+            left: -0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            box-shadow:
+                0 12px 0 -6px currentColor,
+                0 24px 0 -6px currentColor;
         }
 
         .brand-logo:hover {
-            color: #3498db;
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            max-width: 400px;
+            width: 100%;
         }
 
         .search-input {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 20px;
-            padding: 0.5rem 1rem;
-            min-width: 250px;
-            transition: all 0.3s ease;
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            background: white;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .search-input:focus {
-            background-color: white;
-            border-color: #3498db;
-            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
             outline: none;
-        }
-
-        .user-profile {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 25px;
-            padding: 0.4rem 1rem;
-            color: #495057;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-
-        .user-profile:hover {
-            background-color: #e9ecef;
-            color: #2c3e50;
+            border-color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
             transform: translateY(-1px);
         }
 
-        .logout-btn {
-            background-color: #dc3545;
-            border: none;
-            border-radius: 20px;
-            padding: 0.5rem 1.2rem;
-            color: white;
+        .search-input::placeholder {
+            color: var(--text-secondary);
             font-weight: 500;
-            transition: all 0.3s ease;
         }
 
-        .logout-btn:hover {
-            background-color: #c82333;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
         }
 
-        .user-icon {
-            width: 30px;
-            height: 30px;
-            background-color: #3498db;
-            border-radius: 50%;
+        .search-input:focus+.search-icon {
+            color: var(--primary-color);
+        }
+
+        /* Navigation Items */
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Notifications */
+        .notification-btn {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 12px;
+            background: var(--bg-light);
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .notification-btn:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            width: 18px;
+            height: 18px;
+            background: var(--danger-color);
             color: white;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+
+        /* User Profile */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            background: white;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border-color);
+        }
+
+        .user-profile:hover {
+            background: var(--bg-light);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
             font-size: 0.9rem;
+            margin-right: 0.75rem;
+            position: relative;
+        }
+
+        .user-avatar::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            background: var(--success-color);
+            border: 2px solid white;
+            border-radius: 50%;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1;
+        }
+
+        /* Logout Button */
+        .logout-btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            border-radius: 50px;
+            background: var(--danger-color);
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logout-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .logout-btn:hover::before {
+            left: 100%;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.25);
+        }
+
+        .logout-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Mobile Styles */
+        .mobile-toggle {
+            width: 44px;
+            height: 44px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: white;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .mobile-toggle:hover {
+            background: var(--bg-light);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .mobile-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--navbar-bg);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem;
+            display: none;
+        }
+
+        .mobile-menu.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @@media (max-width: 992px) {
+            .search-container {
+                max-width: 300px;
+            }
         }
 
         @@media (max-width: 768px) {
-            .search-input { 
-                min-width: 180px; 
-                margin: 0.5rem 0;
+            .navbar-container {
+                padding: 0 1rem;
             }
-            .brand-logo { 
-                font-size: 1.2rem; 
+
+            .brand-logo {
+                font-size: 1.5rem;
             }
+
+            .search-container {
+                display: none;
+            }
+
+            .nav-actions {
+                gap: 0.5rem;
+            }
+
+            .mobile-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .user-profile {
+                padding: 0.4rem 0.8rem;
+            }
+
+            .user-name {
+                font-size: 0.8rem;
+            }
+
+            .user-role {
+                display: none;
+            }
+
+            .logout-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Scrolled state */
+        .navbar-scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: var(--shadow-medium);
         }
     </style>
 </head>
+
 <body>
-    <nav class="navbar navbar-expand-lg clean-navbar px-4">
-        <div class="container-fluid">
-            <!-- Sol taraf: Logo + Global Arama -->
-            <div class="d-flex align-items-center flex-grow-1">
-                <a class="navbar-brand brand-logo me-4" href="/Home/Index">
-                    SİPİL TEK
-                </a>
-                
-                <div class="d-none d-md-block">
-                    <input class="search-input" type="search" placeholder="🔍 Global Arama" aria-label="Search">
+    <nav class="navbar navbar-expand-lg modern-navbar">
+        <div class="container-fluid navbar-container">
+            <div class="d-flex align-items-center justify-content-between w-100">
+                <!-- Left Side: Logo + Search -->
+                <div class="d-flex align-items-center flex-grow-1">
+                    <a class="brand-logo" asp-controller="Home" asp-action="Index">
+                        <img src="~/images/spiltechLogo.png" alt="spiltech.Logo" style="height: 36px;" />
+                    </a>
+
+                    <div class="search-container d-none d-lg-block">
+                        <input class="search-input" type="search" placeholder="Arama yapın..."
+                            aria-label="Global Search">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
+
+                <!-- Right Side: Actions -->
+                <div class="nav-actions">
+                    <!-- Notifications -->
+                    <button class="notification-btn" title="Bildirimler">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">3</span>
+                    </button>
+
+                    <!-- User Profile -->
+                    <a asp-controller="Account" asp-action="Profile" class="user-profile d-none d-md-flex">
+                        <div class="user-avatar">
+                            HA
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name">Hakkı Ayman</span>
+                            <span class="user-role">Sistem Yöneticisi</span>
+                        </div>
+                    </a>
+
+                    <!-- Mobile User Icon -->
+                    <a asp-controller="Account" asp-action="Profile" class="user-profile d-md-none">
+                        <div class="user-avatar">
+                            HA
+                        </div>
+                    </a>
+
+                    <!-- Logout Button -->
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="logout-btn" title="Güvenli Çıkış">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span class="d-none d-sm-inline">ÇIKIŞ</span>
+                        </button>
+                    </form>
+
+                    <!-- Mobile Menu Toggle -->
+                    <button class="mobile-toggle d-lg-none" type="button" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
             </div>
 
-            <!-- Mobile Toggle -->
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+            <!-- Mobile Menu -->
+            <div class="mobile-menu" id="mobileMenu">
+                <div class="search-container mb-3">
+                    <input class="search-input" type="search" placeholder="Arama yapın..." aria-label="Mobile Search">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
 
-            <!-- Sağ taraf: Kullanıcı Bilgisi + Çıkış -->
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-nav ms-auto d-flex align-items-center">
-                    <a href="/Account/Profile" class="user-profile me-3 d-flex align-items-center">
-                        <div class="user-icon">
-                            <i class="bi bi-person"></i>
+                <div class="d-flex flex-column gap-2">
+                    <a asp-controller="Account" asp-action="Profile" class="user-profile">
+                        <div class="user-avatar">HA</div>
+                        <div class="user-info">
+                            <span class="user-name">Hakkı Ayman</span>
+                            <span class="user-role">Sistem Yöneticisi</span>
                         </div>
-                        <span>Hakkı Ayman</span>
-                    </a>
-                    
-                    <a href="/Login/Logout" class="btn logout-btn d-flex align-items-center">
-                        <i class="bi bi-box-arrow-right me-1"></i> ÇIKIŞ
                     </a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('show');
+        }
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', function () {
+            const navbar = document.querySelector('.modern-navbar');
+            if (window.scrollY > 10) {
+                navbar.classList.add('navbar-scrolled');
+            } else {
+                navbar.classList.remove('navbar-scrolled');
+            }
+        });
+
+        // Search functionality
+        document.querySelectorAll('.search-input').forEach(input => {
+            input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    const searchTerm = this.value.trim();
+                    if (searchTerm) {
+                        // Implement search functionality
+                        console.log('Searching for:', searchTerm);
+                        // window.location.href = `/Search?q=${encodeURIComponent(searchTerm)}`;
+                    }
+                }
+            });
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function (e) {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileToggle = document.querySelector('.mobile-toggle');
+
+            if (mobileMenu.classList.contains('show') &&
+                !mobileMenu.contains(e.target) &&
+                !mobileToggle.contains(e.target)) {
+                mobileMenu.classList.remove('show');
+            }
+        });
+
+        // Notification click handler
+        document.querySelector('.notification-btn').addEventListener('click', function () {
+            // Implement notification functionality
+            console.log('Notifications clicked');
+        });
+    </script>
 </body>
+
 </html>
