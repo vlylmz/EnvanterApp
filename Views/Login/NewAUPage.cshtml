@@ -1,0 +1,815 @@
+@model WebApplication1.Models.AddAUPrefillModel
+@{
+    ViewData["Title"] = "Yeni Kullanıcı Ekle";
+    var successMessage = TempData["Success"] as string;
+    var errorMessage = TempData["Error"] as string;
+}
+
+<!-- Success/Error Messages -->
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'success',
+                title: 'Başarılı!',
+                text: '@successMessage',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    </script>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Hata!',
+                text: '@errorMessage',
+                timer: 3000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        });
+    </script>
+}
+
+
+
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="h2 mb-1 d-flex align-items-center">
+                        <i class="fas fa-user-plus text-primary me-2" aria-hidden="true"></i>
+                        Yeni Kullanıcı Ekle
+                    </h1>
+                    <p class="text-muted mb-0">Sisteme yeni kullanıcı kayıt formu</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-action="Index" asp-controller="User" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1" aria-hidden="true"></i> Kullanıcı Listesine Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Registration Form -->
+    <div class="row">
+        <div class="col-xl-8 col-lg-10 col-md-12 mx-auto">
+            <form asp-action="AddNewApplicationUser" asp-controller="Login" method="post" id="registrationForm"
+                autocomplete="off" novalidate>
+                @Html.AntiForgeryToken()
+                <div class="row g-4">
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <div>@ViewBag.Error</div>
+                            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"
+                                aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <!-- Personal Information Card -->
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <h3 class="h5 mb-0 d-flex align-items-center">
+                                    <i class="fas fa-user me-2" aria-hidden="true"></i>
+                                    Kişisel Bilgiler
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="FirstName" class="form-label">
+                                            <i class="fas fa-signature text-muted me-1" aria-hidden="true"></i>
+                                            Ad <span class="text-danger">*</span>
+                                        </label>
+                                        <input name="FirstName" id="FirstName" class="form-control"
+                                            placeholder="Örn: Mehmet" value="@Model?.FirstName" required maxlength="50"
+                                            autofocus />
+                                        <span class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="LastName" class="form-label">
+                                            <i class="fas fa-signature text-muted me-1" aria-hidden="true"></i>
+                                            Soyad <span class="text-danger">*</span>
+                                        </label>
+                                        <input name="LastName" id="LastName" class="form-control"
+                                            placeholder="Örn: Yılmaz" value="@Model?.LastName" required
+                                            maxlength="50" />
+                                        <span class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="Email" class="form-label">
+                                            <i class="fas fa-envelope text-muted me-1" aria-hidden="true"></i>
+                                            E-posta Adresi <span class="text-danger">*</span>
+                                        </label>
+                                        <input name="Email" id="Email" type="email" class="form-control"
+                                            value="@Model?.Email" placeholder="örnek@domain.com" required
+                                            maxlength="100" />
+                                        <span class="text-danger small"></span>
+                                        <div class="form-text">Giriş için kullanılacak e-posta adresi</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="PhoneNumber" class="form-label">
+                                            <i class="fas fa-phone text-muted me-1" aria-hidden="true"></i>
+                                            Telefon Numarası <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">+90</span>
+                                            <input name="PhoneNumber" id="PhoneNumber" type="tel" class="form-control"
+                                                value="@(Model?.PhoneNumber > 0 ? Model.PhoneNumber.ToString() : "")"
+                                                placeholder="5XX XXX XX XX" required pattern="[0-9]{10}"
+                                                maxlength="10" />
+                                        </div>
+                                        <span class="text-danger small"></span>
+                                        <div class="form-text">Başında 0 olmadan 10 haneli telefon numarası</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Settings Card -->
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <h3 class="h5 mb-0 d-flex align-items-center">
+                                    <i class="fas fa-shield-alt me-2" aria-hidden="true"></i>
+                                    Güvenlik Ayarları
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="Password" class="form-label">
+                                            <i class="fas fa-lock text-muted me-1" aria-hidden="true"></i>
+                                            Şifre <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input name="Password" type="password" class="form-control"
+                                                placeholder="En az 6 karakter" required minlength="6"
+                                                id="passwordInput" />
+                                            <button class="btn btn-outline-secondary" type="button" id="togglePassword"
+                                                title="Şifreyi göster/gizle">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                        <span class="text-danger small"></span>
+                                        <div class="password-strength mt-2">
+                                            <div class="progress" style="height: 5px;">
+                                                <div class="progress-bar" role="progressbar" id="passwordStrength"
+                                                    style="width: 0%;" aria-valuenow="0" aria-valuemin="0"
+                                                    aria-valuemax="100"></div>
+                                            </div>
+                                            <small class="text-muted" id="passwordStrengthText">Şifre gücü</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="confirmPassword" class="form-label">
+                                            <i class="fas fa-lock text-muted me-1" aria-hidden="true"></i>
+                                            Şifre Tekrar <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="confirmPassword"
+                                                placeholder="Şifreyi tekrar girin" required minlength="6" />
+                                            <button class="btn btn-outline-secondary" type="button"
+                                                id="toggleConfirmPassword" title="Şifreyi göster/gizle">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                        <span class="text-danger small" id="confirmPasswordError"></span>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role and Permissions Card -->
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-warning text-dark">
+                                <h3 class="h5 mb-0 d-flex align-items-center">
+                                    <i class="fas fa-user-tag me-2" aria-hidden="true"></i>
+                                    Rol ve Yetkiler
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="UserRole" class="form-label">
+                                            <i class="fas fa-id-badge text-muted me-1" aria-hidden="true"></i>
+                                            Kullanıcı Rolü <span class="text-danger">*</span>
+                                        </label>
+                                        <select name="UserRole" id="userRoleSelect" class="form-select" required>
+                                            <option value="">-- Rol Seçin --</option>
+                                            @if (Model?.UserRole == WebApplication1.Models.UserRoles.User)
+                                            {
+                                                <option value="User" selected>Kullanıcı</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="User">Kullanıcı</option>
+                                            }
+
+                                            @if (Model?.UserRole == WebApplication1.Models.UserRoles.Admin)
+                                            {
+                                                <option value="Admin" selected>Yönetici</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="Admin">Yönetici</option>
+                                            }
+
+                                            @if (Model?.UserRole == WebApplication1.Models.UserRoles.SuperAdmin)
+                                            {
+                                                <option value="SuperAdmin" selected>Süper Yönetici</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="SuperAdmin">Süper Yönetici</option>
+                                            }
+                                        </select>
+                                        <span class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">
+                                            <i class="fas fa-info-circle text-muted me-1" aria-hidden="true"></i>
+                                            Rol Açıklaması
+                                        </label>
+                                        <div id="roleDescription" class="alert alert-info mb-0"
+                                            style="min-height: 58px;">
+                                            <small>Lütfen bir rol seçin</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Role Permissions Table -->
+                                <div class="mt-4" id="permissionsTable" style="display: none;">
+                                    <h6 class="mb-3">
+                                        <i class="fas fa-key text-muted me-1" aria-hidden="true"></i>
+                                        Rol Yetkileri
+                                    </h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Yetki</th>
+                                                    <th class="text-center" width="120">Kullanıcı</th>
+                                                    <th class="text-center" width="120">Yönetici</th>
+                                                    <th class="text-center" width="120">Süper Yönetici</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Profil Görüntüleme</td>
+                                                    <td class="text-center"><i class="fas fa-check text-success"></i>
+                                                    </td>
+                                                    <td class="text-center"><i class="fas fa-check text-success"></i>
+                                                    </td>
+                                                    <td class="text-center"><i class="fas fa-check text-success"></i>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Firma Yönetimi</td>
+                                                    <td class="text-center"><i class="fas fa-times text-danger"></i>
+                                                    </td>
+                                                    <td class="text-center"><i class="fas fa-check text-success"></i>
+                                                    </td>
+                                                    <td class="text-center"><i class="fas fa-check text-success"></i>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Kullanıcı Yönetimi</td>
+                                                    <td class="text-center"><i class="fas fa-times text-danger"></i>
+                                                    </td>
+                                                    <td class="text-center"><i class="fas fa-eye text-warning"></i></td>
+                                                    <td class="text-center"><i class="fas fa-check text-success"></i>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Sistem Ayarları</td>
+                                                    <td class="text-center"><i class="fas fa-times text-danger"></i>
+                                                    </td>
+                                                    <td class="text-center"><i class="fas fa-times text-danger"></i>
+                                                    </td>
+                                                    <td class="text-center"><i class="fas fa-check text-success"></i>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <small class="text-muted">
+                                            <i class="fas fa-check text-success"></i> Tam Yetki &nbsp;
+                                            <i class="fas fa-eye text-warning"></i> Sadece Görüntüleme &nbsp;
+                                            <i class="fas fa-times text-danger"></i> Yetki Yok
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">
+                                        <i class="fas fa-redo me-1" aria-hidden="true"></i> Formu Temizle
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                                        <i class="fas fa-save me-1" aria-hidden="true"></i> Kullanıcıyı Kaydet
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4 class="mb-3">
+                <i class="fas fa-chart-line text-primary me-2" aria-hidden="true"></i>
+                Sistem İstatistikleri
+            </h4>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Toplam Kullanıcı</h6>
+                            <h3 class="mb-0">@(ViewBag.TotalUsers ?? 0)</h3>
+                        </div>
+                        <i class="fas fa-users fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Aktif Kullanıcı</h6>
+                            <h3 class="mb-0">@(ViewBag.ActiveUsers ?? 0)</h3>
+                        </div>
+                        <i class="fas fa-user-check fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">Yönetici</h6>
+                            <h3 class="mb-0">@(ViewBag.AdminUsers ?? 0)</h3>
+                        </div>
+                        <i class="fas fa-user-tie fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-gradient bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-white-50 mb-1">2FA Aktif</h6>
+                            <h3 class="mb-0">@(ViewBag.TwoFactorUsers ?? 0)</h3>
+                        </div>
+                        <i class="fas fa-shield-alt fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Password visibility toggle
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordInput = document.getElementById('passwordInput');
+            const icon = this.querySelector('i');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+
+        document.getElementById('toggleConfirmPassword').addEventListener('click', function () {
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const icon = this.querySelector('i');
+
+            if (confirmPasswordInput.type === 'password') {
+                confirmPasswordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                confirmPasswordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+
+        // Password strength meter
+        document.getElementById('passwordInput').addEventListener('input', function () {
+            const password = this.value;
+            const strengthBar = document.getElementById('passwordStrength');
+            const strengthText = document.getElementById('passwordStrengthText');
+
+            let strength = 0;
+
+            if (password.length >= 6) strength += 20;
+            if (password.length >= 8) strength += 20;
+            if (/[a-z]/.test(password)) strength += 20;
+            if (/[A-Z]/.test(password)) strength += 20;
+            if (/[0-9]/.test(password)) strength += 10;
+            if (/[^a-zA-Z0-9]/.test(password)) strength += 10;
+
+            strengthBar.style.width = strength + '%';
+            strengthBar.setAttribute('aria-valuenow', strength);
+
+            if (strength < 40) {
+                strengthBar.className = 'progress-bar bg-danger';
+                strengthText.textContent = 'Zayıf şifre';
+                strengthText.className = 'text-danger';
+            } else if (strength < 70) {
+                strengthBar.className = 'progress-bar bg-warning';
+                strengthText.textContent = 'Orta güçte şifre';
+                strengthText.className = 'text-warning';
+            } else {
+                strengthBar.className = 'progress-bar bg-success';
+                strengthText.textContent = 'Güçlü şifre';
+                strengthText.className = 'text-success';
+            }
+        });
+
+        // Password match validation
+        document.getElementById('confirmPassword').addEventListener('input', function () {
+            const password = document.getElementById('passwordInput').value;
+            const confirmPassword = this.value;
+            const errorSpan = document.getElementById('confirmPasswordError');
+
+            if (confirmPassword && password !== confirmPassword) {
+                errorSpan.textContent = 'Şifreler eşleşmiyor';
+                this.classList.add('is-invalid');
+            } else {
+                errorSpan.textContent = '';
+                this.classList.remove('is-invalid');
+                if (confirmPassword && password === confirmPassword) {
+                    this.classList.add('is-valid');
+                }
+            }
+        });
+
+        // Role description and permissions
+        document.getElementById('userRoleSelect').addEventListener('change', function () {
+            const roleDescription = document.getElementById('roleDescription');
+            const permissionsTable = document.getElementById('permissionsTable');
+
+            const descriptions = {
+                'User': '<i class="fas fa-user me-1"></i> <strong>Kullanıcı:</strong> Temel sistem özelliklerine erişim. Sadece kendi profilini görüntüleyebilir ve düzenleyebilir.',
+                'Admin': '<i class="fas fa-user-cog me-1"></i> <strong>Yönetici:</strong> Firma yönetimi ve kullanıcı görüntüleme yetkisi. Raporlara erişim.',
+                'SuperAdmin': '<i class="fas fa-user-shield me-1"></i> <strong>Süper Yönetici:</strong> Tüm sistem özelliklerine tam erişim. Kullanıcı ve sistem yönetimi.'
+            };
+
+            if (this.value) {
+                roleDescription.innerHTML = `<small>${descriptions[this.value]}</small>`;
+                roleDescription.className = 'alert alert-info mb-0';
+                permissionsTable.style.display = 'block';
+
+                // Highlight selected role column
+                const tables = document.querySelectorAll('#permissionsTable th, #permissionsTable td');
+                tables.forEach(cell => cell.classList.remove('table-primary'));
+
+                let columnIndex = this.value === 'User' ? 1 : (this.value === 'Admin' ? 2 : 3);
+                document.querySelectorAll(`#permissionsTable tr th:nth-child(${columnIndex + 1}), #permissionsTable tr td:nth-child(${columnIndex + 1})`).forEach(cell => {
+                    cell.classList.add('table-primary');
+                });
+            } else {
+                roleDescription.innerHTML = '<small>Lütfen bir rol seçin</small>';
+                roleDescription.className = 'alert alert-info mb-0';
+                permissionsTable.style.display = 'none';
+            }
+        });
+
+        // Form validation
+        document.getElementById('registrationForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Check password match
+            const password = document.getElementById('passwordInput').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hata!',
+                    text: 'Şifreler eşleşmiyor. Lütfen kontrol edin.',
+                    confirmButtonText: 'Tamam'
+                });
+                return;
+            }
+
+            // Check all required fields
+            const requiredFields = this.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Eksik Bilgi!',
+                    text: 'Lütfen tüm zorunlu alanları doldurun.',
+                    confirmButtonText: 'Tamam'
+                });
+                return;
+            }
+
+            // Show confirmation
+            const firstName = document.getElementById('FirstName').value;
+            const lastName = document.getElementById('LastName').value;
+            const role = document.getElementById('userRoleSelect').value;
+            const roleText = role === 'User' ? 'Kullanıcı' : (role === 'Admin' ? 'Yönetici' : 'Süper Yönetici');
+
+            Swal.fire({
+                title: 'Kullanıcı Eklenecek',
+                html: `
+                            <div class="text-start">
+                                <p><strong>${firstName} ${lastName}</strong> kullanıcısı <strong>${roleText}</strong> rolü ile sisteme eklenecek.</p>
+                                <p class="mb-0">Onaylıyor musunuz?</p>
+                            </div>
+                        `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-check"></i> Evet, Ekle',
+                cancelButtonText: '<i class="fas fa-times"></i> İptal',
+                customClass: {
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-secondary'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Kaydediliyor...',
+                        html: 'Kullanıcı ekleniyor, lütfen bekleyin...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Submit form
+                    this.submit();
+                }
+            });
+        });
+
+        // Reset form function
+        function resetForm() {
+            Swal.fire({
+                title: 'Formu Temizle?',
+                text: 'Tüm girilen bilgiler silinecek.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Evet, Temizle',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('registrationForm').reset();
+                    document.querySelectorAll('.is-invalid, .is-valid').forEach(el => {
+                        el.classList.remove('is-invalid', 'is-valid');
+                    });
+                    document.getElementById('passwordStrength').style.width = '0%';
+                    document.getElementById('passwordStrengthText').textContent = 'Şifre gücü';
+                    document.getElementById('roleDescription').innerHTML = '<small>Lütfen bir rol seçin</small>';
+                    document.getElementById('permissionsTable').style.display = 'none';
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Temizlendi!',
+                        text: 'Form başarıyla temizlendi.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        }
+
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function () {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
+
+            // Trigger role description update if role is prefilled
+            const roleSelect = document.getElementById('userRoleSelect');
+            if (roleSelect && roleSelect.value) {
+                roleSelect.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Phone number formatting
+        document.getElementById('PhoneNumber').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) {
+                value = value.substr(0, 10);
+            }
+            e.target.value = value;
+        });
+    </script>
+
+    <style>
+        /* Custom styles for registration form */
+        :root {
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+            --secondary-color: #6c757d;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+        }
+
+        /* Card improvements */
+        .card {
+            border: none;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .card-header {
+            border-radius: 0.5rem 0.5rem 0 0 !important;
+            font-weight: 600;
+            border: none;
+        }
+
+        /* Form controls */
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .form-control.is-invalid:focus {
+            border-color: var(--danger-color);
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        .form-control.is-valid:focus {
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+        }
+
+        /* Input group */
+        .input-group-text {
+            background-color: var(--light-color);
+            border-color: #dee2e6;
+        }
+
+        /* Progress bar for password strength */
+        .progress {
+            background-color: #e9ecef;
+        }
+
+        /* Button styles */
+        .btn {
+            border-radius: 0.375rem;
+            transition: all 0.15s ease-in-out;
+            font-weight: 500;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+        }
+
+        /* Gradient backgrounds for stat cards */
+        .bg-gradient {
+            background: linear-gradient(135deg, var(--bs-primary) 0%, rgba(var(--bs-primary-rgb), 0.8) 100%) !important;
+        }
+
+        .bg-gradient.bg-success {
+            background: linear-gradient(135deg, var(--bs-success) 0%, rgba(var(--bs-success-rgb), 0.8) 100%) !important;
+        }
+
+        .bg-gradient.bg-warning {
+            background: linear-gradient(135deg, var(--bs-warning) 0%, rgba(var(--bs-warning-rgb), 0.8) 100%) !important;
+        }
+
+        .bg-gradient.bg-info {
+            background: linear-gradient(135deg, var(--bs-info) 0%, rgba(var(--bs-info-rgb), 0.8) 100%) !important;
+        }
+
+        /* Table styles */
+        .table-primary {
+            background-color: rgba(13, 110, 253, 0.1) !important;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            .card-body {
+                padding: 1rem;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .d-flex.gap-2 {
+                flex-direction: column;
+            }
+        }
+
+        /* Animation for cards */
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* Custom form validation styles */
+        .was-validated .form-control:invalid,
+        .form-control.is-invalid {
+            border-color: var(--danger-color);
+            padding-right: calc(1.5em + .75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(.375em + .1875rem) center;
+            background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+        }
+
+        .was-validated .form-control:valid,
+        .form-control.is-valid {
+            border-color: var(--success-color);
+            padding-right: calc(1.5em + .75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(.375em + .1875rem) center;
+            background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+        }
+    </style>
+}

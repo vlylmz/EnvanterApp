@@ -32,7 +32,7 @@ namespace WebApplication1.Controllers
                 LastName = user.LastName!,
                 Email = user.Email!,
                 PhoneNumber = user.PhoneNumber > 0 ? $"+90 {user.PhoneNumber}" : "",
-                UserRole = user.UserRole?.ToString() ?? "User",
+                UserRole = user.UserRole.ToString() ?? "User",
                 CreatedDate = user.CreatedDate,
                 TwoFactorEnabled = user.TotpSecret != null && user.TotpSecret.Length > 0
             };

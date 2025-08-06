@@ -146,21 +146,17 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    var original = await _context.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
+                    var original = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
                     if (original == null)
                         return NotFound();
 
                     model.UpdatedDate = DateTime.Now;
-                    _context.Update(model);
+                    LogHelper.GetDifferences(original, model);
+                    _context.Entry(original).CurrentValues.SetValues(model);
                     await _context.SaveChangesAsync();
 
-                    string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        var detail = LogHelper.GetDifferences(original, model);
-                        await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Firma güncellendi", "Company", model.Id, detail, original);
-                    }
+                    var detail = LogHelper.GetDifferences(original, model);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Firma güncellendi", "Company", model.Id, detail, original);
 
                     TempData["Success"] = "Şirket başarıyla güncellendi.";
                     return RedirectToAction(nameof(Index));

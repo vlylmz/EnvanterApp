@@ -36,12 +36,20 @@ namespace WebApplication1.Models
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         [Required]
-        public UserRoles? UserRole { get; set; }
+        public UserRoles UserRole { get; set; }
 
 
         public long PhoneNumber { get; set; }
 
 
         public byte[]? TotpSecret { get; set; }
+
+
+        public void print()
+        {
+            Console.WriteLine("First Name: " + FirstName + " sn: " + LastName + " email: " + Email);
+            
+        }
+
     }
 }

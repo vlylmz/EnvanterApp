@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -5,6 +6,7 @@ using Microsoft.VisualBasic;
 using OtpNet;
 using WebApplication1.Data;
 using WebApplication1.EnvanterLib;
+using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
 {
@@ -68,7 +70,7 @@ namespace WebApplication1.Controllers
         public IActionResult QrRegister(string code)
         {
             Console.WriteLine("qrregister code: " + code);
-            
+
             var loggedInUser = this.GetUserFromHttpContext();
             if (loggedInUser == null)
             {
@@ -128,7 +130,7 @@ namespace WebApplication1.Controllers
         {
             if (CheckIfAlreadyLoggedIn())
                 return RedirectToAction("Index", "Home");
-            
+
             var user = this.GetTwoFactorHoldUser();
             if (user == null)
             {
@@ -152,9 +154,9 @@ namespace WebApplication1.Controllers
             }
 
             HttpContext.Session.TryGetValue("TotpSecretRegisterKey", out var totpSecretRegisterKey);
-            if(totpSecretRegisterKey == null)
+            if (totpSecretRegisterKey == null)
                 totpSecretRegisterKey = KeyGeneration.GenerateRandomKey(16);
-            
+
 
             HttpContext.Session.Set("TotpSecretRegisterKey", totpSecretRegisterKey);
 
@@ -171,6 +173,40 @@ namespace WebApplication1.Controllers
                 return true;
             }
             return false;
+        }
+
+
+        [Route("AddAU")]
+        public IActionResult AddNewApplicationUser()
+        {
+            AddAUPrefillModel model = new AddAUPrefillModel
+            {
+                FirstName = "ilkad",
+                LastName = "soyad",
+                Email = "asdad@example.org",
+                PhoneNumber = 5346389805,
+                UserRole = UserRoles.Admin,
+                WelcomeMessage = "xd"
+            };
+            return View("NewAUPage", model);
+        }
+
+        [HttpPost]
+        [Route("AddAU")]
+        public IActionResult AddNewApplicationUser(ApplicationUser model)
+        {
+            model.print();
+            if (
+                context.ApplicationUsers.Where(a => a.Email == model.Email).Any()
+            )
+            {
+                ViewBag.Error = "User exists";
+                return View("NewAUPage", new AddAUPrefillModel { FirstName = model.FirstName!, LastName = model.LastName!, Email = model.Email!, PhoneNumber = model.PhoneNumber, UserRole = model.UserRole });
+            }
+
+            context.ApplicationUsers.Add(model);
+            context.SaveChangesAsync();
+            return RedirectToAction("Index", "Home");
         }
 
     }
