@@ -60,24 +60,6 @@
             color: #3498db;
         }
 
-        .collapse .nav-link {
-            padding: 10px 20px !important;
-            margin: 0 8px 0 20px;
-            font-size: 0.9rem;
-            background: rgba(0, 0, 0, 0.1);
-            border-left: 2px solid transparent;
-        }
-
-        .collapse .nav-link:hover {
-            background: rgba(255, 255, 255, 0.05) !important;
-            border-left-color: #3498db;
-        }
-
-        .collapse .nav-link i {
-            font-size: 0.85rem;
-            margin-right: 8px !important;
-        }
-
         /* Scrollbar */
         .sidebar::-webkit-scrollbar {
             width: 4px;
@@ -96,10 +78,18 @@
             background: #2980b9;
         }
 
-        /* Aktif link */
+        /* Active link */
         .nav-link.active {
             background: rgba(52, 152, 219, 0.2) !important;
             border-left-color: #3498db;
+            color: #ffffff !important;
+        }
+
+        /* Divider for sections */
+        .nav-divider {
+            height: 1px;
+            background: #34495e;
+            margin: 15px 20px;
         }
     </style>
 </head>
@@ -108,138 +98,125 @@
 
     <div class="bg-dark text-white p-3 sidebar"
         style="width: 250px; min-height: 100vh; height: 100vh; overflow-y: auto;">
-        <a href="/Home/Index" class="text-center d-block text-decoration-none text-white"
+        
+        <!-- Logo/Header -->
+        <a asp-controller="Home" asp-action="Index" class="text-center d-block text-decoration-none text-white"
             style="font-size: 1.5rem; font-weight: bold; letter-spacing: 1px;">
             ENVANTER
         </a>
+        
         <ul class="nav flex-column mt-4">
 
             <!-- Dashboard -->
             <li class="nav-item">
-                <a class="nav-link text-white" href="/Home/Index">
-                    <i class="fas fa-chart-line me-2"></i> Dashboard
+                <a class="nav-link text-white" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-chart-line"></i> Dashboard
                 </a>
             </li>
 
             <!-- Firmalar -->
             <li class="nav-item">
-                <a class="nav-link text-white" data-bs-toggle="collapse" href="#firmalarSubMenu" role="button"
-                    aria-expanded="false" aria-controls="firmalarSubMenu">
-                    <i class="fas fa-building me-2"></i> Firmalar
+                <a class="nav-link text-white" asp-controller="Company" asp-action="Index">
+                    <i class="fas fa-building"></i> Firmalar
                 </a>
-                <div class="collapse ms-3" id="firmalarSubMenu">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="/Company/Index">
-                                <i class="fas fa-list me-2"></i> Tüm Firmalar
-                            </a>
-                        </li>
-                    </ul>
-                </div>
             </li>
 
             <!-- Çalışanlar -->
             <li class="nav-item">
-                <a class="nav-link text-white" data-bs-toggle="collapse" href="#calisanSubMenu" role="button"
-                    aria-expanded="false" aria-controls="calisanSubMenu">
-                    <i class="fas fa-users me-2"></i> Çalışanlar
+                <a class="nav-link text-white" asp-controller="Employee" asp-action="Index">
+                    <i class="fas fa-users"></i> Çalışanlar
                 </a>
-                <div class="collapse ms-3" id="calisanSubMenu">
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link text-white" href="/Employee/Index">Listele</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="/Employee/Create">Ekle</a></li>
-                    </ul>
-                </div>
             </li>
 
             <!-- Bilgisayarlar -->
             <li class="nav-item">
-                <a class="nav-link text-white" data-bs-toggle="collapse" href="#pcSubMenu" role="button"
-                    aria-expanded="false" aria-controls="pcSubMenu">
-                    <i class="fas fa-desktop me-2"></i> Bilgisayarlar
+                <a class="nav-link text-white" asp-controller="Computers" asp-action="Index">
+                    <i class="fas fa-desktop"></i> Bilgisayarlar
                 </a>
-                <div class="collapse ms-3" id="pcSubMenu">
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link text-white" href="/Computers/Index">Listele</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="/Computers/Create">Ekle</a></li>
-                    </ul>
-                </div>
             </li>
 
             <!-- Yazılımlar -->
             <li class="nav-item">
-                <a class="nav-link text-white" data-bs-toggle="collapse" href="#yazilimSubMenu" role="button"
-                    aria-expanded="false" aria-controls="yazilimSubMenu">
-                    <i class="fas fa-code me-2"></i> Yazılımlar
+                <a class="nav-link text-white" asp-controller="Software" asp-action="Index">
+                    <i class="fas fa-code"></i> Yazılımlar
                 </a>
-                <div class="collapse ms-3" id="yazilimSubMenu">
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link text-white" href="/Software/Index">Listele</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="/Software/Create">Ekle</a></li>
-                    </ul>
-                </div>
             </li>
 
             <!-- Sarf Malzemeler -->
             <li class="nav-item">
-                <a class="nav-link text-white" data-bs-toggle="collapse" href="#sarfSubMenu" role="button"
-                    aria-expanded="false" aria-controls="sarfSubMenu">
-                    <i class="fas fa-boxes me-2"></i> Sarf Malzemeler
+                <a class="nav-link text-white" asp-controller="Items" asp-action="Index">
+                    <i class="fas fa-boxes"></i> Sarf Malzemeler
                 </a>
-                <div class="collapse ms-3" id="sarfSubMenu">
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link text-white" href="/Items/Index">Listele</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="/Items/Create">Ekle</a></li>
-                    </ul>
-                </div>
             </li>
 
             <!-- Havuz Envanteri -->
             <li class="nav-item">
-                <a class="nav-link text-white" data-bs-toggle="collapse" href="#havuzSubMenu" role="button"
-                    aria-expanded="false" aria-controls="havuzSubMenu">
-                    <i class="fas fa-warehouse me-2"></i> Havuz Envanteri
+                <a class="nav-link text-white" asp-controller="Pool" asp-action="Index">
+                    <i class="fas fa-warehouse"></i> Havuz Envanteri
                 </a>
-                <div class="collapse ms-3" id="havuzSubMenu">
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link text-white" href="/Pool/Index">Listele</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="/Pool/Create">Ekle</a></li>
-                    </ul>
-                </div>
             </li>
 
             <!-- Zimmet İşlemleri -->
             <li class="nav-item">
-                <a class="nav-link text-white" data-bs-toggle="collapse" href="#zimmetSubMenu" role="button"
-                    aria-expanded="false" aria-controls="zimmetSubMenu">
-                    <i class="fas fa-exchange-alt me-2"></i> Zimmet İşlemleri
+                <a class="nav-link text-white" asp-controller="Assignment" asp-action="Index">
+                    <i class="fas fa-exchange-alt"></i> Zimmet İşlemleri
                 </a>
-                <div class="collapse ms-3" id="zimmetSubMenu">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="/Assignment/Index">Zimmetleri
-                                Listele</a></li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="/Assignment/Create">Zimmetle</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="#">İade Et</a></li>
-                    </ul>
-                </div>
             </li>
-            <!-- Loglar-->
+
+            <!-- Divider -->
+            <div class="nav-divider"></div>
+
+            <!-- Loglar -->
             <li class="nav-item">
                 <a class="nav-link text-white" asp-controller="ActivityLogs" asp-action="Index">
                     <i class="fas fa-clipboard-list"></i> Loglar
                 </a>
             </li>
-            <!-- Ayarlar -->
+
+            <!-- Hesap Ayarları -->
             <li class="nav-item">
                 <a class="nav-link text-white" asp-controller="Account" asp-action="Profile">
                     <i class="fas fa-user-cog"></i> Hesap Ayarları
                 </a>
             </li>
 
+            <!-- Çıkış -->
+            <li class="nav-item">
+                <a class="nav-link text-white" asp-controller="Account" asp-action="Logout">
+                    <i class="fas fa-sign-out-alt"></i> Çıkış
+                </a>
+            </li>
+
         </ul>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script to highlight active menu item based on current URL -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get current URL path
+            const currentPath = window.location.pathname.toLowerCase();
+            
+            // Get all nav links
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            // Check each link
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && currentPath.startsWith(href.toLowerCase())) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Special case for Dashboard/Home
+            if (currentPath === '/' || currentPath === '/home' || currentPath === '/home/index') {
+                const dashboardLink = document.querySelector('a[href="/Home/Index"]');
+                if (dashboardLink) {
+                    dashboardLink.classList.add('active');
+                }
+            }
+        });
+    </script>
 </body>
 </html>
