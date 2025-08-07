@@ -34,7 +34,7 @@ namespace WebApplication1.Services
                 logToThisToo.AddtoOwnLogs(log);
                 _context.Set<T>().Update(logToThisToo);
             }
-            else Debug.Assert(false);
+            //else Debug.Assert(false);
 
             await _context.SaveChangesAsync();
         }
