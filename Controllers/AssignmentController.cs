@@ -300,16 +300,11 @@ namespace WebApplication1.Controllers
                 await _context.SaveChangesAsync();
 
                 // ✅ LOG EKLENDİ
-                string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
+                var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
                                  $"Kategori: {product.Category}\n" +
                                  $"Zimmet Edilen: {personnelName}\n" +
                                  $"Zimmet Tarihi: {DateTime.Now:dd.MM.yyyy HH:mm}";
-                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Zimmet verildi", "Item", product.Id, detail);
-                }
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Zimmet verildi", "Item", product.Id, detail, product);
 
                 return Json(new
                 {

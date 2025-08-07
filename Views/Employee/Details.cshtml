@@ -25,7 +25,7 @@
                                 <i class="fas fa-user fa-3x"></i>
                             </div>
                         </div>
-                    <div class="col-md-8">
+                        <div class="col-md-8">
                             <h2 class="mb-1">@Model.FirstName @Model.LastName</h2>
                             <p class="mb-0 opacity-75">
                                 <i class="fas fa-building me-2"></i>@(Model.Company?.Name ?? "Firma Atanmamış")
@@ -224,95 +224,77 @@
         </div>
 
         <!-- Time Log Panel Sliderlı -->
-        <div class="card shadow-sm border-0"
-            style="max-width: 980px; margin-top: 20px; margin-right: auto; margin-bottom: 20px; margin-left: 0;" ">
-            <div class=" card-header bg-white border-bottom">
-            <h5 class="mb-0">
-                <i class="fas fa-history text-primary me-2"></i>
-                Zaman Çizelgesi
-            </h5>
-        </div>
-
-
-        <div class="card-body p-0"></div>
-        <div class="timeline-logs px-3 py-2">
-            @{
-            Console.WriteLine("Rendering activity logs...");
-            Console.WriteLine("any: " + Model.ActivityLogs?.Any());
-
-
-
-                if (Model.ActivityLogs != null && Model.ActivityLogs.Any())
-            {
-                Console.WriteLine("Activity logs found: " + Model.ActivityLogs.Count);
-                @foreach (var log in Model.ActivityLogs)
-                {
-                    var uniqueId = Guid.NewGuid().ToString("N");
-                    <div class="log-entry border-bottom pb-2 mb-2">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <div class="fw-bold">
-                                    <i class="fas fa-info-circle text-secondary me-1"></i>
-                                    <span>@log.Action</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-1">
-                            <div class="text-muted small">
-                                <i class="fas fa-user me-1"></i>
-                                @(log.User?.Email ?? "Bilinmiyor")
-                                @{Console.WriteLine("User Email inside view: " + (log.User?.Email ?? "Bilinmiyor")); }
-                            </div>
-                            <div class="text-muted small">
-                                <i class="fas fa-clock me-1"></i>
-                                @log.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
-                            </div>
-                        </div>
-                        @if (!string.IsNullOrEmpty(log.Detail))
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0">
+                    <i class="fas fa-history text-primary me-2"></i>
+                    Firma Aktiviteleri
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="timeline-logs px-3 py-2">
+                    @if (Model.ActivityLogs != null && Model.ActivityLogs.Any())
+                    {
+                        @foreach (var log in Model.ActivityLogs)
                         {
-                            <div class="mt-1">
-                                <a href="#" class="text-primary small"
-                                    onclick="document.getElementById('@uniqueId').style.display='block'; this.style.display='none'; document.getElementById('hide-@uniqueId').style.display='inline'; return false;">
-                                    <i class="fas fa-eye me-1"></i>Detayları göster
-                                </a>
-                                <a href="#" id="hide-@uniqueId" class="text-primary small" style="display:none;"
-                                    onclick="document.getElementById('@uniqueId').style.display='none'; this.style.display='none'; this.previousElementSibling.style.display='inline'; return false;">
-                                    <i class="fas fa-eye-slash me-1"></i>Detayları gizle
-                                </a>
-                            </div>
-                            <div id="@uniqueId" class="mt-2 p-2 bg-light rounded"
-                                style="display: none; border-left: 3px solid #007bff;">
-                                <small class="text-muted" style="white-space: pre-line;">@log.Detail</small>
+                            var uniqueId = Guid.NewGuid().ToString("N");
+                            <div class="log-entry border-bottom pb-2 mb-2">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold">
+                                            <i class="fas fa-info-circle text-secondary me-1"></i>
+                                            <span>@log.Action</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <div class="text-muted small">
+                                        <i class="fas fa-user me-1"></i>
+                                        @(log.User?.Email ?? "Bilinmiyor")
+                                    </div>
+                                    <div class="text-muted small">
+                                        <i class="fas fa-clock me-1"></i>
+                                        @log.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrEmpty(log.Detail))
+                                {
+                                    <div class="mt-1">
+                                        <a href="#" class="text-primary small"
+                                            onclick="document.getElementById('@uniqueId').style.display='block'; this.style.display='none'; document.getElementById('hide-@uniqueId').style.display='inline'; return false;">
+                                            <i class="fas fa-eye me-1"></i>Detayları göster
+                                        </a>
+                                        <a href="#" id="hide-@uniqueId" class="text-primary small" style="display:none;"
+                                            onclick="document.getElementById('@uniqueId').style.display='none'; this.style.display='none'; this.previousElementSibling.style.display='inline'; return false;">
+                                            <i class="fas fa-eye-slash me-1"></i>Detayları gizle
+                                        </a>
+                                    </div>
+                                    <div id="@uniqueId" class="mt-2 p-2 bg-light rounded"
+                                        style="display: none; border-left: 3px solid #007bff;">
+                                        <small class="text-muted" style="white-space: pre-line;">@log.Detail</small>
+                                    </div>
+                                }
                             </div>
                         }
+                    }
+                </div>
+                @if (Model.ActivityLogs != null && Model.ActivityLogs.Count >= 10)
+                {
+                    <div class="text-center py-2 bg-light">
+                        <a asp-controller="ActivityLog" asp-action="Index" asp-route-entityType="Company"
+                            asp-route-entityId="@Model.Company.Id" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-list me-1"></i>Tüm Aktiviteleri Gör
+                        </a>
                     </div>
                 }
-            }
-            else
-            {
-                <div class="text-center py-4 text-muted">
-                    <i class="fas fa-history fa-3x mb-2"></i>
-                    <p>Aktivite kaydı bulunamadı.</p>
-                </div>
-            }
-            }
-        </div>
-        @if (Model.ActivityLogs != null && Model.ActivityLogs.Count >= 10)
-        {
-            <div class="text-center py-2 bg-light">
-                <a asp-controller="ActivityLog" asp-action="Index" asp-route-entityType="Company"
-                    asp-route-entityId="@Model.Company.Id" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-list me-1"></i>Tüm Aktiviteleri Gör
-                </a>
             </div>
-        }
+        </div>
     </div>
 </div>
 
 <style>
     .timeline-logs {
-        max-height: 208px;
-        /* 5-6 log için ideal yükseklik */
+        max-height: 300px;
         overflow-y: auto;
         background: #f7fafc;
         border-radius: 0 0 12px 12px;
@@ -333,18 +315,82 @@
         background: linear-gradient(180deg, #0056b3, #007bff);
     }
 
-    .log-entry:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-    }
-
     .log-entry {
-        transition: background 0.2s;
+        transition: all 0.3s ease;
+        padding: 12px 8px;
+        border-radius: 8px;
+        margin-bottom: 8px;
     }
 
     .log-entry:hover {
-        background: #e3ebf6;
+        background: #e8f0fe;
+        transform: translateX(5px);
+    }
+
+    .log-entry:last-child {
+        border-bottom: none !important;
+        margin-bottom: 0;
+        padding-bottom: 8px;
+    }
+
+    /* Icon colors for activity types */
+    .log-entry .fa-plus-circle {
+        color: #28a745;
+    }
+
+    .log-entry .fa-edit {
+        color: #ffc107;
+    }
+
+    .log-entry .fa-trash {
+        color: #dc3545;
+    }
+
+    .log-entry .fa-check-circle {
+        color: #28a745;
+    }
+
+    .log-entry .fa-times-circle {
+        color: #6c757d;
+    }
+
+    .log-entry .fa-user-plus {
+        color: #17a2b8;
+    }
+
+    .log-entry .fa-user-minus {
+        color: #fd7e14;
+    }
+
+    .log-entry .fa-laptop {
+        color: #007bff;
+    }
+
+    /* Animation for new log entries */
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .log-entry {
+        animation: slideIn 0.3s ease-out;
+    }
+
+    /* Simple styles for clickable logs */
+    .log-entry.has-detail:hover {
+        background: #e3ebf6 !important;
+    }
+
+    .log-detail-content {
+        border-left: 3px solid #007bff;
+        background: #f0f4f8 !important;
     }
 </style>
 
@@ -437,42 +483,104 @@
         color: #212529;
     }
 
-    .timeline {
-        position: relative;
-        padding-left: 30px;
+    .timeline-logs {
+        max-height: 300px;
+        overflow-y: auto;
+        background: #f7fafc;
+        border-radius: 0 0 12px 12px;
     }
 
-    .timeline::before {
-        content: '';
-        position: absolute;
-        left: 10px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #e9ecef;
+    .timeline-logs::-webkit-scrollbar {
+        width: 10px;
+        background: #e2e8f0;
+        border-radius: 10px;
     }
 
-    .timeline-item {
-        position: relative;
-        margin-bottom: 20px;
+    .timeline-logs::-webkit-scrollbar-thumb {
+        background: linear-gradient(160deg, #007bff 30%, #54a0ff 100%);
+        border-radius: 10px;
     }
 
-    .timeline-marker {
-        position: absolute;
-        left: -25px;
-        top: 5px;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        border: 2px solid #fff;
-        box-shadow: 0 0 0 2px #e9ecef;
+    .timeline-logs::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #0056b3, #007bff);
     }
 
-    .timeline-content {
-        background: #f8f9fa;
-        padding: 10px 15px;
+    .log-entry {
+        transition: all 0.3s ease;
+        padding: 12px 8px;
         border-radius: 8px;
+        margin-bottom: 8px;
+    }
+
+    .log-entry:hover {
+        background: #e8f0fe;
+        transform: translateX(5px);
+    }
+
+    .log-entry:last-child {
+        border-bottom: none !important;
+        margin-bottom: 0;
+        padding-bottom: 8px;
+    }
+
+    /* Icon colors for activity types */
+    .log-entry .fa-plus-circle {
+        color: #28a745;
+    }
+
+    .log-entry .fa-edit {
+        color: #ffc107;
+    }
+
+    .log-entry .fa-trash {
+        color: #dc3545;
+    }
+
+    .log-entry .fa-check-circle {
+        color: #28a745;
+    }
+
+    .log-entry .fa-times-circle {
+        color: #6c757d;
+    }
+
+    .log-entry .fa-user-plus {
+        color: #17a2b8;
+    }
+
+    .log-entry .fa-user-minus {
+        color: #fd7e14;
+    }
+
+    .log-entry .fa-laptop {
+        color: #007bff;
+    }
+
+    /* Animation for new log entries */
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .log-entry {
+        animation: slideIn 0.3s ease-out;
+    }
+
+    /* Simple styles for clickable logs */
+    .log-entry.has-detail:hover {
+        background: #e3ebf6 !important;
+    }
+
+    .log-detail-content {
         border-left: 3px solid #007bff;
+        background: #f0f4f8 !important;
     }
 
     .stat-item {
