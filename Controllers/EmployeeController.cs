@@ -177,34 +177,42 @@ public async Task<IActionResult> Delete(int id)
 
             if (ModelState.IsValid)
             {
-
-
                 try
                 {
-                    var entity = _context.Update(employeeEditForm).Entity;
+                    var existingEmployee = await _context.Employees.FindAsync(id);
+                    if (existingEmployee == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Sadece değiştirilen alanları güncelle
+                    existingEmployee.FirstName = employeeEditForm.FirstName;
+                    existingEmployee.LastName = employeeEditForm.LastName;
+                    existingEmployee.Email = employeeEditForm.Email;
+                    existingEmployee.Phone = employeeEditForm.Phone;
+                    existingEmployee.CompanyId = employeeEditForm.CompanyId;
+                    existingEmployee.Title = employeeEditForm.Title;
+                    existingEmployee.ActiveTime = employeeEditForm.ActiveTime;
+                    existingEmployee.IsActive = employeeEditForm.IsActive;
+
                     await _context.SaveChangesAsync();
 
-                    // LOG EKLENDİ
-                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan güncellendi", "Employee", employeeEditForm.Id, null, entity);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(),
+                        "Çalışan güncellendi", "Employee", employeeEditForm.Id, null, existingEmployee);
 
                     TempData["Success"] = "Çalışan başarıyla güncellendi!";
                     return RedirectToAction("Index");
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!_context.Employees.Any(e => e.Id == employeeEditForm.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    TempData["Error"] = "Güncelleme hatası: " + ex.Message;
                 }
             }
-            // Re-populate dropdown on error
+
+            // ViewBag tekrar doldurulmalı
             ViewBag.CompanyId = new SelectList(_context.Companies, "Id", "Name", employeeEditForm.CompanyId);
             return View(employeeEditForm);
         }
+
     }
 }

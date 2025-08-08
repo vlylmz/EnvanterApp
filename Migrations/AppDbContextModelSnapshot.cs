@@ -420,6 +420,9 @@ namespace WebApplication1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AssetTag")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("AssignedPersonnel")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
