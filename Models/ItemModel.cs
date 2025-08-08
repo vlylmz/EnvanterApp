@@ -100,7 +100,7 @@ namespace WebApplication1.Models
         [MaxLength(100)]
         [Display(Name = "Güncelleyen")]
         public string? UpdatedBy { get; set; }
-
+        public string? AssetTag { get; internal set; }
 
         public void AssignToPersonnel(string personnel, string? assignedBy = null)
         {

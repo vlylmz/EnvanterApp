@@ -34,9 +34,9 @@ namespace WebApplication1.Services
                 logToThisToo.AddtoOwnLogs(log);
                 _context.Set<T>().Update(logToThisToo);
             }
-            else Debug.Assert(false);
+            //else Debug.Assert(false);
 
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
         }
 
         public async Task LogAsync(int userId, string action, string entityType, int entityId, string? detail = null)

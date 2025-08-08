@@ -792,6 +792,8 @@ namespace WebApplication1.Controllers
         }
     }
 
+
+
     // Validasyon sonuç modeli
     public class ValidationResult
     {

@@ -4,6 +4,20 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var modelError in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@modelError.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+
+
 <style>
     /* Custom CSS for form styling */
     :root {
@@ -338,53 +352,14 @@
                 </div>
 
                 <!-- Advanced Settings Card -->
-                <div class="card mb-4 shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0 d-flex align-items-center">
-                            <i class="fas fa-cogs me-2 text-warning" aria-hidden="true"></i> 
-                            Sistem Ayarları
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="activeTime" class="form-label fw-semibold">
-                                        <i class="fas fa-clock text-muted me-1" aria-hidden="true"></i>
-                                        Aktif Olma Zamanı
-                                    </label>
-                                    <input asp-for="ActiveTime" type="datetime-local" class="form-control form-control-lg"
-                                           id="activeTime" value="@Model.ActiveTime.ToString("yyyy-MM-ddTHH:mm")">
-                                    <div class="form-text">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Çalışanın sisteme aktif olarak kaydedileceği tarih ve saat
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label fw-semibold">
-                                        <i class="fas fa-toggle-on text-muted me-1" aria-hidden="true"></i>
-                                        Hesap Durumu
-                                    </label>
-                                    <div class="form-check form-switch mt-2">
-                                        <input asp-for="IsActive" class="form-check-input form-check-input-lg" 
-                                               type="checkbox" id="isActive">
-                                        <label class="form-check-label ms-2" for="isActive">
-                                            <span class="fw-semibold text-success">
-                                                <i class="fas fa-check-circle me-1"></i>
-                                                Hesap Aktif
-                                            </span>
-                                            <div class="form-text mt-1">
-                                                Aktif çalışanlar sisteme giriş yapabilir ve işlem gerçekleştirebilir
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Çalışan Durumu</label>
+                    <select asp-for="IsActive" class="form-select">
+                        <option value="true">Aktif</option>
+                        <option value="false">Pasif</option>
+                    </select>
                 </div>
+
             </div>
 
             <!-- Right Column - Actions & Info -->
