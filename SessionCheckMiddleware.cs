@@ -17,19 +17,16 @@ public class SessionCheckMiddleware
 
         Console.WriteLine(controller + ":" + action);
 
-        if (controller == "login" && (action == "index" || action == "qrvalidate"))
+        if
+        (
+            EnvanterLib.GetUserFromHttpContext(context) != null ||
+            (controller == "login" && (action == "index" || action == "qrvalidate"))
+        )
         {
             await _next(context);
             return;
         }
 
-        if (EnvanterLib.GetUserFromHttpContext(context) == null)
-        {
-            context.Response.Redirect("/Login/Index");
-            return;
-        }
-
-        await _next(context);
-        
+        context.Response.Redirect("/Login/Index");        
     }
 }

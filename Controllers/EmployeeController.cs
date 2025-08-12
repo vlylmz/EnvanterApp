@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.Services;
-using System.Security.Claims;
 using WebApplication1.EnvanterLib;
+using System.Diagnostics;
 
 namespace WebApplication1.Controllers
 {
@@ -20,6 +20,7 @@ namespace WebApplication1.Controllers
             _activityLogger = activityLogger;
 
         }
+
 
         public async Task<IActionResult> Index(string searchName, int? companyId, string status)
         {
@@ -46,6 +47,7 @@ namespace WebApplication1.Controllers
             return View(await employees.ToListAsync());
         }
 
+
         public async Task<IActionResult> Create()
         {
             ViewBag.Companies = await _context.Companies
@@ -55,22 +57,23 @@ namespace WebApplication1.Controllers
             return View();
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Employee model)
         {
-            Console.WriteLine(">>> Create POST çağrıldı");
+            // Console.WriteLine(">>> Create POST çağrıldı");
 
-            if (!ModelState.IsValid)
-            {
-                foreach (var modelError in ModelState)
-                {
-                    foreach (var error in modelError.Value.Errors)
-                    {
-                        Console.WriteLine($"Key: {modelError.Key}, Error: {error.ErrorMessage}");
-                    }
-                }
-            }
+            // if (!ModelState.IsValid)
+            // {
+            //     foreach (var modelError in ModelState)
+            //     {
+            //         foreach (var error in modelError.Value.Errors)
+            //         {
+            //             Console.WriteLine($"Key: {modelError.Key}, Error: {error.ErrorMessage}");
+            //         }
+            //     }
+            // }
 
             if (ModelState.IsValid)
             {
@@ -78,11 +81,10 @@ namespace WebApplication1.Controllers
                 {
                     model.CreatedDate = DateTime.UtcNow;
                     var entity = _context.Employees.Add(model).Entity;
-                    Console.WriteLine("returned employee hash: " + entity.GetHashCode());
                     await _context.SaveChangesAsync();
 
                     // LOG EKLENDİ
-                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan oluşturuldu", "Employee", model.Id, null, entity);
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Çalışan oluşturuldu", "Employee", model.Id, null, entity);
 
                     Console.WriteLine("content of entity: " + entity.ActivityLogs.FirstOrDefault()!.Action);
 
@@ -92,8 +94,12 @@ namespace WebApplication1.Controllers
                 catch (Exception ex)
                 {
                     TempData["Error"] = "Çalışan eklenirken bir hata oluştu: " + ex.Message;
+                    Debug.Assert(false);
                 }
             }
+
+
+            TempData["Error"] = "Error at Create()";
 
             // Hata durumunda ViewBag'i tekrar doldur
             ViewBag.Companies = await _context.Companies
@@ -104,34 +110,37 @@ namespace WebApplication1.Controllers
             return View(model);
         }
 
-     [HttpPost]
-public async Task<IActionResult> Delete(int id)
-{
-    try
-    {
-        var emp = await _context.Employees.FindAsync(id);
-        if (emp != null)
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
         {
-            emp.IsActive = false;
-            emp.ActiveTime = DateTimeOffset.UtcNow;
+            try
+            {
+                var emp = await _context.Employees.FindAsync(id);
+                if (emp != null)
+                {
+                    emp.IsActive = false;
+                    emp.ActiveTime = DateTimeOffset.UtcNow;
 
-            var entity = _context.Employees.Update(emp).Entity;
-            await _context.SaveChangesAsync();
+                    var entity = _context.Employees.Update(emp).Entity;
+                    await _context.SaveChangesAsync();
 
-            // LOG EKLENDİ
-            var detail = $"Pasif duruma geçirildi: {emp.FirstName} {emp.LastName}, Email: {emp.Email}";
-            await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Çalışan pasifleştirildi", "Employee", emp.Id, detail, entity);
+                    // LOG EKLENDİ
+                    var detail = $"Pasif duruma geçirildi: {emp.FirstName} {emp.LastName}, Email: {emp.Email}";
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Çalışan pasifleştirildi", "Employee", emp.Id, detail, entity);
 
-            TempData["Success"] = "Çalışan başarıyla pasifleştirildi!";
+                    TempData["Success"] = "Çalışan başarıyla pasifleştirildi!";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Silme işlemi sırasında hata oluştu: " + ex.Message;
+                Debug.Assert(false);
+            }
+
+            return RedirectToAction("Index");
         }
-    }
-    catch (Exception ex)
-    {
-        TempData["Error"] = "Silme işlemi sırasında hata oluştu: " + ex.Message;
-    }
-
-    return RedirectToAction("Index");
-}
 
 
         [HttpGet]
@@ -152,6 +161,7 @@ public async Task<IActionResult> Delete(int id)
             return View(employee);
         }
 
+
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -165,6 +175,7 @@ public async Task<IActionResult> Delete(int id)
             ViewBag.CompanyId = new SelectList(_context.Companies, "Id", "Name", employee.CompanyId);
             return View(employee);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -197,7 +208,7 @@ public async Task<IActionResult> Delete(int id)
 
                     await _context.SaveChangesAsync();
 
-                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(),
+                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id,
                         "Çalışan güncellendi", "Employee", employeeEditForm.Id, null, existingEmployee);
 
                     TempData["Success"] = "Çalışan başarıyla güncellendi!";
@@ -206,8 +217,11 @@ public async Task<IActionResult> Delete(int id)
                 catch (Exception ex)
                 {
                     TempData["Error"] = "Güncelleme hatası: " + ex.Message;
+                    Debug.Assert(false);
                 }
             }
+
+            TempData["Error"] = "Error at Edit()";
 
             // ViewBag tekrar doldurulmalı
             ViewBag.CompanyId = new SelectList(_context.Companies, "Id", "Name", employeeEditForm.CompanyId);

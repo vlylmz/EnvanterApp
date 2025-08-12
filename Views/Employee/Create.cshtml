@@ -21,6 +21,13 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     }
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @(TempData["Success"] ?? "Operation completed successfully.")
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
 
                     <form asp-action="Create" method="post" id="employeeForm">
                         <div class="row">
@@ -67,7 +74,7 @@
                                 <div class="mb-3">
                                     <label asp-for="CompanyId" class="form-label"></label>
                                     <select asp-for="CompanyId" class="form-select"
-                                            asp-items="@(new SelectList(ViewBag.Companies, "Id", "Name"))">
+                                        asp-items="@(new SelectList(ViewBag.Companies, "Id", "Name"))">
                                         <option value="">-- Firma Seçiniz --</option>
                                     </select>
                                     <span asp-validation-for="CompanyId" class="text-danger"></span>
@@ -87,12 +94,12 @@
                             <a asp-action="Index" class="btn btn-secondary me-md-2">
                                 <i class="fas fa-arrow-left"></i> Geri
                             </a>
-                            
-                                <!-- Form inputları burada olacaksa buraya ekle veya sadece buton kalabilir -->
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Kaydet
-                                </button>
-                          
+
+                            <!-- Form inputları burada olacaksa buraya ekle veya sadece buton kalabilir -->
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Kaydet
+                            </button>
+
 
                         </div>
 

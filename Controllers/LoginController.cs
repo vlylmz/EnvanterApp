@@ -27,6 +27,7 @@ namespace WebApplication1.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Index(string email, string password)
         {
             Console.WriteLine("email: " + email + " password: " + password);
@@ -58,6 +59,7 @@ namespace WebApplication1.Controllers
         }
 
 
+        [HttpPost]
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
@@ -67,6 +69,7 @@ namespace WebApplication1.Controllers
 
         [Route("QrRegister")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult QrRegister(string code)
         {
             Console.WriteLine("qrregister code: " + code);
@@ -100,6 +103,7 @@ namespace WebApplication1.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult QrValidate(string code)
         {
             Console.WriteLine("qrvalidate code: " + code);
@@ -153,6 +157,12 @@ namespace WebApplication1.Controllers
                 return RedirectToAction("Index");
             }
 
+            else if (loggedInUser.TotpSecret != null)
+            {
+                Console.WriteLine("user already has 2FA registered");
+                return RedirectToAction("Index");
+            }
+
             HttpContext.Session.TryGetValue("TotpSecretRegisterKey", out var totpSecretRegisterKey);
             if (totpSecretRegisterKey == null)
                 totpSecretRegisterKey = KeyGeneration.GenerateRandomKey(16);
@@ -191,8 +201,10 @@ namespace WebApplication1.Controllers
             return View("NewAUPage", model);
         }
 
+
         [HttpPost]
         [Route("AddAU")]
+        [ValidateAntiForgeryToken]
         public IActionResult AddNewApplicationUser(ApplicationUser model)
         {
             model.print();

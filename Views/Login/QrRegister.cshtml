@@ -18,6 +18,62 @@
 }
 
 <div class="container mt-4">
+    <!-- TempData Error Message Display -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-exclamation-circle me-2 fs-5 mt-1"></i>
+                <div class="flex-grow-1">
+                    <strong>Hata!</strong> @TempData["Error"]
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+
+    <!-- TempData Success Message Display -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-check-circle me-2 fs-5 mt-1"></i>
+                <div class="flex-grow-1">
+                    <strong>Başarılı!</strong> @TempData["Success"]
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+
+    <!-- TempData Warning Message Display -->
+    @if (TempData["Warning"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-exclamation-triangle me-2 fs-5 mt-1"></i>
+                <div class="flex-grow-1">
+                    <strong>Uyarı!</strong> @TempData["Warning"]
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+
+    <!-- TempData Info Message Display -->
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-info-circle me-2 fs-5 mt-1"></i>
+                <div class="flex-grow-1">
+                    <strong>Bilgi!</strong> @TempData["Info"]
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    }
+
     <div class="row">
         <!-- Left side - Instructions -->
         <div class="col-lg-4 mb-4">
@@ -117,24 +173,20 @@
                                     </ul>
                                 </div>
                                 
-                                <!-- Manual entry option -->
-                                <details class="mb-3">
-                                    <summary class="btn btn-link btn-sm text-muted p-0">
-                                        <i class="fas fa-keyboard me-1"></i>
-                                        QR kod tarayamıyor musunuz?
-                                    </summary>
-                                    <div class="alert alert-warning mt-2">
-                                        <p class="small mb-2">
-                                            <strong>Manuel Giriş:</strong> Aşağıdaki kodu uygulamanıza manuel olarak girebilirsiniz:
-                                        </p>
-                                        <div class="text-center">
-                                            <code class="secret-code" id="secretCode">@base32Secret</code>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="copySecret()">
-                                                <i class="fas fa-copy"></i>
-                                            </button>
-                                        </div>
+                                <!-- Manual entry option (no JavaScript copy function) -->
+                                <div class="alert alert-warning">
+                                    <p class="small mb-2">
+                                        <strong>QR kod tarayamıyor musunuz?</strong><br>
+                                        Aşağıdaki kodu uygulamanıza manuel olarak girebilirsiniz:
+                                    </p>
+                                    <div class="text-center">
+                                        <code class="secret-code user-select-all">@base32Secret</code>
                                     </div>
-                                </details>
+                                    <p class="small text-muted mb-0 mt-2">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Kodu seçip kopyalayabilirsiniz (Ctrl+C / Cmd+C)
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -152,9 +204,8 @@
                             Authenticator uygulamanızda görünen 6 haneli kodu girin:
                         </p>
                         
+                        <!-- Using tag helpers for anti-forgery token -->
                         <form asp-action="QrRegister" asp-controller="Login" method="post">
-                            @Html.AntiForgeryToken()
-                            
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-4">
@@ -166,8 +217,10 @@
                                                required 
                                                maxlength="6" 
                                                pattern="[0-9]{6}" 
+                                               title="Lütfen 6 haneli sayı girin"
                                                inputmode="numeric"
-                                               autocomplete="off">
+                                               autocomplete="off"
+                                               autofocus>
                                         <div class="form-text text-center mt-2">
                                             <i class="fas fa-clock me-1"></i>
                                             Kod her 30 saniyede bir yenilenir
@@ -261,7 +314,7 @@
         box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
     }
     
-    /* Secret code styling */
+    /* Secret code styling - make it selectable */
     .secret-code {
         font-family: 'Courier New', monospace;
         font-size: 0.875rem;
@@ -270,17 +323,15 @@
         padding: 0.5rem;
         border: 1px solid #dee2e6;
         border-radius: 0.25rem;
+        display: inline-block;
+    }
+    
+    /* Make text easily selectable */
+    .user-select-all {
+        -webkit-user-select: all;
+        -moz-user-select: all;
+        -ms-user-select: all;
         user-select: all;
-    }
-    
-    /* Details/Summary styling */
-    details summary {
-        cursor: pointer;
-        user-select: none;
-    }
-    
-    details summary::-webkit-details-marker {
-        display: none;
     }
     
     /* Card styling */
@@ -293,6 +344,12 @@
         background-color: #fff;
         border-bottom: 1px solid #dee2e6;
         padding: 1.25rem;
+    }
+    
+    /* Alert styling for TempData */
+    .alert {
+        border: none;
+        border-radius: 0.375rem;
     }
     
     /* Responsive adjustments */
@@ -315,34 +372,4 @@
     }
 </style>
 
-<script>
-    // Copy secret to clipboard
-    function copySecret() {
-        const secretCode = document.getElementById('secretCode').textContent;
-        navigator.clipboard.writeText(secretCode).then(function() {
-            // Show success message
-            const btn = event.target.closest('button');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check"></i>';
-            btn.classList.remove('btn-outline-secondary');
-            btn.classList.add('btn-success');
-            
-            setTimeout(() => {
-                btn.innerHTML = originalHtml;
-                btn.classList.remove('btn-success');
-                btn.classList.add('btn-outline-secondary');
-            }, 2000);
-        }).catch(function() {
-            alert('Kopyalama başarısız oldu.');
-        });
-    }
-    
-    // Focus on code input when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('code_2fa').focus();
-    });
-    
-    // Only allow numbers in the code input
-    document.getElementById('code_2fa').addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
-    });</script>
+<!-- NO JAVASCRIPT AT ALL -->

@@ -12,6 +12,7 @@ using System.Text;
 using System.IO;
 using WebApplication1.Services;
 using WebApplication1.EnvanterLib;
+using System.Diagnostics;
 
 namespace WebApplication1.Controllers
 {
@@ -116,7 +117,7 @@ namespace WebApplication1.Controllers
             return View(itemViewModels);
         }
 
-        // GET: Assignment/AssignmentPage - Zimmet verme sayfası
+
         public async Task<IActionResult> AssignmentPage()
         {
             ViewBag.Companies = await _context.Companies
@@ -130,7 +131,7 @@ namespace WebApplication1.Controllers
             return View();
         }
 
-        // GET: Assignment/ReturnPage - İade alma sayfası
+
         public async Task<IActionResult> ReturnPage()
         {
             ViewBag.Companies = await _context.Companies
@@ -142,8 +143,7 @@ namespace WebApplication1.Controllers
             return View();
         }
 
-        // Firma listesi API
-        [HttpGet]
+
         public async Task<IActionResult> GetCompaniesList()
         {
             try
@@ -163,12 +163,12 @@ namespace WebApplication1.Controllers
             }
             catch (Exception ex)
             {
+                Debug.Assert(false);
                 return Json(new { success = false, message = $"Firma listesi alınırken hata: {ex.Message}" });
             }
         }
 
-        // Firmaya göre çalışan listesi
-        [HttpGet]
+
         public async Task<IActionResult> GetEmployeesByCompany(int companyId)
         {
             try
@@ -195,12 +195,12 @@ namespace WebApplication1.Controllers
             }
             catch (Exception ex)
             {
+                Debug.Assert(false);
                 return Json(new { success = false, message = $"Çalışan listesi alınırken hata: {ex.Message}" });
             }
         }
 
-        // Havuzdaki ürünler
-        [HttpGet]
+
         public async Task<IActionResult> GetAvailableProducts(string productType)
         {
             try
@@ -231,12 +231,12 @@ namespace WebApplication1.Controllers
             }
             catch (Exception ex)
             {
+                Debug.Assert(false);
                 return Json(new { success = false, message = $"Ürün listesi alınırken hata: {ex.Message}" });
             }
         }
 
-        // Zimmetli ürünleri getir (iade için)
-        [HttpGet]
+
         public async Task<IActionResult> GetAssignedProducts(string searchTerm)
         {
             try
@@ -270,11 +270,12 @@ namespace WebApplication1.Controllers
             }
             catch (Exception ex)
             {
+                Debug.Assert(false);
                 return Json(new { success = false, message = $"Zimmetli ürün listesi alınırken hata: {ex.Message}" });
             }
         }
 
-        // ZIMMET VERME İŞLEMİ
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignProduct(int productId, int employeeId, string notes)
@@ -299,7 +300,6 @@ namespace WebApplication1.Controllers
 
                 await _context.SaveChangesAsync();
 
-                // ✅ LOG EKLENDİ
                 var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
                                  $"Kategori: {product.Category}\n" +
                                  $"Zimmet Edilen: {personnelName}\n" +
@@ -320,6 +320,7 @@ namespace WebApplication1.Controllers
             }
             catch (Exception ex)
             {
+                Debug.Assert(false);
                 return Json(new
                 {
                     success = false,
@@ -328,7 +329,7 @@ namespace WebApplication1.Controllers
             }
         }
 
-        // ZIMMET İADE İŞLEMİ
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReturnProduct(int productId, string returnReason, string notes)
@@ -350,18 +351,12 @@ namespace WebApplication1.Controllers
 
                 await _context.SaveChangesAsync();
 
-                // ✅ LOG EKLENDİ
-                string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
+                var detail = $"Ürün: {product.Name} ({product.SystemBarcode})\n" +
                                  $"Kategori: {product.Category}\n" +
                                  $"İade Eden: {previousPersonnel}\n" +
                                  $"İade Nedeni: {returnReason}\n" +
                                  $"İade Tarihi: {DateTime.Now:dd.MM.yyyy HH:mm}";
-                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Zimmet iade alındı", "Item", product.Id, detail);
-                }
+                await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Zimmet iade alındı", "Item", product.Id, detail);
 
                 return Json(new
                 {
@@ -378,6 +373,7 @@ namespace WebApplication1.Controllers
             }
             catch (Exception ex)
             {
+                Debug.Assert(false);
                 return Json(new
                 {
                     success = false,
@@ -386,7 +382,7 @@ namespace WebApplication1.Controllers
             }
         }
 
-        // TOPLU ZIMMET VERME
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BulkAssignProducts(string productIds, int employeeId, string notes)

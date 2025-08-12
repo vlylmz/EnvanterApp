@@ -19,18 +19,19 @@ namespace WebApplication1.Controllers
             _activityLogger = activityLogger;
 
         }
-        // GET: Items
+
+
         public async Task<IActionResult> Index(string searchString, string category)
         {
             ViewBag.Kategoriler = await _context.Items
-                .Where(i => i.IsActive) // 👈 Sadece aktif olanlar
+                //                .Where(i => i.IsActive)
                 .Select(i => i.Category)
                 .Distinct()
                 .OrderBy(k => k)
                 .ToListAsync();
 
             var items = _context.Items
-                .Where(i => i.IsActive) // 👈 Aktif ürünler filtreleniyor
+                //                .Where(i => i.IsActive)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchString))
@@ -51,7 +52,6 @@ namespace WebApplication1.Controllers
         }
 
 
-        // GET: Items/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -72,12 +72,13 @@ namespace WebApplication1.Controllers
             return View(item);
         }
 
-        // GET: Items/Create
+
         public IActionResult Create()
         {
             ViewBag.Kategoriler = GetCategories();
             return View();
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -96,7 +97,6 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    // Barkod kontrolü
                     if (await _context.Items.AnyAsync(i => i.SystemBarcode == item.SystemBarcode))
                     {
                         ModelState.AddModelError("SystemBarcode", "Bu barkod zaten kullanılmaktadır. Lütfen farklı bir barkod giriniz.");
@@ -104,7 +104,6 @@ namespace WebApplication1.Controllers
                         return View(item);
                     }
 
-                    // Oluşturma bilgileri
                     item.CreatedBy = User.Identity!.Name ?? "Bilinmiyor";
                     item.CreatedDate = DateTime.Now;
 
@@ -113,7 +112,6 @@ namespace WebApplication1.Controllers
                     _context.Items.Add(item);
                     await _context.SaveChangesAsync();
 
-                    // LOG EKLENDİ
                     await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Ürün oluşturuldu", "Item", item.Id, null, item);
 
                     TempData["Success"] = "Urun basariyla olusturuldu!";
@@ -131,7 +129,7 @@ namespace WebApplication1.Controllers
             return View(item);
         }
 
-        // GET: Items/Edit/5
+
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -150,6 +148,7 @@ namespace WebApplication1.Controllers
 
             return View(item);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -195,7 +194,6 @@ namespace WebApplication1.Controllers
                     _context.Update(item);
                     await _context.SaveChangesAsync();
 
-                    // LOG EKLENDİ
                     await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Ürün güncellendi", "Item", item.Id, null, item);
 
                     TempData["Success"] = "Urun basariyla guncellendi!";
@@ -216,6 +214,7 @@ namespace WebApplication1.Controllers
                 {
                     Console.WriteLine($"Edit Error: {ex.Message}");
                     TempData["Error"] = "Ürün güncellenirken hata oluştu: " + ex.Message;
+                    Debug.Assert(false);
                 }
             }
 
@@ -224,7 +223,7 @@ namespace WebApplication1.Controllers
             return View(item);
         }
 
-        // GET: Items/Delete/5
+
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -242,10 +241,10 @@ namespace WebApplication1.Controllers
             return View(item);
         }
 
-        // POST: Items/Delete/5
-        [HttpPost, ActionName("Delete")]
+
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
@@ -253,12 +252,11 @@ namespace WebApplication1.Controllers
 
                 if (item != null)
                 {
-                    item.IsActive = false; // 👈 Artık fiziksel silme yok
+                    item.IsActive = false;
                     item.UpdatedDate = DateTime.Now;
-                    item.UpdatedBy = User.Identity?.Name ?? "System";
+                    item.UpdatedBy = User.Identity?.Name ?? "Unknown";
                     await _context.SaveChangesAsync();
 
-                    // LOG EKLENDİ
                     await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Ürün pasif hale getirildi (soft delete)", "Item", item.Id, null, item);
 
                     TempData["Success"] = "Ürün başarıyla pasif hale getirildi!";
@@ -268,12 +266,13 @@ namespace WebApplication1.Controllers
             {
                 Console.WriteLine($"Delete Error: {ex.Message}");
                 TempData["Error"] = "Ürün silinirken hata oluştu: " + ex.Message;
+                Debug.Assert(false);
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Items/AssignToPersonnel/5
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignToPersonnel(int id, string personnel)
@@ -283,10 +282,9 @@ namespace WebApplication1.Controllers
                 var item = await _context.Items.FindAsync(id);
                 if (item != null && !string.IsNullOrEmpty(personnel))
                 {
-                    item.AssignToPersonnel(personnel, User.Identity!.Name ?? "System");
+                    item.AssignToPersonnel(personnel, User.Identity!.Name ?? "Unknown");
                     await _context.SaveChangesAsync();
 
-                    // ✅ LOG EKLENDİ
                     await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, $"Ürün {personnel} adlı personele zimmetlendi", "Item", item.Id, null, item);
 
                     TempData["Success"] = $"Ürün {personnel} adlı personele zimmet verildi!";
@@ -296,11 +294,13 @@ namespace WebApplication1.Controllers
             {
                 Console.WriteLine($"Assign Error: {ex.Message}");
                 TempData["Error"] = "Zimmet verme işleminde hata oluştu: " + ex.Message;
+                Debug.Assert(false);
             }
 
             return RedirectToAction(nameof(Details), new { id = id });
         }
-        // POST: Items/ReturnFromAssignment/5
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReturnFromAssignment(int id)

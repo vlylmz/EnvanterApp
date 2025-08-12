@@ -518,7 +518,7 @@
         @if (Model.ActivityLogs != null && Model.ActivityLogs.Count >= 10)
         {
             <div class="text-center py-2 bg-light">
-                <a asp-controller="ActivityLog" asp-action="Index" asp-route-entityType="Company" asp-route-entityId="@Model.Company.Id" 
+                <a asp-controller="ActivityLog" asp-action="Index" asp-route-entityType="Company" asp-route-entityId="@Model.Company!.Id" 
                    class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-list me-1"></i>Tüm Aktiviteleri Gör
                 </a>

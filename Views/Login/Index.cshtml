@@ -8,6 +8,62 @@
 
 <div class="row justify-content-center">
     <div class="col-lg-5 col-md-7 col-sm-9">
+        <!-- TempData Error Message Display -->
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-3" role="alert">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-exclamation-circle me-2 fs-5 mt-1"></i>
+                    <div class="flex-grow-1">
+                        <strong>Hata!</strong> @TempData["Error"]
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+
+        <!-- TempData Success Message Display -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show shadow-sm mb-3" role="alert">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-check-circle me-2 fs-5 mt-1"></i>
+                    <div class="flex-grow-1">
+                        <strong>Başarılı!</strong> @TempData["Success"]
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+
+        <!-- TempData Warning Message Display -->
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show shadow-sm mb-3" role="alert">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-exclamation-triangle me-2 fs-5 mt-1"></i>
+                    <div class="flex-grow-1">
+                        <strong>Uyarı!</strong> @TempData["Warning"]
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+
+        <!-- TempData Info Message Display -->
+        @if (TempData["Info"] != null)
+        {
+            <div class="alert alert-info alert-dismissible fade show shadow-sm mb-3" role="alert">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-info-circle me-2 fs-5 mt-1"></i>
+                    <div class="flex-grow-1">
+                        <strong>Bilgi!</strong> @TempData["Info"]
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+
         <!-- Login Card -->
         <div class="card login-card shadow">
             <!-- Header -->
@@ -39,7 +95,11 @@
                     </div>
                 }
 
-                <form action="/Login/Index" method="post" id="loginForm">
+                <!-- FIXED: Using ASP.NET Core tag helpers to automatically include anti-forgery token -->
+                <form asp-controller="Login" asp-action="Index" method="post" id="loginForm">
+                    <!-- This anti-forgery token is automatically included when using tag helpers -->
+                    <!-- Alternative: You could also manually add @Html.AntiForgeryToken() if using plain HTML form -->
+                    
                     <div class="form-group mb-3">
                         <label for="email" class="form-label fw-semibold">
                             <i class="fas fa-user text-muted me-1"></i>
@@ -70,6 +130,13 @@
                         </button>
                     </div>
                 </form>
+
+                <!-- Alternative: If you prefer to keep the plain HTML form, use this instead:
+                <form action="/Login/Index" method="post" id="loginForm">
+                    @Html.AntiForgeryToken()
+                    ... rest of your form fields ...
+                </form>
+                -->
             </div>
 
             <!-- Footer -->
@@ -112,6 +179,17 @@
 
     // Focus on email field when page loads
     document.getElementById('email').focus();
+
+    // Auto-dismiss TempData alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert:not(.alert-danger)'); // Don't auto-dismiss error alerts
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
+        });
+    });
 </script>
 
 <style>
@@ -206,17 +284,43 @@
         color: #212529;
     }
 
-    /* Alert */
+    /* Alerts */
+    .alert {
+        border: none;
+        border-radius: 0.375rem;
+    }
+    
     .alert-danger {
         border-left: 4px solid #dc3545;
         background: #f8d7da;
         color: #721c24;
-        border-radius: 0.375rem;
+    }
+    
+    .alert-success {
+        border-left: 4px solid #198754;
+        background: #d1e7dd;
+        color: #0a3622;
+    }
+    
+    .alert-warning {
+        border-left: 4px solid #fd7e14;
+        background: #fff3cd;
+        color: #664d03;
+    }
+    
+    .alert-info {
+        border-left: 4px solid #0dcaf0;
+        background: #cff4fc;
+        color: #055160;
     }
 
     /* Shadow */
     .shadow {
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
     }
 
     /* Responsive */

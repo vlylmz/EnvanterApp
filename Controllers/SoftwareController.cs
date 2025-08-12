@@ -1,11 +1,9 @@
-// loglar eklendi tamamen tamamlandı
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 using System.Diagnostics;
 using WebApplication1.Data;
 using WebApplication1.Services;
-using System.Security.Claims;
 using WebApplication1.EnvanterLib;
 
 
@@ -23,12 +21,11 @@ namespace WebApplication1.Controllers
 
         }
 
-        // Software listesi (GET)
-        [HttpGet]
+
         public async Task<IActionResult> Index()
         {
             var softwareList = await _context.Software
-                .Where(s => s.IsActive)
+                //              .Where(s => s.IsActive)
                 .Include(s => s.AssignedEmployee)
                 .Include(s => s.Company)
                 .ToListAsync();
@@ -44,15 +41,16 @@ namespace WebApplication1.Controllers
             return View(softwareList);
         }
 
-        // Software ekleme sayfası (GET)
-        [HttpGet]
+
         public async Task<IActionResult> Create()
         {
             await LoadDropdownData();
             return View();
         }
 
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Software software)
         {
             if (ModelState.IsValid)
@@ -69,17 +67,16 @@ namespace WebApplication1.Controllers
                 var detail = LogHelper.GetSummary(software);
                 await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Yazılım oluşturuldu", "Software", software.Id, detail, software);
 
-                TempData["SuccessMessage"] = "Yazılım lisansı başarıyla eklendi.";
+                TempData["Success"] = "Yazılım lisansı başarıyla eklendi.";
                 return RedirectToAction("Index");
             }
 
+            TempData["Error"] = "error at Create()";
             await LoadDropdownData();
             return View(software);
         }
 
 
-        // Software düzenleme sayfası (GET)
-        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var software = await _context.Software
@@ -89,14 +86,16 @@ namespace WebApplication1.Controllers
 
             if (software == null)
             {
-                TempData["ErrorMessage"] = "Yazılım lisansı bulunamadı.";
+                TempData["Error"] = "Yazılım lisansı bulunamadı.";
                 return RedirectToAction("Index");
             }
 
             return View(software);
         }
 
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Software software)
         {
             if (ModelState.IsValid)
@@ -104,7 +103,7 @@ namespace WebApplication1.Controllers
                 var original = await _context.Software.AsNoTracking().FirstOrDefaultAsync(s => s.Id == software.Id);
                 if (original == null)
                 {
-                    TempData["ErrorMessage"] = "Yazılım bulunamadı.";
+                    TempData["Error"] = "Yazılım bulunamadı.";
                     return RedirectToAction("Index");
                 }
 
@@ -119,40 +118,41 @@ namespace WebApplication1.Controllers
                 var detail = LogHelper.GetDifferences(original, software);
                 await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Yazılım güncellendi", "Software", software.Id, detail, software);
 
-                TempData["SuccessMessage"] = "Yazılım lisansı başarıyla güncellendi.";
+                TempData["Success"] = "Yazılım lisansı başarıyla güncellendi.";
                 return RedirectToAction("Index");
             }
 
+            TempData["Error"] = "error at Edit()";
             return View(software);
         }
-      [HttpPost]
-public async Task<IActionResult> Delete(int id)
-{
-    var software = await _context.Software.FindAsync(id);
-    if (software == null)
-    {
-        TempData["ErrorMessage"] = "Yazılım lisansı bulunamadı.";
-        return RedirectToAction("Index");
-    }
-
-    // Silmek yerine pasife al
-    software.IsActive = false;
-    software.UpdatedDate = DateTime.Now;
-
-    await _context.SaveChangesAsync();
-
-    // LOG
-    var detail = LogHelper.GetSummary(software);
-    await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Yazılım silindi (pasife alındı)", "Software", software.Id, detail, software);
-
-    TempData["SuccessMessage"] = "Yazılım başarıyla pasif duruma alındı.";
-    return RedirectToAction("Index");
-}
 
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var software = await _context.Software.FindAsync(id);
+            if (software == null)
+            {
+                TempData["Error"] = "Yazılım lisansı bulunamadı.";
+                return RedirectToAction("Index");
+            }
 
-        // Software detay sayfası (GET)
-        [HttpGet]
+            // Silmek yerine pasife al
+            software.IsActive = false;
+            software.UpdatedDate = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            // LOG
+            var detail = LogHelper.GetSummary(software);
+            await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Yazılım silindi (pasife alındı)", "Software", software.Id, detail, software);
+
+            TempData["Success"] = "Yazılım başarıyla pasif duruma alındı.";
+            return RedirectToAction("Index");
+        }
+
+
         public async Task<IActionResult> Details(int id)
         {
             var software = await _context.Software
@@ -164,7 +164,7 @@ public async Task<IActionResult> Delete(int id)
 
             if (software == null)
             {
-                TempData["ErrorMessage"] = "Yazılım lisansı bulunamadı.";
+                TempData["Error"] = "Yazılım lisansı bulunamadı.";
                 return RedirectToAction("Index");
             }
 
@@ -307,7 +307,7 @@ public async Task<IActionResult> Delete(int id)
                 SoftwareStatus.Expired => AlertColor.Red,
                 SoftwareStatus.Approaching => AlertColor.Yellow,
                 SoftwareStatus.Active => AlertColor.Green,
-                _ => AlertColor.Green
+                _ => AlertColor.Red
             };
         }
 
@@ -317,7 +317,7 @@ public async Task<IActionResult> Delete(int id)
             var companies = await _context.Companies
                 .OrderBy(c => c.Name)
                 .Select(c => new { c.Id, c.Name })
-                .ToListAsync(); 
+                .ToListAsync();
             ViewBag.Companies = companies;
 
             // Çalışanları yükle

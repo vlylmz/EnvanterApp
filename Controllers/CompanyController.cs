@@ -5,9 +5,7 @@ using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.Services;
 using WebApplication1.ViewModels;
-using System.Security.Claims;
 using WebApplication1.EnvanterLib;
-using Microsoft.Identity.Client;
 using System.Diagnostics;
 
 // Bu sınıf, şirket envanterini yönetmek için gerekli işlemleri içerir LOGLAMA EKLENMİŞTİR
@@ -26,6 +24,7 @@ namespace WebApplication1.Controllers
             _activityLogger = activityLogger;
 
         }
+
 
         // Listele
         public async Task<IActionResult> Index(string search, string status)
@@ -55,6 +54,7 @@ namespace WebApplication1.Controllers
             return View(companies);
         }
 
+
         // Detayları gösterme
         public async Task<IActionResult> Details(int id)
         {
@@ -73,21 +73,19 @@ namespace WebApplication1.Controllers
                 Computers = await _context.Computers.Where(c => c.CompanyId == id).ToListAsync(),
                 Software = await _context.Software.Where(s => s.CompanyId == id).ToListAsync(),
                 Supplies = await _context.Supplies.Where(s => s.CompanyId == id).ToListAsync(),
-                /* ActivityLogs = await _context.ActivityLogs
-                     .Where(l => l.EntityType == "Company" && l.EntityId == id)
-                     .Include(l => l.User)
-                     .OrderByDescending(l => l.CreatedDate)
-                     .ToListAsync()*/
                 ActivityLogs = company.ActivityLogs
-            };            
+            };
 
             return View(viewModel); // ← sadece bunu düzelt!
         }
+
+
         // Ekle (GET)
         public IActionResult Create()
         {
             return View();
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -95,11 +93,8 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                Console.WriteLine("valid model passed to create(model)");
                 model.CreatedDate = DateTime.Now;
                 var entity = _context.Companies.Add(model).Entity;
-                Debug.Assert(entity != null);
-
                 var result = await _context.SaveChangesAsync();
 
                 if (result > 0)
@@ -125,6 +120,7 @@ namespace WebApplication1.Controllers
             return View(model);
         }
 
+
         // Güncelle (GET)
         public async Task<IActionResult> Edit(int id)
         {
@@ -134,6 +130,8 @@ namespace WebApplication1.Controllers
 
             return View(company);
         }
+
+
         // Güncelle (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -151,11 +149,10 @@ namespace WebApplication1.Controllers
                         return NotFound();
 
                     model.UpdatedDate = DateTime.Now;
-                    LogHelper.GetDifferences(original, model);
+                    var detail = LogHelper.GetDifferences(original, model);
                     _context.Entry(original).CurrentValues.SetValues(model);
                     await _context.SaveChangesAsync();
 
-                    var detail = LogHelper.GetDifferences(original, model);
                     await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Firma güncellendi", "Company", model.Id, detail, original);
 
                     TempData["Success"] = "Şirket başarıyla güncellendi.";
@@ -172,43 +169,30 @@ namespace WebApplication1.Controllers
 
             return View(model);
         }
+
+
         private bool CompanyExists(int id)
         {
             return _context.Companies.Any(e => e.Id == id);
         }
 
 
-        // Sil (GET)
-        public async Task<IActionResult> Delete(int id)
-        {
-            var company = await _context.Companies.FindAsync(id);
-            if (company == null)
-                return NotFound();
-
-            return View(company);
-        }
-
         // Sil (POST)
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var company = await _context.Companies.FindAsync(id);
             if (company != null)
             {
                 company.IsActive = false;
                 company.UpdatedDate = DateTime.Now;
-                company.UpdatedBy = this.GetUserFromHttpContext()?.Email ?? "System";
+                company.UpdatedBy = this.GetUserFromHttpContext()?.Email ?? "Unknown";
 
                 await _context.SaveChangesAsync();
 
-                string? userId = this.GetUserFromHttpContext()?.Id.ToString();
-
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    var detail = LogHelper.GetSummary(company);
-                    await _activityLogger.LogAsync(this.GetUserFromHttpContext()?.Id ?? throw new Exception(), "Firma pasife alındı", "Company", id, detail, company);
-                }
+                var detail = LogHelper.GetSummary(company);
+                await _activityLogger.LogAsync(this.GetUserFromHttpContext()!.Id, "Firma pasife alındı", "Company", id, detail, company);
 
                 HttpContext.Session.SetString("successMessage", "Şirket başarıyla pasife alındı.");
             }

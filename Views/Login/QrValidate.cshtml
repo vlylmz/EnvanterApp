@@ -8,6 +8,62 @@
 
 <div class="row justify-content-center">
     <div class="col-lg-5 col-md-7 col-sm-9">
+        <!-- TempData Error Message Display -->
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-3" role="alert">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-exclamation-circle me-2 fs-5 mt-1"></i>
+                    <div class="flex-grow-1">
+                        <strong>Hata!</strong> @TempData["Error"]
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+
+        <!-- TempData Success Message Display -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show shadow-sm mb-3" role="alert">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-check-circle me-2 fs-5 mt-1"></i>
+                    <div class="flex-grow-1">
+                        <strong>Başarılı!</strong> @TempData["Success"]
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+
+        <!-- TempData Warning Message Display -->
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show shadow-sm mb-3" role="alert">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-exclamation-triangle me-2 fs-5 mt-1"></i>
+                    <div class="flex-grow-1">
+                        <strong>Uyarı!</strong> @TempData["Warning"]
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+
+        <!-- TempData Info Message Display -->
+        @if (TempData["Info"] != null)
+        {
+            <div class="alert alert-info alert-dismissible fade show shadow-sm mb-3" role="alert">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-info-circle me-2 fs-5 mt-1"></i>
+                    <div class="flex-grow-1">
+                        <strong>Bilgi!</strong> @TempData["Info"]
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+
         <!-- QR Validate Card -->
         <div class="card login-card shadow">
             <!-- Header -->
@@ -51,7 +107,10 @@
                     </div>
                 </div>
 
-                <form action="/Login/QrValidate" method="post">
+                <!-- FIXED: Using ASP.NET Core tag helpers to automatically include anti-forgery token -->
+                <form asp-controller="Login" asp-action="QrValidate" method="post">
+                    <!-- Anti-forgery token is automatically included with tag helpers -->
+                    
                     <div class="form-group mb-4">
                         <label for="code_2fa" class="form-label fw-semibold">
                             <i class="fas fa-key text-muted me-1"></i>
@@ -66,12 +125,19 @@
                     </div>
 
                     <div class="d-grid mb-3">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
                             <i class="fas fa-sign-in-alt me-2"></i>
                             Giriş Yap
                         </button>
                     </div>
                 </form>
+
+                <!-- Alternative: If you prefer to keep the plain HTML form, use this instead:
+                <form action="/Login/QrValidate" method="post">
+                    @Html.AntiForgeryToken()
+                    ... rest of your form fields ...
+                </form>
+                -->
             </div>
 
             <!-- Footer -->
@@ -99,15 +165,6 @@
     </div>
 </div>
 
-<script>
-    // Focus on code input when page loads
-    document.getElementById('code_2fa').focus();
-    
-    // Only allow numbers in the code input
-    document.getElementById('code_2fa').addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
-    });
-</script>
 
 <style>
     /* Clean, minimal CSS */
@@ -192,20 +249,37 @@
         border-color: #0a58ca;
     }
 
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
     /* Alerts */
     .alert {
         border-radius: 0.375rem;
-        border-left: 4px solid;
+        border: none;
     }
 
     .alert-danger {
-        border-left-color: #dc3545;
+        border-left: 4px solid #dc3545;
         background: #f8d7da;
         color: #721c24;
     }
 
+    .alert-success {
+        border-left: 4px solid #198754;
+        background: #d1e7dd;
+        color: #0a3622;
+    }
+
+    .alert-warning {
+        border-left: 4px solid #fd7e14;
+        background: #fff3cd;
+        color: #664d03;
+    }
+
     .alert-info {
-        border-left-color: #0dcaf0;
+        border-left: 4px solid #0dcaf0;
         background: #d1ecf1;
         color: #0c5460;
     }
@@ -220,6 +294,10 @@
     /* Shadow */
     .shadow {
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
     }
 
     /* Responsive */

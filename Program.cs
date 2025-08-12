@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
@@ -7,7 +8,6 @@ using WebApplication1.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -25,7 +25,13 @@ builder.Services.AddSession(options =>
     options.Cookie.SameSite = SameSiteMode.Strict;
 });
 
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+});
+
 var app = builder.Build();
+
 
 if (!app.Environment.IsDevelopment())
 {
@@ -42,11 +48,9 @@ app.UseSession();
 
 app.UseMiddleware<SessionCheckMiddleware>();
 
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Login}/{action=Index}");
-
 
 using (var dbC = app.Services.CreateScope().ServiceProvider.GetRequiredService<AppDbContext>())
 {
@@ -63,10 +67,11 @@ using (var dbC = app.Services.CreateScope().ServiceProvider.GetRequiredService<A
             CreatedDate = DateTime.Now,
             Password = "manisa"
         };
-        
+
         dbC.ApplicationUsers.Add(user);
         dbC.SaveChanges();
     }
 }
+
 
 app.Run();
