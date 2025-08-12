@@ -148,6 +148,77 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Check for TempData messages and show appropriate popups
+            @if (TempData["Success"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Başarılı!',
+                    text: '@Html.Raw(TempData["Success"])',
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#198754',
+                    customClass: {
+                        confirmButton: 'btn btn-success'
+                    },
+                    buttonsStyling: false,
+                    timer: 5000,
+                    timerProgressBar: true
+                });
+                </text>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Hata!',
+                    text: '@Html.Raw(TempData["Error"])',
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#dc3545',
+                    customClass: {
+                        confirmButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                });
+                </text>
+            }
+
+            @if (TempData["Warning"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Uyarı!',
+                    text: '@Html.Raw(TempData["Warning"])',
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#ffc107',
+                    customClass: {
+                        confirmButton: 'btn btn-warning'
+                    },
+                    buttonsStyling: false
+                });
+                </text>
+            }
+
+            @if (TempData["Info"] != null)
+            {
+                <text>
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Bilgi',
+                    text: '@Html.Raw(TempData["Info"])',
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#0dcaf0',
+                    customClass: {
+                        confirmButton: 'btn btn-info'
+                    },
+                    buttonsStyling: false
+                });
+                </text>
+            }
+
             const form = document.getElementById('assignmentForm');
             const submitBtn = document.getElementById('submitBtn');
 
@@ -162,7 +233,12 @@
                         icon: 'warning',
                         title: 'Uyarı',
                         text: 'Lütfen bir çalışan seçin.',
-                        confirmButtonText: 'Tamam'
+                        confirmButtonText: 'Tamam',
+                        confirmButtonColor: '#ffc107',
+                        customClass: {
+                            confirmButton: 'btn btn-warning'
+                        },
+                        buttonsStyling: false
                     });
                     return;
                 }
