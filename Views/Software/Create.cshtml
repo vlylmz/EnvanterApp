@@ -5,6 +5,78 @@
 }
 
 <div class="container-fluid">
+    <!-- TempData Error Message Display -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-exclamation-circle me-2 fs-5 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <strong>Hata!</strong> @TempData["Error"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- TempData Success Message Display -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-check-circle me-2 fs-5 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <strong>Başarılı!</strong> @TempData["Success"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- TempData Warning Message Display -->
+    @if (TempData["Warning"] != null)
+    {
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-exclamation-triangle me-2 fs-5 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <strong>Uyarı!</strong> @TempData["Warning"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- TempData Info Message Display -->
+    @if (TempData["Info"] != null)
+    {
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-info-circle me-2 fs-5 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <strong>Bilgi!</strong> @TempData["Info"]
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -171,6 +243,18 @@
     </div>
 </div>
 
+<!-- Custom Styles for Alerts -->
+<style>
+    .alert {
+        border: none;
+        border-radius: 0.375rem;
+    }
+    
+    .alert-dismissible .btn-close {
+        padding: 0.5rem;
+    }
+</style>
+
 <!-- Validation Scripts -->
 <script>
 // Bootstrap form validation
@@ -233,6 +317,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     purchaseDateInput.addEventListener('change', calculateExpiryDate);
     durationSelect.addEventListener('change', calculateExpiryDate);
+    
+    // Auto-dismiss alerts after 5 seconds
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }, 5000);
+    });
 });
 </script>
 
