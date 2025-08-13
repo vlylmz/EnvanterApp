@@ -1,5 +1,4 @@
 ﻿
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Models;
 
@@ -19,5 +18,6 @@ namespace WebApplication1.Data
         public DbSet<ItemModel> Items { get; set; }
         public DbSet<ActivityLog> ActivityLogs { get; set; }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
     }
 }

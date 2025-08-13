@@ -508,6 +508,26 @@ namespace WebApplication1.Migrations
                     b.ToTable("Items");
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Unread")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.Software", b =>
                 {
                     b.Property<int>("Id")
