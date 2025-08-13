@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
-using System.Text;
 using WebApplication1.Services;
 using WebApplication1.EnvanterLib;
+using System.Diagnostics;
 namespace WebApplication1.Controllers
 {
     public class PoolController : Controller
@@ -18,7 +18,7 @@ namespace WebApplication1.Controllers
             _activityLogger = activityLogger;
         }
 
-        // GET: Pool
+
         public async Task<IActionResult> Index(string search, string category, int? companyId, bool showOnlyAvailable = false)
         {
             try
@@ -118,12 +118,13 @@ namespace WebApplication1.Controllers
             }
             catch (Exception ex)
             {
+                Debug.Assert(false);
                 TempData["Error"] = "Havuz envanteri yüklenirken bir hata oluştu: " + ex.Message;
                 return View(new List<Computer>());
             }
         }
 
-        // GET: Pool/AssignMultiple
+
         public async Task<IActionResult> AssignMultiple(string ids)
         {
             try
@@ -162,12 +163,13 @@ namespace WebApplication1.Controllers
             }
             catch (Exception ex)
             {
+                Debug.Assert(false);
                 TempData["Error"] = "Zimmetleme sayfası yüklenirken hata oluştu: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
 
-        // POST: Pool/AssignMultiple
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignMultiple(List<int> computerIds, int employeeId, DateTime assignmentDate, string? notes)
@@ -212,7 +214,6 @@ namespace WebApplication1.Controllers
                     computer.LastUpdatedDate = DateTime.UtcNow;
                     computer.LastUpdatedBy = User.Identity?.Name ?? "System";
 
-                    // ✅ LOG EKLENDİ
                     var detail = $"Bilgisayar: {computer.Name} ({computer.AssetTag})\n" +
                                      $"Firma: {companyName}\n" +
                                      $"Zimmetlenen: {fullName} (ID: {employee.Id})\n" +
@@ -227,15 +228,13 @@ namespace WebApplication1.Controllers
             }
             catch (Exception ex)
             {
+                Debug.Assert(false);
                 TempData["Error"] = "Zimmetleme işlemi sırasında hata oluştu: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
 
 
-
-
-        // Helper method for status display
         private string GetStatusDisplayName(ComputerStatus status)
         {
             return status switch
