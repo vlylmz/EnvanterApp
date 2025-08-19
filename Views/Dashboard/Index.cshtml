@@ -1,0 +1,483 @@
+@model WebApplication1.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // localhost/* linkleri için taban adres
+    var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var quick = new [] {
+        new { Title = "Company",      Url = $"{baseUrl}/Company/Index",                Icon = "fa-building" },
+        new { Title = "Computers",    Url = $"{baseUrl}/Computers/Index",              Icon = "fa-desktop" },
+        new { Title = "Employee",     Url = $"{baseUrl}/Employee/Index",               Icon = "fa-users" },
+        new { Title = "Software",     Url = $"{baseUrl}/Software/Index",               Icon = "fa-layer-group" },
+        new { Title = "Items",        Url = $"{baseUrl}/Items/Index",                  Icon = "fa-boxes-stacked" },
+        new { Title = "Pool",         Url = $"{baseUrl}/Pool/Index",                   Icon = "fa-warehouse" },
+        new { Title = "Assignment",   Url = $"{baseUrl}/Assignment/Index",             Icon = "fa-handshake" },
+        new { Title = "ActivityLogs", Url = $"{baseUrl}/ActivityLogs/Index",           Icon = "fa-clock-rotate-left" }
+    };
+}
+
+<style>
+    .dashboard-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.2s ease;
+        background-color: #fff;
+        overflow: hidden;
+    }
+    
+    .dashboard-card:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #30236a 100%) !important;
+        color: white !important;
+        border: none !important;
+        font-weight: 600;
+        padding: 1rem 1.5rem;
+        border-bottom: none;
+    }
+
+    .table-modern { 
+        border-radius: 8px; 
+        overflow: hidden; 
+        border: none;
+    }
+    
+    .table thead th {
+        background-color: #f8f9fc; 
+        border: none; 
+        font-weight: 600; 
+        color: #5a5c69; 
+        padding: 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .table tbody td {
+        padding: 0.75rem 1rem; 
+        border-color: #e3e6f0; 
+        vertical-align: middle;
+        border-left: none;
+        border-right: none;
+    }
+    
+    .table tbody tr:hover { 
+        background-color: #f8f9fc; 
+    }
+    
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .badge-entity { 
+        padding: 0.4rem 0.8rem; 
+        border-radius: 20px; 
+        font-size: 0.75rem; 
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .entity-computer { background-color: #6f42c1; color: #fff; }
+    .entity-software { background-color: #e83e8c; color: #fff; }
+    .entity-supply { background-color: #fd7e14; color: #fff; }
+    .entity-assignment { background-color: #20c997; color: #fff; }
+    .entity-default { background-color: #6c757d; color: #fff; }
+
+    .user-avatar {
+        width: 32px; 
+        height: 32px; 
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white; 
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center;
+        font-size: 12px; 
+        font-weight: 600; 
+        margin-right: 8px;
+        flex-shrink: 0;
+    }
+    
+    .entity-id {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        background-color: #f1f3f4; 
+        padding: 4px 8px; 
+        border-radius: 4px; 
+        font-size: 0.8rem; 
+        color: #5f6368;
+        font-weight: 500;
+    }
+
+    /* Hızlı Erişim Kartları */
+    .quick-card { 
+        height: 100%;
+        cursor: pointer;
+    }
+    
+    .quick-card .card-body { 
+        padding: 1.25rem; 
+    }
+    
+    .quick-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .quick-card i { 
+        opacity: 0.7; 
+        color: #667eea;
+    }
+    
+    .quick-card .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+    }
+    
+    .quick-card .card-subtitle {
+        font-size: 0.75rem;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Chart containers */
+    .chart-container {
+        position: relative;
+        height: 360px;
+        padding: 20px;
+    }
+
+    /* Responsive improvements */
+    @@media (max-width: 768px) {
+        .chart-container {
+            height: 280px;
+            padding: 15px;
+        }
+        
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+        
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            font-size: 10px;
+        }
+    }
+
+    /* Loading state */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #718096;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+    
+    .quick-card i { color: #ff0000; opacity: .9; }
+</style>
+
+<div class="container-fluid">
+    <!-- Hızlı Erişim -->
+    <div class="row g-4 mb-4">
+        @foreach (var item in quick)
+        {
+            <div class="col-12 col-sm-6 col-lg-3">
+                <a class="text-decoration-none" href="@item.Url" title="@item.Title sayfasına git">
+                    <div class="card dashboard-card quick-card">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="card-subtitle">@item.Title</div>
+                                <div class="card-title">@item.Title Yönetimi</div>
+                            </div>
+                            <i class="fas @item.Icon fa-2x"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- Grafikler -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="card dashboard-card h-100">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-2"></i>Son 30 Gün Zimmet Trend
+                </div>
+                <div class="card-body p-0">
+                    <div class="chart-container">
+                        <canvas id="assignmentsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card dashboard-card h-100">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-2"></i>Havuz Dağılımı (Firma Bazlı)
+                </div>
+                <div class="card-body p-0">
+                    <div class="chart-container">
+                        <canvas id="poolChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son İşlemler -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <span><i class="fas fa-history me-2"></i>Son İşlemler</span>
+                    <small class="opacity-75">Son 50 kayıt</small>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model?.RecentActivities != null && Model.RecentActivities.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-modern mb-0">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-calendar-alt me-1"></i>Tarih</th>
+                                        <th><i class="fas fa-user me-1"></i>Kullanıcı</th>
+                                        <th><i class="fas fa-cog me-1"></i>İşlem</th>
+                                        <th><i class="fas fa-tag me-1"></i>Tip</th>
+                                        <th><i class="fas fa-hashtag me-1"></i>ID</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var activity in Model.RecentActivities)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="text-muted small">
+                                                    @activity.CreatedDate.ToLocalTime().ToString("dd.MM.yyyy")
+                                                </div>
+                                                <div class="fw-semibold">
+                                                    @activity.CreatedDate.ToLocalTime().ToString("HH:mm")
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="user-avatar">
+                                                        @(activity.UserName?.Length >= 2 ? activity.UserName.Substring(0, 2).ToUpper() : 
+                                                          !string.IsNullOrEmpty(activity.UserName) ? activity.UserName.Substring(0, 1).ToUpper() : "?")
+                                                    </div>
+                                                    <span class="fw-medium">@(activity.UserName ?? "Bilinmeyen")</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="fw-medium">@(activity.Action ?? "N/A")</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-entity @(GetEntityClass(activity.EntityType))">
+                                                    @(activity.EntityType ?? "Unknown")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="entity-id">#@(activity.EntityId.ToString() ?? "0")</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h5>Henüz işlem kaydı yok</h5>
+                            <p class="text-muted">Sistem kullanıldıkça işlemler burada görünecektir.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Modern Chart.js styling
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+        Chart.defaults.color = '#6c757d';
+        Chart.defaults.borderColor = '#e3e6f0';
+
+        // Null check ve default değerler
+        const hasAssignmentData = @Html.Raw(Model?.AssignmentsTrend != null && Model.AssignmentsTrend.Any() ? "true" : "false");
+        const hasPoolData = @Html.Raw(Model?.PoolByCompany != null && Model.PoolByCompany.Any() ? "true" : "false");
+
+        // Line Chart: Zimmet Trend
+        if (hasAssignmentData) {
+            const trendLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AssignmentsTrend?.Select(x => x.date.ToString("dd/MM")) ?? new string[]{}));
+            const trendData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AssignmentsTrend?.Select(x => x.count) ?? new int[]{}));
+
+            new Chart(document.getElementById('assignmentsChart'), {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'Zimmet Sayısı',
+                        data: trendData,
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderColor: '#667eea',
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: { 
+                                usePointStyle: true, 
+                                padding: 20,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            cornerRadius: 8,
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { size: 11 } }
+                        },
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            ticks: { font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('assignmentsChart').style.display = 'none';
+            document.querySelector('#assignmentsChart').closest('.chart-container').innerHTML = 
+                '<div class="empty-state"><i class="fas fa-chart-line"></i><h6>Veri bulunamadı</h6><p>Zimmet verileri yüklendiğinde grafik burada görünecektir.</p></div>';
+        }
+
+        // Doughnut Chart: Havuz Dağılımı
+        if (hasPoolData) {
+            const poolLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PoolByCompany?.Keys.ToList() ?? new List<string>()));
+            const poolData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PoolByCompany?.Values.ToList() ?? new List<int>()));
+
+            new Chart(document.getElementById('poolChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: poolLabels,
+                    datasets: [{
+                        data: poolData,
+                        backgroundColor: [
+                            '#667eea', '#f093fb', '#4facfe', '#43e97b',
+                            '#fa709a', '#ffecd2', '#a8edea', '#d299c2',
+                            '#fccb90', '#d57eeb', '#70a1ff', '#5f27cd'
+                        ],
+                        borderWidth: 0,
+                        hoverBorderWidth: 3,
+                        hoverBorderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            position: 'bottom', 
+                            labels: { 
+                                usePointStyle: true, 
+                                padding: 15,
+                                font: { size: 11 }
+                            } 
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            cornerRadius: 8,
+                            padding: 12,
+                            callbacks: {
+                                label: function (context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ${context.parsed} (%${percentage})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('poolChart').style.display = 'none';
+            document.querySelector('#poolChart').closest('.chart-container').innerHTML = 
+                '<div class="empty-state"><i class="fas fa-chart-pie"></i><h6>Veri bulunamadı</h6><p>Havuz verileri yüklendiğinde grafik burada görünecektir.</p></div>';
+        }
+
+        // Sayfa yüklendiğinde animasyonlar
+        document.addEventListener('DOMContentLoaded', function() {
+            // Kartlara sıralı animasyon ekle
+            const cards = document.querySelectorAll('.dashboard-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+}
+
+@functions {
+    private string GetEntityClass(string entityType)
+    {
+        return entityType switch
+        {
+            "Computer" => "entity-computer",
+            "Software" => "entity-software",
+            "Supply" => "entity-supply",
+            "Items" => "entity-supply", // Items için Supply rengini kullan
+            "Assignment" => "entity-assignment",
+            _ => "entity-default"
+        };
+    }
+}

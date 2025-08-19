@@ -20,7 +20,7 @@ public class SessionCheckMiddleware
         if
         (
             EnvanterLib.GetUserFromHttpContext(context) != null ||
-            (controller == "login" && (action == "index" || action == "qrvalidate"))
+            (controller == "login" && (action == "ındex" || action == "qrvalidate"))
         )
         {
             await _next(context);
