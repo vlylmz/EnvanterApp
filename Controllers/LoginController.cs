@@ -20,7 +20,7 @@ namespace WebApplication1.Controllers
             if (this.GetUserFromHttpContext() != null)
             {
                 Console.WriteLine("user is already logged in, redirecting to home");
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Dashboard");
             }
             return View();
         }
@@ -49,7 +49,7 @@ namespace WebApplication1.Controllers
                 {
                     Console.WriteLine("user has no 2FA enabled, logging in directly");
                     this.SaveUserToHttpContext(userResult);
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Dashboard");
                 }
             }
 
@@ -91,7 +91,7 @@ namespace WebApplication1.Controllers
                 context.Update(loggedInUser);
                 context.SaveChanges();
                 HttpContext.Session.Remove("TotpSecretRegisterKey");
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Dashboard");
             }
             else
             {
@@ -108,7 +108,7 @@ namespace WebApplication1.Controllers
         {
             Console.WriteLine("qrvalidate code: " + code);
             if (CheckIfAlreadyLoggedIn())
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Dashboard");
 
             var user = this.GetTwoFactorHoldUser();
             if (user == null)
@@ -122,7 +122,7 @@ namespace WebApplication1.Controllers
             {
                 this.SaveUserToHttpContext(user);
                 this.RemoveTwoFactorHoldUser();
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Dashboard");
             }
 
             ViewBag.Error = "wrong 2FA code, right was: " + trueTotp;
@@ -133,7 +133,7 @@ namespace WebApplication1.Controllers
         public IActionResult QrValidate()
         {
             if (CheckIfAlreadyLoggedIn())
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Dashboard");
 
             var user = this.GetTwoFactorHoldUser();
             if (user == null)
@@ -218,7 +218,7 @@ namespace WebApplication1.Controllers
 
             context.ApplicationUsers.Add(model);
             context.SaveChangesAsync();
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Dasboard");
         }
 
     }
