@@ -1,4 +1,4 @@
-# EnvanterApp
+# EnvanterApp — Envanter Yönetim Sistemi
 
 Kurum içi envanter süreçlerini desteklemek için geliştirilmiş bir envanter yönetim web uygulaması.
 
@@ -21,3 +21,12 @@ Kurum içi envanter süreçlerini desteklemek için geliştirilmiş bir envanter
 1. Projeyi klonlayın:
    ```bash
    git clone https://github.com/vlylmz/EnvanterApp.git
+Visual Studio ile açın.
+appsettings.json dosyasında veritabanı bağlantı bilgisini kendi ortamınıza göre güncelleyin.
+Migration ve veritabanını oluşturun:
+   dotnet ef database update
+Uygulamayı çalıştırın:
+   dotnet run
+Notlar
+İlk kurulumda rol ve başlangıç kullanıcıları oluşturulacak şekilde yapılandırma yapılmıştır.
+Geliştirme ortamı için bağlantı ayarlarını kendi SQL Server kurulumunuza göre düzenleyin.
